@@ -68,172 +68,169 @@ crashlytics-build.properties
 # Packed Addressables
 /[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
 
-# Temporary auto-generated Android Assets
-/[Aa]ssets/[Ss]treamingAssets/aa.meta
-/[Aa]ssets/[Ss]treamingAssets/aa/*
-WindowsBuild/UnityPlayer.dll
-WindowsBuild/UnityCrashHandler64.exe
-WindowsBuild/MonoBleedingEdge/etc/mono/mconfig/config.xml
-WindowsBuild/MonoBleedingEdge/etc/mono/config
-WindowsBuild/MonoBleedingEdge/etc/mono/browscap.ini
-WindowsBuild/MonoBleedingEdge/etc/mono/4.5/web.config
-WindowsBuild/MonoBleedingEdge/etc/mono/4.5/settings.map
-WindowsBuild/MonoBleedingEdge/etc/mono/4.5/machine.config
-WindowsBuild/MonoBleedingEdge/etc/mono/4.5/DefaultWsdlHelpGenerator.aspx
-WindowsBuild/MonoBleedingEdge/etc/mono/4.5/Browsers/Compat.browser
-WindowsBuild/MonoBleedingEdge/etc/mono/4.0/web.config
-WindowsBuild/MonoBleedingEdge/etc/mono/4.0/settings.map
-WindowsBuild/MonoBleedingEdge/etc/mono/4.0/machine.config
-WindowsBuild/MonoBleedingEdge/etc/mono/4.0/DefaultWsdlHelpGenerator.aspx
-WindowsBuild/MonoBleedingEdge/etc/mono/4.0/Browsers/Compat.browser
-WindowsBuild/MonoBleedingEdge/etc/mono/2.0/web.config
-WindowsBuild/MonoBleedingEdge/etc/mono/2.0/settings.map
-WindowsBuild/MonoBleedingEdge/etc/mono/2.0/machine.config
-WindowsBuild/MonoBleedingEdge/etc/mono/2.0/DefaultWsdlHelpGenerator.aspx
-WindowsBuild/MonoBleedingEdge/etc/mono/2.0/Browsers/Compat.browser
-WindowsBuild/MonoBleedingEdge/EmbedRuntime/MonoPosixHelper.dll
-WindowsBuild/MonoBleedingEdge/EmbedRuntime/mono-2.0-bdwgc.dll
-WindowsBuild/EECS494-Project3_Data/StreamingAssets/UnityServicesProjectConfiguration.json
-WindowsBuild/EECS494-Project3_Data/sharedassets0.resource
-WindowsBuild/EECS494-Project3_Data/sharedassets0.assets.resS
-WindowsBuild/EECS494-Project3_Data/sharedassets0.assets
-WindowsBuild/EECS494-Project3_Data/ScriptingAssemblies.json
-WindowsBuild/EECS494-Project3_Data/RuntimeInitializeOnLoads.json
-WindowsBuild/EECS494-Project3_Data/Resources/unity_builtin_extra
-WindowsBuild/EECS494-Project3_Data/Resources/unity default resources
-WindowsBuild/EECS494-Project3_Data/resources.assets.resS
-WindowsBuild/EECS494-Project3_Data/resources.assets
-WindowsBuild/EECS494-Project3_Data/Plugins/x86_64/lib_burst_generated.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.XRModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.WindModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.VRModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.VirtualTexturingModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.VideoModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.VFXModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.VehiclesModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.UnityWebRequestWWWModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.UnityWebRequestTextureModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.UnityWebRequestModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.UnityWebRequestAudioModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.UnityWebRequestAssetBundleModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.UnityTestProtocolModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.UnityCurlModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.UnityConnectModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.UnityAnalyticsModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.UnityAnalyticsCommonModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.UNETModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.UmbraModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.UIModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.UIElementsNativeModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.UIElementsModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.UI.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.TLSModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.TilemapModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.TextRenderingModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.TextCoreTextEngineModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.TextCoreFontEngineModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.TerrainPhysicsModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.TerrainModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.SubsystemsModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.SubstanceModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.StreamingModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.SpriteShapeModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.SpriteMaskModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.SharedInternalsModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.ScreenCaptureModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.ProfilerModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.PhysicsModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.Physics2DModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.PerformanceReportingModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.ParticleSystemModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.NVIDIAModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.LocalizationModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.JSONSerializeModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.InputModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.InputLegacyModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.IMGUIModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.ImageConversionModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.HotReloadModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.GridModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.GIModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.GameCenterModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.DSPGraphModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.DirectorModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.CrashReportingModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.CoreModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.ClusterRendererModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.ClusterInputModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.ClothModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.AudioModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.AssetBundleModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.ARModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.AnimationModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.AndroidJNIModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.AIModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/UnityEngine.AccessibilityModule.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.VisualScripting.State.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.VisualScripting.Flow.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.VisualScripting.Core.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.VisualScripting.Antlr3.Runtime.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Timeline.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.TextMeshPro.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Services.Core.Threading.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Services.Core.Telemetry.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Services.Core.Scheduler.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Services.Core.Registration.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Services.Core.Networking.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Services.Core.Internal.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Services.Core.Environments.Internal.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Services.Core.Environments.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Services.Core.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Services.Core.Device.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Services.Core.Configuration.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Services.Core.Analytics.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Mathematics.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.InternalAPIEngineBridge.001.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Burst.Unsafe.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Burst.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Burst.Cecil.Rocks.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Burst.Cecil.Pdb.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Burst.Cecil.Mdb.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.Burst.Cecil.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.2D.Tilemap.Extras.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.2D.SpriteShape.Runtime.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.2D.PixelPerfect.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.2D.IK.Runtime.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.2D.Common.Runtime.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Unity.2D.Animation.Runtime.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.Xml.Linq.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.Xml.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.Transactions.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.ServiceModel.Internals.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.Security.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.Runtime.Serialization.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.Runtime.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.Numerics.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.Net.Http.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.IO.Compression.FileSystem.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.IO.Compression.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.EnterpriseServices.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.Drawing.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.Data.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.Data.DataSetExtensions.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.Core.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.Configuration.dll
-WindowsBuild/EECS494-Project3_Data/Managed/System.ComponentModel.Composition.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Newtonsoft.Json.dll
-WindowsBuild/EECS494-Project3_Data/Managed/netstandard.dll
-WindowsBuild/EECS494-Project3_Data/Managed/mscorlib.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Mono.Security.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Cinemachine.dll
-WindowsBuild/EECS494-Project3_Data/Managed/Assembly-CSharp.dll
-WindowsBuild/EECS494-Project3_Data/level0
-WindowsBuild/EECS494-Project3_Data/globalgamemanagers.assets
-WindowsBuild/EECS494-Project3_Data/globalgamemanagers
-WindowsBuild/EECS494-Project3_Data/boot.config
-WindowsBuild/EECS494-Project3_Data/app.info
-WindowsBuild/EECS494-Project3_BurstDebugInformation_DoNotShip/Data/Plugins/x86_64/lib_burst_generated.txt
-WindowsBuild/EECS494-Project3.exe
+
+
+#################
+## Eclipse
+#################
+
+*.pydevproject
+.project
+.metadata
+bin/
+target/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.classpath
+.settings/
+.loadpath
+
+# External tool builders
+.externalToolBuilders/
+
+# Locally stored "Eclipse launch configurations"
+*.launch
+
+# CDT-specific
+.cproject
+
+# PDT-specific
+.buildpath
+
+
+#################
+## Visual Studio
+#################
+
+## Ignore Visual Studio temporary files, build results, and
+## files generated by popular Visual Studio add-ons.
+
+# User-specific files
+*.suo
+*.user
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+*_i.c
+*_p.c
+*.ilk
+*.meta
+*.obj
+*.pch
+*.pdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.vspscc
+.builds
+*.dotCover
+
+## TODO: If you have NuGet Package Restore enabled, uncomment this
+#packages/
+
+# Visual C++ cache files
+ipch/
+*.aps
+*.ncb
+*.opensdf
+*.sdf
+
+# Visual Studio profiler
+*.psess
+*.vsp
+
+# ReSharper is a .NET coding add-in
+_ReSharper*
+
+# Installshield output folder
+[Ee]xpress
+
+# DocProject is a documentation generator add-in
+DocProject/buildhelp/
+DocProject/Help/*.HxT
+DocProject/Help/*.HxC
+DocProject/Help/*.hhc
+DocProject/Help/*.hhk
+DocProject/Help/*.hhp
+DocProject/Help/Html2
+DocProject/Help/html
+
+# Click-Once directory
+publish
+
+# Others
+[Bb]in
+[Oo]bj
+sql
+TestResults
+*.Cache
+ClientBin
+stylecop.*
+~$*
+*.dbmdl
+Generated_Code #added for RIA/Silverlight projects
+
+# Backup & report files from converting an old project file to a newer
+# Visual Studio version. Backup files are not needed, because we have git ;-)
+_UpgradeReport_Files/
+Backup*/
+UpgradeLog*.XML
+
+
+
+############
+## Windows
+############
+
+# Windows image file caches
+Thumbs.db
+
+# Folder config file
+Desktop.ini
+
+
+#############
+## Python
+#############
+
+*.py[co]
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+
+#Translations
+*.mo
+
+#Mr Developer
+.mr.developer.cfg
+
+# Mac crap
+.DS_Store
