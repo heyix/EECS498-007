@@ -336,3 +336,5 @@ _*
 [Ll]ogs/
 [Mm]emoryCaptures/
 *.mp4 
+*.mp3
+*.wav
