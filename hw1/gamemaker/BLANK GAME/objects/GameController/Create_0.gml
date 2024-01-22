@@ -1,6 +1,6 @@
 /// @DnDAction : YoYo Games.Common.Variable
 /// @DnDVersion : 1
-/// @DnDHash : 48A83A0E
-/// @DnDArgument : "expr" "3"
-/// @DnDArgument : "var" "target"
-target = 3;
+/// @DnDHash : 14B2BAB7
+/// @DnDArgument : "expr" "current_time"
+/// @DnDArgument : "var" "start_time"
+start_time = current_time;

@@ -23,4 +23,12 @@ if(cool_down<=0)
 	/// @DnDArgument : "expr" "0.2"
 	/// @DnDArgument : "var" "player.cool_down"
 	player.cool_down = 0.2;
+
+	/// @DnDAction : YoYo Games.Audio.Play_Audio
+	/// @DnDVersion : 1.1
+	/// @DnDHash : 03E8A786
+	/// @DnDParent : 12A3A955
+	/// @DnDArgument : "soundid" "fire"
+	/// @DnDSaveInfo : "soundid" "fire"
+	audio_play_sound(fire, 0, 0, 1.0, undefined, 1.0);
 }
