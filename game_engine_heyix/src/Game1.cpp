@@ -103,7 +103,7 @@ void Game1::check_dialogue()
 
 bool Game1::check_grid_accessible(int index_y, int index_x)
 {
-	if (check_out_of_bound(index_y, index_x));
+	if (check_out_of_bound(index_y, index_x)) return false;
 	if (render_layer[index_y][index_x] == 'b')return false;
 	if (actor_layer[index_y][index_x].size() != 0) {
 		for (int index : actor_layer[index_y][index_x]) {

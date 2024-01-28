@@ -9,6 +9,7 @@
 #include <string>
 #include <set>
 #include <sstream>
+#include <memory>
 enum GameStatus
 {
 	GameStatus_running,GameStatus_good_ending,GameStatus_bad_ending,GameStatus_quit
@@ -16,6 +17,13 @@ enum GameStatus
 
 class Game1:public Engine
 {
+public:
+	Game1() {
+		actor_layer = std::make_unique<std::unique_ptr<std::set<int>[]>[]>(HARDCODED_MAP_HEIGHT);
+		for (int i = 0; i < HARDCODED_MAP_HEIGHT; i++) {
+			actor_layer[i] = std::make_unique<std::set<int>[]>(HARDCODED_MAP_WIDTH + 1);
+		}
+	}
 protected:
 	void start() override;
 	void update() override;
@@ -50,7 +58,7 @@ public:
 	};
 private:
 	char render_layer[HARDCODED_MAP_HEIGHT][HARDCODED_MAP_WIDTH + 1];
-	std::set<int> actor_layer[HARDCODED_MAP_HEIGHT][HARDCODED_MAP_WIDTH + 1];
+	std::unique_ptr<std::unique_ptr<std::set<int>[]>[]> actor_layer;
 	std::vector<std::string> special_dialogue{ "health down","score up","you win","game over" };
 	GameStatus game_status = GameStatus_running;
 	std::stringstream frame_output;
