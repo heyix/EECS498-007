@@ -328,7 +328,7 @@ IDE/MonoDevelop/MonoDevelop.MonoGame/templates/Common/MonoGame.Framework.dll.con
 .cake/**
 
 # docfx
-_*
+
 [Tt]emp/
 [Oo]bj/
 [Bb]uild/
