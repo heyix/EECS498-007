@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2ACEC9B92B660DDE003AA5CF /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2ACEC9AF2B660D99003AA5CF /* main.cpp */; };
+		2ACECEC02B6614B8003AA5CF /* Game1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2ACECEBD2B6614B8003AA5CF /* Game1.cpp */; };
+		2ACECEC12B6614B8003AA5CF /* Engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2ACECEBE2B6614B8003AA5CF /* Engine.cpp */; };
+		2ACECEC22B6614B8003AA5CF /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2ACECEBF2B6614B8003AA5CF /* main.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,12 +26,12 @@
 
 /* Begin PBXFileReference section */
 		2ACEC9A52B6603ED003AA5CF /* game_engine */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = game_engine; sourceTree = BUILT_PRODUCTS_DIR; };
-		2ACEC9AF2B660D99003AA5CF /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = src/main.cpp; sourceTree = "<group>"; };
-		2ACEC9B02B660D99003AA5CF /* MapHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MapHelper.h; path = src/MapHelper.h; sourceTree = "<group>"; };
-		2ACEC9B12B660D99003AA5CF /* Engine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Engine.h; path = src/Engine.h; sourceTree = "<group>"; };
-		2ACEC9B22B660D99003AA5CF /* Engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Engine.cpp; path = src/Engine.cpp; sourceTree = "<group>"; };
-		2ACEC9B32B660D99003AA5CF /* Game1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Game1.h; path = src/Game1.h; sourceTree = "<group>"; };
-		2ACEC9B42B660D99003AA5CF /* Game1.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Game1.cpp; path = src/Game1.cpp; sourceTree = "<group>"; };
+		2ACECEBA2B6614B8003AA5CF /* Engine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Engine.h; sourceTree = "<group>"; };
+		2ACECEBB2B6614B8003AA5CF /* Game1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Game1.h; sourceTree = "<group>"; };
+		2ACECEBC2B6614B8003AA5CF /* MapHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MapHelper.h; sourceTree = "<group>"; };
+		2ACECEBD2B6614B8003AA5CF /* Game1.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Game1.cpp; sourceTree = "<group>"; };
+		2ACECEBE2B6614B8003AA5CF /* Engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Engine.cpp; sourceTree = "<group>"; };
+		2ACECEBF2B6614B8003AA5CF /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,12 +48,7 @@
 		2ACEC98B2B65F674003AA5CF = {
 			isa = PBXGroup;
 			children = (
-				2ACEC9B22B660D99003AA5CF /* Engine.cpp */,
-				2ACEC9B12B660D99003AA5CF /* Engine.h */,
-				2ACEC9B42B660D99003AA5CF /* Game1.cpp */,
-				2ACEC9B32B660D99003AA5CF /* Game1.h */,
-				2ACEC9AF2B660D99003AA5CF /* main.cpp */,
-				2ACEC9B02B660D99003AA5CF /* MapHelper.h */,
+				2ACECEB92B6614B8003AA5CF /* src */,
 				2ACEC9952B65F674003AA5CF /* Products */,
 			);
 			sourceTree = "<group>";
@@ -62,6 +59,19 @@
 				2ACEC9A52B6603ED003AA5CF /* game_engine */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		2ACECEB92B6614B8003AA5CF /* src */ = {
+			isa = PBXGroup;
+			children = (
+				2ACECEBA2B6614B8003AA5CF /* Engine.h */,
+				2ACECEBB2B6614B8003AA5CF /* Game1.h */,
+				2ACECEBC2B6614B8003AA5CF /* MapHelper.h */,
+				2ACECEBD2B6614B8003AA5CF /* Game1.cpp */,
+				2ACECEBE2B6614B8003AA5CF /* Engine.cpp */,
+				2ACECEBF2B6614B8003AA5CF /* main.cpp */,
+			);
+			path = src;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -120,7 +130,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2ACEC9B92B660DDE003AA5CF /* main.cpp in Sources */,
+				2ACECEC02B6614B8003AA5CF /* Game1.cpp in Sources */,
+				2ACECEC12B6614B8003AA5CF /* Engine.cpp in Sources */,
+				2ACECEC22B6614B8003AA5CF /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
