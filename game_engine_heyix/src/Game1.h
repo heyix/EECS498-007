@@ -1,7 +1,7 @@
 #pragma once
 #include "Engine.h"
 #include <string>
-#include "glm.hpp"
+#include "glm/glm.hpp"
 #include "MapHelper.h"
 #include <iostream>
 #include <vector>
@@ -10,6 +10,8 @@
 #include <set>
 #include <sstream>
 #include <memory>
+#include "rapidjson/include/rapidjson/document.h"
+
 enum GameStatus
 {
 	GameStatus_running,GameStatus_good_ending,GameStatus_bad_ending,GameStatus_quit

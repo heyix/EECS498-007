@@ -6,7 +6,7 @@
 
 #include <string>
 #include <vector>
-#include "glm.hpp" // Student : You need to get glm added to your project source code or this line will fail.
+#include "glm/glm.hpp" // Student : You need to get glm added to your project source code or this line will fail.
 					   // Search for your IDE's "include / header directories" option (it's called something different everywhere)
 					   // Ensure you have the glm folder listed so your compiler can actually find these glm headers.
 
