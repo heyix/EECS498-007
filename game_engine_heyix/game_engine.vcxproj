@@ -19,14 +19,22 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Actor.cpp" />
     <ClCompile Include="src\Engine.cpp" />
+    <ClCompile Include="src\EngineUtils.cpp" />
     <ClCompile Include="src\Game1.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Player.cpp" />
+    <ClCompile Include="src\SceneDB.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Actor.h" />
     <ClInclude Include="src\Engine.h" />
+    <ClInclude Include="src\EngineUtils.h" />
     <ClInclude Include="src\Game1.h" />
     <ClInclude Include="src\MapHelper.h" />
+    <ClInclude Include="src\Player.h" />
+    <ClInclude Include="src\SceneDB.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

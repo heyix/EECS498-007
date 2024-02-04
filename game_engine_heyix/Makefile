@@ -5,7 +5,7 @@ CXXFLAGS = -O2 -std=c++17
 # Directories
 SRCDIR = ./src
 THIRDPARTYDIR = ./ThirdParty
-INCLUDEDIR = -I$(THIRDPARTYDIR)/glm -I$(SRCDIR)
+INCLUDEDIR = -I$(THIRDPARTYDIR) -I$(SRCDIR)
 LIBDIR = -L$(THIRDPARTYDIR)
 LIBS = #-lYourLibrary1 -lYourLibrary2  # Add the library names you need
 
