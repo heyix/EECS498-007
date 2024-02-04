@@ -19,6 +19,7 @@
 #include "Actor.h"
 #include <map>
 #include "Player.h"
+#include <algorithm>
 enum GameStatus
 {
 	GameStatus_running,GameStatus_good_ending,GameStatus_bad_ending,GameStatus_quit
@@ -44,7 +45,7 @@ class Game1:public Engine
 		}
 	};
 	struct ActorPointerComparator {
-		bool operator()(const std::shared_ptr<Actor>& a,const std::shared_ptr<Actor>& b) const {
+		bool operator()(const Actor* const& a,const Actor* const& b) const {
 			return a->ID < b->ID;
 		}
 	};
@@ -84,10 +85,11 @@ public:
 	std::string user_input = "";
 	int score = 0;
 	int player_health = 3;
-	std::shared_ptr<Player> player;
+	Player* player;
 	static Game1* instance;
-	std::map<int,std::shared_ptr<Actor>> all_actors;
+	std::map<int,Actor*> id_to_actor_map;
 	std::unordered_map<glm::ivec2, std::set<int>, HashIvec2, HashIvec2> actor_position_map;
+	std::vector<Actor*> sorted_actor_by_id;
 
 private:
 	char render_layer[HARDCODED_MAP_HEIGHT][HARDCODED_MAP_WIDTH + 1];
@@ -100,4 +102,6 @@ private:
 	glm::ivec2 camera_position{ 19,15 };
 	std::string current_scene_name;
 	int current_id = 0;
+	std::vector<Actor> _underlying_actor_storage;
+	std::vector<Player> _underlying_player_storage;
 };

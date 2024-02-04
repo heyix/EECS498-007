@@ -14,16 +14,6 @@
 
 
 
-const std::string initial_render = "\
-       s     \n\
-bbbb    s    \n\
-f  bbbbb s   \n\
-         b   \n\
-      p  b   \n\
-         b   \n\
-bbbbbbbbb    \n\
-             \n\
-          b  ";
 
 
 const int HARDCODED_MAP_WIDTH = 50;

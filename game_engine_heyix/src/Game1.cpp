@@ -12,7 +12,7 @@ void Game1::awake()
 void Game1::start() {
 	rapidjson::Document& game_config = (*config_file_map["game.config"]);
 	if((game_config.HasMember("game_start_message")))std::cout << game_config["game_start_message"].GetString() << std::endl;
-	for (auto i : all_actors) {
+	for (auto i : id_to_actor_map) {
 		Actor& actor = *i.second;
 		actor_position_map[glm::highp_ivec2{ actor.position.x,actor.position.y }].insert(actor.ID);
 	}
@@ -69,7 +69,7 @@ void Game1::update_map()
 			render_layer[i][j] = hardcoded_map[i][j];
 		}
 	}
-	for (auto i:all_actors) {
+	for (auto i: id_to_actor_map) {
 		Actor& actor = *i.second;
 		render_layer[actor.position.y][actor.position.x] = actor.view;
 	}
@@ -77,7 +77,7 @@ void Game1::update_map()
 
 void Game1::update_actor()
 {
-	for (auto i:all_actors) {
+	for (auto i: id_to_actor_map) {
 		Actor& actor = *i.second;
 		actor.update_position();
 	}
@@ -85,7 +85,7 @@ void Game1::update_actor()
 
 void Game1::check_dialogue()
 {
-	for (auto& actor_ptr:all_actors) {
+	for (auto& actor_ptr: id_to_actor_map) {
 		Actor& actor = *actor_ptr.second;
 		int diff_x = actor.position.x - player->position.x;
 		int diff_y = actor.position.y - player->position.y;
@@ -102,7 +102,7 @@ bool Game1::check_grid_accessible(int index_y, int index_x)
 	if (render_layer[index_y][index_x] == 'b')return false;
 	if (actor_position_map.find(glm::ivec2{index_x,index_y})!=actor_position_map.end()) {
 		for (auto i : actor_position_map[glm::ivec2{index_x,index_y}]) {
-			Actor& actor = *all_actors[i];
+			Actor& actor = *id_to_actor_map[i];
 			if (actor.blocking == true)return false;
 		}
 	}
@@ -151,7 +151,7 @@ bool Game1::check_substring_exist(std::string& origin_string, std::string& subst
 	return origin_string.find(substring) != std::string::npos;
 }
 
-void Game1::check_game_status()
+void Game1::check_game_status() 
 {
 	if (game_status != GameStatus_running) {
 		if(game_status!=GameStatus_quit)frame_output << "health : " << player_health << ", score : " << score << std::endl;
@@ -213,7 +213,7 @@ void Game1::load_config_file(const std::string& file_path)
 
 void Game1::config_files_pre_check()
 {
-	if (!EngineUtils::ResourceFileExist("")) {
+	if (!EngineUtils::ResourceFileExist("")) { 
 		std::cout << "error: resources/ missing";
 		exit(0);
 	}
@@ -245,19 +245,25 @@ void Game1::load_actors()
 {
 	rapidjson::Document& scene_json = (*config_file_map["scenes/" + current_scene_name + ".scene"]);
 	const rapidjson::Value& actors = scene_json["actors"];
+	_underlying_actor_storage.reserve(actors.Size());
+	_underlying_player_storage.reserve(1);
 	for (int i = 0; i < actors.Size();i++) {
 		auto& actor = actors[i];
-		std::shared_ptr<Actor> new_actor;
+		Actor* new_actor;
 		if (actor.HasMember("name") && actor["name"].GetString() == std::string("player")) {
-			player = std::make_shared<Player>();
+			_underlying_player_storage.push_back(Player());
+			player = &(_underlying_player_storage[_underlying_player_storage.size()-1]);
 			new_actor = player;
 		}
-		else new_actor = std::make_shared<Actor>();
+		else {
+			_underlying_actor_storage.push_back(Actor());
+			new_actor = &(_underlying_actor_storage[_underlying_actor_storage.size() - 1]);
+		} 
 
 
 		if (actor.HasMember("name"))new_actor->actor_name = actor["name"].GetString();
 		if (actor.HasMember("view"))new_actor->view = actor["view"].GetString()[0];
-		if (actor.HasMember("x"))new_actor->position.x = actor["x"].GetInt(); 
+		if (actor.HasMember("x"))new_actor->position.x = actor["x"].GetInt();  
 		if (actor.HasMember("y"))new_actor->position.y = actor["y"].GetInt();
 		if (actor.HasMember("vel_x"))new_actor->velocity.x = actor["vel_x"].GetInt();
 		if (actor.HasMember("vel_y"))new_actor->velocity.y = actor["vel_y"].GetInt();
@@ -265,9 +271,11 @@ void Game1::load_actors()
 		if (actor.HasMember("nearby_dialogue"))new_actor->nearby_dialogue = actor["nearby_dialogue"].GetString();
 		if (actor.HasMember("contact_dialogue"))new_actor->contact_dialogue = actor["contact_dialogue"].GetString();
 		new_actor->ID = current_id++;
-		all_actors[new_actor->ID]=new_actor;
+		id_to_actor_map[new_actor->ID]=new_actor;
+		sorted_actor_by_id.push_back(new_actor);
+
 	}
-	for (auto actor : all_actors) {
+	for (auto actor : id_to_actor_map) {
 		actor_position_map[actor.second->position].insert(actor.second->ID);
 	}
 }
