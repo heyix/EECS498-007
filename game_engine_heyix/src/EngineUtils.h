@@ -7,10 +7,17 @@
 #include <memory>
 #include <fstream> 
 #include <filesystem>
-
+#include "glm/glm.hpp"
+#include "Actor.h"
 
 class EngineUtils
 {
+public:
+	struct ActorPointerComparator {
+		bool operator()(const Actor* const& a, const Actor* const& b) const {
+			return a->ID < b->ID;
+		}
+	};
 public:
 	static std::string folderPath;
 public:
@@ -19,4 +26,7 @@ public:
 	static void ModifyStringInJsonFile(const std::string& filePath, const std::string& key, const std::string& value);
 	static void ModifyIntInJsonFile(const std::string& filePath, const std::string& key, int value);
 	static bool ResourceFileExist(const std::string& filePath);
+	static std::string obtain_word_after_phrase(const std::string& input, const std::string& phrase);
+	static uint64_t create_composite_key(int x, int y);
+	static uint64_t create_composite_key(const glm::ivec2& k);
 };

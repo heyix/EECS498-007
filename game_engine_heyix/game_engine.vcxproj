@@ -25,7 +25,9 @@
     <ClCompile Include="src\Game1.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Player.cpp" />
+    <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\SceneDB.cpp" />
+    <ClCompile Include="src\TemplateDB.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Actor.h" />
@@ -33,7 +35,9 @@
     <ClInclude Include="src\EngineUtils.h" />
     <ClInclude Include="src\Game1.h" />
     <ClInclude Include="src\Player.h" />
+    <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\SceneDB.h" />
+    <ClInclude Include="src\TemplateDB.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
