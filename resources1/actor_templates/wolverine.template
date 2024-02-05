@@ -1,0 +1,12 @@
+{
+    "name": "wolverine",
+    "view": "s",
+    "x": 20,
+    "y": 14,
+    "vel_x": 1,
+    "vel_y": 0,
+    "blocking": true,
+    "template": "wolverine",
+    "nearby_dialogue": "",
+    "contact_dialogue": ""
+}

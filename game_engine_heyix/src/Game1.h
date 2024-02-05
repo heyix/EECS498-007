@@ -1,8 +1,8 @@
-#pragma once
+#ifndef GAME1
+#define GAME1
 #include "Engine.h"
 #include <string>
-#include "glm.hpp"
-#include "MapHelper.h"
+#include "glm/glm.hpp"
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -10,56 +10,81 @@
 #include <set>
 #include <sstream>
 #include <memory>
+#include "rapidjson/include/rapidjson/document.h"
+#include "rapidjson/include/rapidjson/filereadstream.h"
+#include <cstdlib>
+#include <filesystem>
+#include <unordered_map>
+#include "EngineUtils.h"
+#include "Actor.h"
+#include <map>
+#include "Player.h"
+#include <algorithm>
+#include "TemplateDB.h"
+#include "Scene.h"
 enum GameStatus
 {
-	GameStatus_running,GameStatus_good_ending,GameStatus_bad_ending,GameStatus_quit
+	GameStatus_running,GameStatus_good_ending,GameStatus_bad_ending,GameStatus_quit,GameStatus_changing_scene
 };
 
 class Game1:public Engine
 {
 public:
+	
+public:
 	Game1() {
-		actor_layer = std::make_unique<std::unique_ptr<std::set<int>[]>[]>(HARDCODED_MAP_HEIGHT);
-		for (int i = 0; i < HARDCODED_MAP_HEIGHT; i++) {
-			actor_layer[i] = std::make_unique<std::set<int>[]>(HARDCODED_MAP_WIDTH + 1);
-		}
+		instance = this;
 	}
 protected:
+	void awake() override;
 	void start() override;
 	void update() override;
 	void render() override;
 private:
 	void input();
-	void update_map();
 	void update_actor();
-	void check_dialogue();
-	bool check_grid_accessible(int index_y, int index_x);
-	void trigger_contact_dialogue(Actor& actor);
-	void trigger_nearby_dialogue(Actor& actor);
-	bool check_substring_exist(std::string& origin_string, std::string& substring);
 	void check_game_status();
-	void change_player_health(int change);
-	bool check_out_of_bound(int index_y, int index_x);
-	void move_actor(int actor_index,int target_y, int target_x);
 	void cout_frame_output();
+	void load_config_files();
+	void clear_config_data();
+	void load_config_file(const std::string& file_path);
+	void config_files_pre_check();
+	void config_files_post_check();
+	void update_config_variables();
+	void load_current_scene();
+	void render_actor_and_detect_dialogue();
 public:
-	std::string user_input = "";
-	glm::ivec2 camera_position{ 19,15 };
+	bool move_actor(Actor& actor, int target_y, int target_x);
+	void change_game_status(GameStatus new_status);
+	void change_current_scene(const std::string& new_scene_name);
+	void change_player_health(int change);
+	void change_score(int change);
+	void render_actor_to_camera(Actor& actor);
+	bool check_actor_inside_camera(Actor& actor);
+	void update_camera_range();
+	void reinitialize_render_layer();
+public:
+	std::string user_input;
+	static Game1* instance;
 	int score = 0;
 	int player_health = 3;
-	Actor player{
-		"player",			// actor name
-		'p',				// view
-		glm::ivec2(19, 15),	// starting velocity
-		glm::ivec2(0, 0),	// starting velocity
-		false,				// blocking?
-		"",					// nearby dialogue
-		""					// made-contact dialogue
-	};
+
 private:
-	char render_layer[HARDCODED_MAP_HEIGHT][HARDCODED_MAP_WIDTH + 1];
-	std::unique_ptr<std::unique_ptr<std::set<int>[]>[]> actor_layer;
-	std::vector<std::string> special_dialogue{ "health down","score up","you win","game over" };
 	GameStatus game_status = GameStatus_running;
 	std::stringstream frame_output;
+	std::unordered_map<std::string, std::unique_ptr<rapidjson::Document>> config_file_map;
+	std::vector<std::string> config_files{ "game.config","rendering.config"};
+	glm::ivec2 camera_dimension{13,9};
+	glm::ivec2 camera_position{ 19,15 };
+	std::string current_scene_name;
+	std::unique_ptr<Scene> current_scene;
+	std::string game_start_message;
+	std::string game_over_bad_message;
+	std::string game_over_good_message;
+	int camera_left_index=0;
+	int camera_right_index=0;
+	int camera_up_index=0;
+	int camera_down_index=0;
+
 };
+#endif

@@ -1,34 +1,48 @@
 #include "Game1.h"
+Game1* Game1::instance = nullptr;
+void Game1::awake()
+{
+	load_config_files();
+	load_current_scene();
+}
 
 void Game1::start() {
-	std::cout << game_start_message << std::endl;
-	for (int i = 0; i < hardcoded_actors.size(); i++) {
-		Actor& actor = hardcoded_actors[i];
-		actor_layer[actor.position.y][actor.position.x].insert(i);
-	}
+	if(game_start_message!="")std::cout << game_start_message << std::endl;
+
 }
 
 void Game1::render()
 {
-	update_map();
-	int left_index = player.position.x - 6;
-	int right_index = player.position.x + 6;
-	int up_index = player.position.y - 4;
-	int down_index =player.position.y + 4;
-	for (int i = up_index; i <= down_index; i++) {
-		for (int j = left_index; j <= right_index; j++) {
-			if (check_out_of_bound(i, j))frame_output << ' ';
-			else frame_output << render_layer[i][j];
+	for (int i = 0; i < camera_dimension.y; i++) {
+		for (int j = 0; j < camera_dimension.x; j++) {
+			frame_output << current_scene->render_layer[i][j];
 		}
 		frame_output << std::endl;
-	}
+	} 
+	reinitialize_render_layer();
+}
+void Game1::reinitialize_render_layer()
+{
+	current_scene->render_layer = std::vector<std::vector<char>>(camera_dimension.y, std::vector<char>(camera_dimension.x, ' '));;
+}
+
+
+
+
+void Game1::update_camera_range()
+{ 
+	Player* player = current_scene->player;
+	camera_left_index = player->position.x - camera_dimension.x / 2;
+	camera_right_index = player->position.x + camera_dimension.x / 2;
+	camera_up_index = player->position.y - camera_dimension.y / 2;
+	camera_down_index = player->position.y + camera_dimension.y / 2;
 }
 
 void Game1::update()
 {
 	//render first frame->check dialogue of rendered frame->start to make update for next frame
-	check_dialogue();
-
+	//scene initialize->initial state->dialogue->update(new state)->dialogue->....
+	current_scene->check_dialogue(frame_output); 
 	if (game_status == GameStatus_running) {
 		input();
 		update_actor();
@@ -36,7 +50,7 @@ void Game1::update()
 	check_game_status();
 	cout_frame_output();
 }
-
+ 
 
 
 void Game1::input()
@@ -51,140 +65,57 @@ void Game1::input()
 	}
 }
 
-void Game1::update_map()
-{
-	for (int i = 0; i < HARDCODED_MAP_HEIGHT; i++) {
-		for (int j = 0; j < HARDCODED_MAP_WIDTH + 1; j++) {
-			render_layer[i][j] = hardcoded_map[i][j];
-		}
-	}
-	for (int i = 0; i < hardcoded_actors.size();i++) {
-		Actor& actor = hardcoded_actors[i];
-		render_layer[actor.position.y][actor.position.x] = actor.view;
-	}
-
-	render_layer[player.position.y][player.position.x] = player.view;
-}
 
 void Game1::update_actor()
 {
-	for (int i = 0; i < hardcoded_actors.size(); i++) {
-		Actor& actor = hardcoded_actors[i];
-		if (actor.velocity.x == 0 && actor.velocity.y == 0)continue;
-		int target_x = actor.position.x + actor.velocity.x;
-		int target_y = actor.position.y + actor.velocity.y;
-		if (check_grid_accessible(target_y, target_x)) {
-			move_actor(i, target_y, target_x);
-		}
-		else {
-			actor.velocity.x *= -1;
-			actor.velocity.y *= -1;
-		}
+	for (auto i: current_scene->sorted_actor_by_id) {
+		Actor& actor = *i;
+		actor.update_position();
 	}
-
-
-	if (user_input == "w" && check_grid_accessible(player.position.y, player.position.x - 1))player.position.x -= 1;
-	if (user_input == "e" && check_grid_accessible(player.position.y, player.position.x + 1))player.position.x += 1;
-	if (user_input == "n" && check_grid_accessible(player.position.y - 1, player.position.x))player.position.y -= 1;
-	if (user_input == "s" && check_grid_accessible(player.position.y + 1, player.position.x))player.position.y += 1;
+	render_actor_and_detect_dialogue();
 }
-
-void Game1::check_dialogue()
+void Game1::render_actor_and_detect_dialogue()
 {
-	for (auto& actor:hardcoded_actors) {
-		int diff_x = actor.position.x - player.position.x;
-		int diff_y = actor.position.y - player.position.y;
-		if (diff_x == 0 && diff_y == 0 && actor.contact_dialogue != "")	trigger_contact_dialogue(actor);
-		else if (std::abs(diff_x) <= 1 && std::abs(diff_y) <= 1 && actor.nearby_dialogue!="") {
-			trigger_nearby_dialogue(actor);
-		}
+	update_camera_range();
+	for (auto i : current_scene->sorted_actor_by_id) {
+		Actor& actor = *i;
+		render_actor_to_camera(actor);
+		if (std::abs(actor.position.x - current_scene->player->position.x) <= 1 && std::abs(actor.position.y - current_scene->player->position.y) <= 1)current_scene->dialogue_list.emplace_back(&actor);
 	}
 }
-
-bool Game1::check_grid_accessible(int index_y, int index_x)
+void Game1::render_actor_to_camera(Actor& actor)
 {
-	if (check_out_of_bound(index_y, index_x)) return false;
-	if (render_layer[index_y][index_x] == 'b')return false;
-	if (actor_layer[index_y][index_x].size() != 0) {
-		for (int index : actor_layer[index_y][index_x]) {
-			Actor& actor = hardcoded_actors[index];
-			if (actor.blocking == true)return false;
-		}
-	}
-	return true;
+	if (!check_actor_inside_camera(actor))return;
+	current_scene->render_layer[actor.position.y - camera_up_index][actor.position.x - camera_left_index] = actor.view;
 }
-
-void Game1::trigger_contact_dialogue(Actor& actor)
+bool Game1::check_actor_inside_camera(Actor& actor)
 {
-	frame_output << actor.contact_dialogue << std::endl;
-	if (check_substring_exist(actor.contact_dialogue,special_dialogue[0])) {
-		change_player_health(-1);
-	}
-	else if (check_substring_exist(actor.contact_dialogue, special_dialogue[1]) && !actor.triggered_score_up) {
-		score += 1;
-		actor.triggered_score_up = true;
-	}
-	else if (check_substring_exist(actor.contact_dialogue, special_dialogue[2])) {
-		game_status = GameStatus_good_ending;
-	}
-	else if (check_substring_exist(actor.contact_dialogue, special_dialogue[3])) {
-		game_status = GameStatus_bad_ending;
-	}
+	return actor.position.x >= camera_left_index && actor.position.x <= camera_right_index && actor.position.y >= camera_up_index && actor.position.y <= camera_down_index;
 }
-
-void Game1::trigger_nearby_dialogue(Actor& actor)
-{
-	frame_output << actor.nearby_dialogue << std::endl;
-	if (check_substring_exist(actor.nearby_dialogue, special_dialogue[0])) {
-		change_player_health(-1);
-	}
-	else if (check_substring_exist(actor.nearby_dialogue, special_dialogue[1]) && !actor.triggered_score_up) {
-		score += 1;
-		actor.triggered_score_up = true;
-	}
-	else if (check_substring_exist(actor.nearby_dialogue, special_dialogue[2])) {
-		game_status = GameStatus_good_ending;
-	}
-	else if (check_substring_exist(actor.nearby_dialogue, special_dialogue[3])) {
-		game_status = GameStatus_bad_ending;
-	}
-}
-
-bool Game1::check_substring_exist(std::string& origin_string, std::string& substring)
-{
-	return origin_string.find(substring) != std::string::npos;
-}
-
-void Game1::check_game_status()
+void Game1::check_game_status() 
 {
 	if (game_status != GameStatus_running) {
 		if(game_status!=GameStatus_quit)frame_output << "health : " << player_health << ", score : " << score << std::endl;
 		is_running = false;
 	}	
-	if (game_status == GameStatus_bad_ending)frame_output << game_over_bad_message;
-	if (game_status == GameStatus_good_ending)frame_output << game_over_good_message;
-	if (game_status == GameStatus_quit)frame_output << game_over_bad_message;;
+	if (game_status == GameStatus_bad_ending && game_over_bad_message!="")frame_output << game_over_bad_message;
+	if (game_status == GameStatus_good_ending && game_over_good_message!="")frame_output << game_over_good_message;
+	if (game_status == GameStatus_quit && game_over_bad_message!="")frame_output << game_over_bad_message;
+	if (game_status == GameStatus_changing_scene) {
+		load_current_scene();
+		change_game_status(GameStatus_running);
+		is_running = true;
+	}
 }
 
-void Game1::change_player_health(int change)
+
+
+bool Game1::move_actor(Actor& actor, int target_y, int target_x)
 {
-	player_health += change;
-	if (player_health <= 0)game_status = GameStatus_bad_ending;
+	return current_scene->move_actor(actor, target_y, target_x);
 }
 
-bool Game1::check_out_of_bound(int index_y, int index_x)
-{
-	return index_y < 0 || index_y >= HARDCODED_MAP_HEIGHT || index_x < 0 || index_x >= HARDCODED_MAP_WIDTH;
-}
 
-void Game1::move_actor(int actor_index, int target_y, int target_x)
-{
-	Actor& actor = hardcoded_actors[actor_index];
-	actor_layer[actor.position.y][actor.position.x].erase(actor_index);
-	actor_layer[target_y][target_x].insert(actor_index);
-	actor.position.x = target_x;
-	actor.position.y = target_y;
-}
 
 void Game1::cout_frame_output()
 {
@@ -192,3 +123,106 @@ void Game1::cout_frame_output()
 	frame_output.str("");
 }
 
+void Game1::load_config_files()
+{
+	config_files_pre_check();
+	for (auto file : config_files) {
+		load_config_file(file);
+	}
+	config_files_post_check();
+	update_config_variables();
+	clear_config_data();
+}
+
+void Game1::clear_config_data()
+{
+	config_file_map.clear();
+}
+
+void Game1::load_config_file(const std::string& file_path)
+{
+	if (!std::filesystem::exists(EngineUtils::GetResourceFilePath(file_path)))return;
+	std::unique_ptr out_document = std::make_unique<rapidjson::Document>();
+	EngineUtils::ReadJsonFile(EngineUtils::GetResourceFilePath(file_path), *out_document);
+	config_file_map[file_path] = std::move(out_document);
+}
+
+void Game1::config_files_pre_check()
+{
+	if (!EngineUtils::ResourceFileExist("")) { 
+		std::cout << "error: resources/ missing";
+		exit(0);
+	}
+	if (!EngineUtils::ResourceFileExist("game.config")) {
+		std::cout << "error: resources/game.config missing";
+		exit(0);
+	}
+}
+
+void Game1::config_files_post_check()
+{
+	if (!(*config_file_map["game.config"]).HasMember("initial_scene")) {
+		std::cout << "error: initial_scene unspecified";
+		exit(0);
+	}
+}
+
+void Game1::update_config_variables()
+{
+	if (config_file_map.find("rendering.config") != config_file_map.end()) {
+		rapidjson::Document& rendering_config = *config_file_map["rendering.config"];
+		if (rendering_config.HasMember("x_resolution"))camera_dimension.x = rendering_config["x_resolution"].GetInt();
+		if (rendering_config.HasMember("y_resolution"))camera_dimension.y = rendering_config["y_resolution"].GetInt();
+	}
+	rapidjson::Document& game_config = (*config_file_map["game.config"]);
+	if (game_config.HasMember("game_over_bad_message"))game_over_bad_message = game_config["game_over_bad_message"].GetString();
+	if (game_config.HasMember("game_over_good_message"))game_over_good_message = game_config["game_over_good_message"].GetString();
+	if (game_config.HasMember("game_start_message"))game_start_message = game_config["game_start_message"].GetString();
+
+	current_scene_name = game_config["initial_scene"].GetString();
+}
+
+
+void Game1::load_current_scene()
+{
+	std::string relative_scene_path = "scenes/"+current_scene_name+".scene";
+	if (config_file_map.find(relative_scene_path) == config_file_map.end()) {
+		if (!EngineUtils::ResourceFileExist(relative_scene_path)) {
+			cout_frame_output();
+			std::cout << "error: scene " + current_scene_name + " is missing";
+			exit(0);
+		}
+		load_config_file(relative_scene_path);
+	}
+	current_scene = std::make_unique<Scene>();
+	rapidjson::Document& scene_json = (*config_file_map[relative_scene_path]);
+	current_scene->load_actors(scene_json);
+	config_file_map.erase(relative_scene_path);
+	reinitialize_render_layer();
+	render_actor_and_detect_dialogue();
+}
+
+void Game1::change_game_status(GameStatus new_status) {
+	game_status = new_status;
+}
+
+
+
+void Game1::change_current_scene(const std::string& new_scene_name)
+{
+	game_status = GameStatus_changing_scene;
+	current_scene_name = new_scene_name;
+}
+
+void Game1::change_player_health(int change)
+{
+	player_health += change;
+	if (player_health <= 0) {
+		change_game_status(GameStatus_bad_ending);
+	}
+}
+
+void Game1::change_score(int change)
+{
+	score += change;
+}

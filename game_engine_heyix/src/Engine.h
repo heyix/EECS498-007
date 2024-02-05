@@ -5,6 +5,7 @@ class Engine
 public:
 	void game_loop();
 protected:
+	virtual void awake();
 	virtual void start();
 	virtual void update();
 	virtual void render();
