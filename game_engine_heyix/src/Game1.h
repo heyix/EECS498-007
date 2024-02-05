@@ -2,7 +2,6 @@
 #include "Engine.h"
 #include <string>
 #include "glm/glm.hpp"
-#include "MapHelper.h"
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -60,7 +59,6 @@ protected:
 	void render() override;
 private:
 	void input();
-	void update_map();
 	void update_actor();
 	void check_dialogue();
 	void trigger_contact_dialogue(Actor& actor);
@@ -68,7 +66,6 @@ private:
 	bool check_substring_exist(std::string& origin_string, std::string& substring);
 	void check_game_status();
 	void change_player_health(int change);
-	bool check_out_of_bound(int index_y, int index_x);
 	void cout_frame_output();
 	void load_config_files();
 	void load_config_file(const std::string& file_path);
@@ -82,17 +79,16 @@ public:
 	bool move_actor(Actor& actor, int target_y, int target_x);
 
 public:
-	std::string user_input = "";
+	std::string user_input;
 	int score = 0;
 	int player_health = 3;
-	Player* player;
+	Player* player=nullptr;
 	static Game1* instance;
 	std::map<int,Actor*> id_to_actor_map;
-	std::unordered_map<glm::ivec2, std::set<int>, HashIvec2, HashIvec2> actor_position_map;
+	std::unordered_map<glm::ivec2, std::set<Actor*,ActorPointerComparator>, HashIvec2, HashIvec2> actor_position_map;
 	std::vector<Actor*> sorted_actor_by_id;
 
 private:
-	char render_layer[HARDCODED_MAP_HEIGHT][HARDCODED_MAP_WIDTH + 1];
 	std::vector<std::string> special_dialogue{ "health down","score up","you win","game over" };
 	GameStatus game_status = GameStatus_running;
 	std::stringstream frame_output;

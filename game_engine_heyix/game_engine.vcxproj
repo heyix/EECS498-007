@@ -32,7 +32,6 @@
     <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\EngineUtils.h" />
     <ClInclude Include="src\Game1.h" />
-    <ClInclude Include="src\MapHelper.h" />
     <ClInclude Include="src\Player.h" />
     <ClInclude Include="src\SceneDB.h" />
   </ItemGroup>

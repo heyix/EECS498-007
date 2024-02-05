@@ -12,33 +12,31 @@ void Game1::awake()
 void Game1::start() {
 	rapidjson::Document& game_config = (*config_file_map["game.config"]);
 	if((game_config.HasMember("game_start_message")))std::cout << game_config["game_start_message"].GetString() << std::endl;
-	for (auto i : id_to_actor_map) {
-		Actor& actor = *i.second;
-		actor_position_map[glm::highp_ivec2{ actor.position.x,actor.position.y }].insert(actor.ID);
-	}
 }
 
 void Game1::render()
 {
-	update_map();
-	int left_index = player->position.x - camera_dimension.x/2;
+	int left_index = player->position.x - camera_dimension.x / 2;
 	int right_index = player->position.x + camera_dimension.x / 2;
 	int up_index = player->position.y - camera_dimension.y / 2;
 	int down_index =player->position.y + camera_dimension.y / 2;
 	for (int i = up_index; i <= down_index; i++) {
 		for (int j = left_index; j <= right_index; j++) {
-			if (check_out_of_bound(i, j))frame_output << ' ';
-			else frame_output << render_layer[i][j];
+			if (actor_position_map.find(glm::ivec2{ j,i }) != actor_position_map.end()) {
+				auto& actor_set = actor_position_map[glm::ivec2{ j,i }];
+				frame_output << (*actor_set.rbegin())->view;
+			}
+			else frame_output << ' ';
 		}
 		frame_output << std::endl;
-	}
+	} 
 }
 
-
+ 
 void Game1::update()
 {
 	//render first frame->check dialogue of rendered frame->start to make update for next frame
-	check_dialogue();
+	check_dialogue(); 
 
 	if (game_status == GameStatus_running) {
 		input();
@@ -47,7 +45,7 @@ void Game1::update()
 	check_game_status();
 	cout_frame_output();
 }
-
+ 
 
 
 void Game1::input()
@@ -62,47 +60,42 @@ void Game1::input()
 	}
 }
 
-void Game1::update_map()
-{
-	for (int i = 0; i < HARDCODED_MAP_HEIGHT; i++) {
-		for (int j = 0; j < HARDCODED_MAP_WIDTH + 1; j++) {
-			render_layer[i][j] = hardcoded_map[i][j];
-		}
-	}
-	for (auto i: id_to_actor_map) {
-		Actor& actor = *i.second;
-		render_layer[actor.position.y][actor.position.x] = actor.view;
-	}
-}
 
 void Game1::update_actor()
 {
-	for (auto i: id_to_actor_map) {
-		Actor& actor = *i.second;
+	for (auto i: sorted_actor_by_id) {
+		Actor& actor = *i;
 		actor.update_position();
 	}
 }
 
 void Game1::check_dialogue()
 {
-	for (auto& actor_ptr: id_to_actor_map) {
-		Actor& actor = *actor_ptr.second;
-		int diff_x = actor.position.x - player->position.x;
-		int diff_y = actor.position.y - player->position.y;
-		if (diff_x == 0 && diff_y == 0 && actor.contact_dialogue != "")	trigger_contact_dialogue(actor);
-		else if (std::abs(diff_x) <= 1 && std::abs(diff_y) <= 1 && actor.nearby_dialogue!="") {
-			trigger_nearby_dialogue(actor);
+	std::set<Actor*,ActorPointerComparator> actor_set;
+	for (int dy = -1; dy <= 1; dy++) {
+		for (int dx = -1; dx <= 1; dx++) {
+			glm::ivec2 target_pos{ player->position.x + dx,player->position.y + dy };
+			if (actor_position_map.find(target_pos) != actor_position_map.end()) {
+				for (auto i : actor_position_map[target_pos]) {
+					actor_set.insert(i);
+				}
+			}
 		}
+	}
+	for (auto i : actor_set) {
+		Actor& actor = *i;
+		int dx = player->position.x - actor.position.x;
+		int dy = player->position.y - actor.position.y;
+		if (dx == 0 && dy == 0 && actor.contact_dialogue != "")trigger_contact_dialogue(actor);
+		else if (actor.nearby_dialogue != "")trigger_nearby_dialogue(actor);;
 	}
 }
 
 bool Game1::check_grid_accessible(int index_y, int index_x)
 {
-	if (check_out_of_bound(index_y, index_x)) return false;
-	if (render_layer[index_y][index_x] == 'b')return false;
 	if (actor_position_map.find(glm::ivec2{index_x,index_y})!=actor_position_map.end()) {
 		for (auto i : actor_position_map[glm::ivec2{index_x,index_y}]) {
-			Actor& actor = *id_to_actor_map[i];
+			Actor& actor = *i;
 			if (actor.blocking == true)return false;
 		}
 	}
@@ -169,16 +162,14 @@ void Game1::change_player_health(int change)
 	if (player_health <= 0)game_status = GameStatus_bad_ending;
 }
 
-bool Game1::check_out_of_bound(int index_y, int index_x)
-{
-	return index_y < 0 || index_y >= HARDCODED_MAP_HEIGHT || index_x < 0 || index_x >= HARDCODED_MAP_WIDTH;
-}
 
 bool Game1::move_actor(Actor& actor, int target_y, int target_x)
 {
 	if (check_grid_accessible(target_y, target_x)) {
-		actor_position_map[glm::ivec2{ actor.position.x,actor.position.y }].erase(actor.ID);
-		actor_position_map[glm::ivec2{ target_x,target_y }].insert(actor.ID);
+		auto& old_set = actor_position_map[glm::ivec2{ actor.position.x,actor.position.y }];
+		old_set.erase(&actor);
+		if (old_set.size() == 0)actor_position_map.erase(glm::ivec2{ actor.position.x,actor.position.y });
+		actor_position_map[glm::ivec2{ target_x,target_y }].insert(&actor);
 		actor.position.x = target_x;
 		actor.position.y = target_y;
 		return true;
@@ -245,14 +236,14 @@ void Game1::load_actors()
 {
 	rapidjson::Document& scene_json = (*config_file_map["scenes/" + current_scene_name + ".scene"]);
 	const rapidjson::Value& actors = scene_json["actors"];
-	_underlying_actor_storage.reserve(actors.Size());
+	_underlying_actor_storage.reserve(actors.Size()+1);
 	_underlying_player_storage.reserve(1);
 	for (int i = 0; i < actors.Size();i++) {
 		auto& actor = actors[i];
 		Actor* new_actor;
 		if (actor.HasMember("name") && actor["name"].GetString() == std::string("player")) {
 			_underlying_player_storage.push_back(Player());
-			player = &(_underlying_player_storage[_underlying_player_storage.size()-1]);
+			player = &(_underlying_player_storage[_underlying_player_storage.size() - 1]);
 			new_actor = player;
 		}
 		else {
@@ -262,7 +253,7 @@ void Game1::load_actors()
 
 
 		if (actor.HasMember("name"))new_actor->actor_name = actor["name"].GetString();
-		if (actor.HasMember("view"))new_actor->view = actor["view"].GetString()[0];
+		if (actor.HasMember("view") && std::string(actor["view"].GetString()).size()!=0)new_actor->view = actor["view"].GetString()[0];
 		if (actor.HasMember("x"))new_actor->position.x = actor["x"].GetInt();  
 		if (actor.HasMember("y"))new_actor->position.y = actor["y"].GetInt();
 		if (actor.HasMember("vel_x"))new_actor->velocity.x = actor["vel_x"].GetInt();
@@ -271,13 +262,13 @@ void Game1::load_actors()
 		if (actor.HasMember("nearby_dialogue"))new_actor->nearby_dialogue = actor["nearby_dialogue"].GetString();
 		if (actor.HasMember("contact_dialogue"))new_actor->contact_dialogue = actor["contact_dialogue"].GetString();
 		new_actor->ID = current_id++;
+
 		id_to_actor_map[new_actor->ID]=new_actor;
 		sorted_actor_by_id.push_back(new_actor);
+		actor_position_map[new_actor->position].insert(new_actor);
 
 	}
-	for (auto actor : id_to_actor_map) {
-		actor_position_map[actor.second->position].insert(actor.second->ID);
-	}
+	std::sort(sorted_actor_by_id.begin(), sorted_actor_by_id.end(), ActorPointerComparator());
 }
 
 void Game1::load_scene(const std::string& scene_name)
