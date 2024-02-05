@@ -293,7 +293,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/ThirdParty/**",
+					"$(PROJECT_DIR)/ThirdParty",
 					"$(PROJECT_DIR)/src/**",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -305,7 +305,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/ThirdParty/**",
+					"$(PROJECT_DIR)/ThirdParty",
 					"$(PROJECT_DIR)/src/**",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
