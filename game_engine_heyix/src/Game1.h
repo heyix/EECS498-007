@@ -1,4 +1,5 @@
-#pragma once
+#ifndef GAME1
+#define GAME1
 #include "Engine.h"
 #include <string>
 #include "glm/glm.hpp"
@@ -86,3 +87,4 @@ private:
 	int camera_down_index=0;
 
 };
+#endif

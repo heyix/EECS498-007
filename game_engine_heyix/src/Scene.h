@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SCENE_H
+#define SCENE_H
 #include "Engine.h"
 #include <string>
 #include "glm/glm.hpp"
@@ -53,3 +54,4 @@ private:
 
 };
 
+#endif

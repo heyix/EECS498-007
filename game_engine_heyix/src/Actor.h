@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ACTOR_H
+#define ACTOR_H
 #include <string>
 #include "glm/glm.hpp"
 class Game1;
@@ -22,4 +23,4 @@ public:
 public:
 	virtual void update_position();
 };
- 
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PLAYER_H
+#define PLAYER_H
 #include "Actor.h"
 class Game1;
 class Player:public Actor
@@ -10,3 +11,4 @@ public:
 	Player():Actor(){}
 };
 
+#endif

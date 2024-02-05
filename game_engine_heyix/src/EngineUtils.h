@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ENGINE_UTILS_H
+#define ENGINE_UTILS_H
 #include "rapidjson/include/rapidjson/document.h"
 #include "rapidjson/include/rapidjson/filereadstream.h"
 #include "rapidjson/include/rapidjson/prettywriter.h" 
@@ -30,3 +31,4 @@ public:
 	static uint64_t create_composite_key(int x, int y);
 	static uint64_t create_composite_key(const glm::ivec2& k);
 };
+#endif
