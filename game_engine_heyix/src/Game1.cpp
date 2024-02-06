@@ -169,8 +169,8 @@ void Game1::config_files_post_check()
 
 void Game1::update_config_variables()
 {
-	if (config_file_map.find("rendering.config") != config_file_map.end()) {
-		rapidjson::Document& rendering_config = *config_file_map["rendering.config"];
+	if (auto element = config_file_map.find("rendering.config"); element != config_file_map.end()) {
+		rapidjson::Document& rendering_config = *element->second;
 		if (rendering_config.HasMember("x_resolution"))camera_dimension.x = rendering_config["x_resolution"].GetInt();
 		if (rendering_config.HasMember("y_resolution"))camera_dimension.y = rendering_config["y_resolution"].GetInt();
 	}

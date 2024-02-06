@@ -17,7 +17,6 @@ void Scene::load_actors(rapidjson::Document& scene_json)
 		if(new_actor.blocking)blocking_map[EngineUtils::create_composite_key(new_actor.position)]++;
 
 	}
-	std::sort(sorted_actor_by_id.begin(), sorted_actor_by_id.end(), EngineUtils::ActorPointerComparator());
 }
 
 void Scene::initialize_actor(const rapidjson::Value& actor, Actor& new_actor)

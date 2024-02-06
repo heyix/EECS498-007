@@ -30,5 +30,5 @@ public:
 	static std::string obtain_word_after_phrase(const std::string& input, const std::string& phrase);
 	static uint64_t create_composite_key(int x, int y);
 	static uint64_t create_composite_key(const glm::ivec2& k);
-};
+}; 
 #endif
