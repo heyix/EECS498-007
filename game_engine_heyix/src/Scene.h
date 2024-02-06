@@ -1,5 +1,4 @@
-#ifndef SCENE_H
-#define SCENE_H
+#pragma once
 #include "Engine.h"
 #include <string>
 #include "glm/glm.hpp"
@@ -39,11 +38,9 @@ private:
 	Actor& instantiate_actor(const rapidjson::Value& actor,int& actor_index);
 public:
 	std::unordered_map<int, Actor*> id_to_actor_map;
+	std::unordered_map<uint64_t, std::set<Actor*, EngineUtils::ActorPointerComparator>> actor_position_map;
 	std::vector<Actor*> sorted_actor_by_id;
 	Player* player = nullptr;
-	std::vector<Actor*> dialogue_list;
-	std::unordered_map<uint64_t, int> blocking_map;
-	std::vector<std::vector<char>> render_layer;
 
 
 private:
@@ -54,4 +51,3 @@ private:
 
 };
 
-#endif

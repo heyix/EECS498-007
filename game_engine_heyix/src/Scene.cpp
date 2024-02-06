@@ -12,11 +12,13 @@ void Scene::load_actors(rapidjson::Document& scene_json)
 		Actor& new_actor = instantiate_actor(actor,actor_index);
 		initialize_actor(actor, new_actor);
 		new_actor.ID = current_id++;
+
 		//id_to_actor_map[new_actor.ID] = &new_actor;
 		sorted_actor_by_id.emplace_back(&new_actor);
-		if(new_actor.blocking)blocking_map[EngineUtils::create_composite_key(new_actor.position)]++;
+		actor_position_map[EngineUtils::create_composite_key(new_actor.position)].insert(&new_actor);
 
 	}
+	std::sort(sorted_actor_by_id.begin(), sorted_actor_by_id.end(), EngineUtils::ActorPointerComparator());
 }
 
 void Scene::initialize_actor(const rapidjson::Value& actor, Actor& new_actor)
@@ -38,8 +40,11 @@ void Scene::initialize_actor(const rapidjson::Value& actor, Actor& new_actor)
 bool Scene::check_grid_accessible(int index_y, int index_x)
 {
 	auto composite_key = EngineUtils::create_composite_key(index_x, index_y);
-	if (blocking_map.find(composite_key) != blocking_map.end()) {
-		return false;
+	if (actor_position_map.find(composite_key) != actor_position_map.end()) {
+		for (auto i : actor_position_map[composite_key]) {
+			Actor& actor = *i;
+			if (actor.blocking == true)return false;
+		}
 	}
 	return true;
 }
@@ -47,13 +52,11 @@ bool Scene::check_grid_accessible(int index_y, int index_x)
 bool Scene::move_actor(Actor& actor, int target_y, int target_x)
 {
 	if (check_grid_accessible(target_y, target_x)) {
-		if (actor.blocking) {
-			auto old_pos_key = EngineUtils::create_composite_key(actor.position.x, actor.position.y);
-			int& blocking_num = blocking_map[old_pos_key];
-			blocking_num--;
-			if (blocking_num == 0)blocking_map.erase(old_pos_key);
-			blocking_map[EngineUtils::create_composite_key(target_x, target_y)]++;
-		}
+		auto old_pos_key = EngineUtils::create_composite_key(actor.position.x, actor.position.y);
+		auto& old_set = actor_position_map[old_pos_key];
+		old_set.erase(&actor);
+		if (old_set.size() == 0)actor_position_map.erase(old_pos_key);
+		actor_position_map[EngineUtils::create_composite_key(target_x,target_y)].insert(&actor);
 		actor.position.x = target_x;
 		actor.position.y = target_y;
 		return true;
@@ -64,15 +67,25 @@ bool Scene::move_actor(Actor& actor, int target_y, int target_x)
 
 void Scene::check_dialogue(std::stringstream& frame_output)
 {
-
-	for (auto i : dialogue_list) {
+	std::vector<Actor*> actor_set;
+	for (int dy = -1; dy <= 1; dy++) {
+		for (int dx = -1; dx <= 1; dx++) {
+			auto pos_key = EngineUtils::create_composite_key(player->position.x + dx, player->position.y + dy);
+			if (actor_position_map.find(pos_key) != actor_position_map.end()) {
+				for (auto i : actor_position_map[pos_key]) {
+					actor_set.push_back(i);
+				}
+			}
+		}
+	}
+	std::sort(actor_set.begin(), actor_set.end(), EngineUtils::ActorPointerComparator());
+	for (auto i : actor_set) {
 		Actor& actor = *i;
 		int dx = player->position.x - actor.position.x;
 		int dy = player->position.y - actor.position.y;
 		if (dx == 0 && dy == 0 && actor.contact_dialogue != "")trigger_contact_dialogue(actor,frame_output);
 		else if (actor.nearby_dialogue != "")trigger_nearby_dialogue(actor,frame_output);;
 	}
-	dialogue_list.clear();
 }
 
 void Scene::trigger_contact_dialogue(Actor& actor, std::stringstream& frame_output)

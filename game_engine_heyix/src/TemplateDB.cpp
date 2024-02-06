@@ -9,8 +9,8 @@ const Actor& TemplateDB::LoadTemplateActor(const std::string& template_name)
 		std::cout << "error: template " << template_name << " is missing";
 		exit(0);
 	}
-	if (auto element = template_files.find(template_name);element != template_files.end()) {
-		return element->second;
+	if (template_files.find(template_name)!=template_files.end()) {
+		return template_files[template_name];
 	}
 	rapidjson::Document document;
 	EngineUtils::ReadJsonFile(EngineUtils::GetResourceFilePath(folderPath + template_name + ".template"), document);

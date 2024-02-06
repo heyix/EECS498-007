@@ -1,7 +1,5 @@
-#ifndef SCENEDB_H
-#define SCENEDB_H
+#pragma once
 class SceneDB
 {
 };
 
-#endif

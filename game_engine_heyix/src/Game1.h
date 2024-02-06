@@ -1,5 +1,4 @@
-#ifndef GAME1
-#define GAME1
+#pragma once
 #include "Engine.h"
 #include <string>
 #include "glm/glm.hpp"
@@ -52,17 +51,12 @@ private:
 	void config_files_post_check();
 	void update_config_variables();
 	void load_current_scene();
-	void render_actor_and_detect_dialogue();
 public:
 	bool move_actor(Actor& actor, int target_y, int target_x);
 	void change_game_status(GameStatus new_status);
 	void change_current_scene(const std::string& new_scene_name);
 	void change_player_health(int change);
 	void change_score(int change);
-	void render_actor_to_camera(Actor& actor);
-	bool check_actor_inside_camera(Actor& actor);
-	void update_camera_range();
-	void reinitialize_render_layer();
 public:
 	std::string user_input;
 	static Game1* instance;
@@ -81,10 +75,4 @@ private:
 	std::string game_start_message;
 	std::string game_over_bad_message;
 	std::string game_over_good_message;
-	int camera_left_index=0;
-	int camera_right_index=0;
-	int camera_up_index=0;
-	int camera_down_index=0;
-
 };
-#endif

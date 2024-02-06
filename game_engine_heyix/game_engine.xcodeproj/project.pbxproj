@@ -10,12 +10,6 @@
 		2ACECEC02B6614B8003AA5CF /* Game1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2ACECEBD2B6614B8003AA5CF /* Game1.cpp */; };
 		2ACECEC12B6614B8003AA5CF /* Engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2ACECEBE2B6614B8003AA5CF /* Engine.cpp */; };
 		2ACECEC22B6614B8003AA5CF /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2ACECEBF2B6614B8003AA5CF /* main.cpp */; };
-		2AE9BCAD2B71185300E60AE7 /* EngineUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2AE9BCA32B71185200E60AE7 /* EngineUtils.cpp */; };
-		2AE9BCAE2B71185300E60AE7 /* SceneDB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2AE9BCA42B71185200E60AE7 /* SceneDB.cpp */; };
-		2AE9BCAF2B71185300E60AE7 /* Player.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2AE9BCA52B71185200E60AE7 /* Player.cpp */; };
-		2AE9BCB02B71185300E60AE7 /* TemplateDB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2AE9BCA72B71185200E60AE7 /* TemplateDB.cpp */; };
-		2AE9BCB12B71185300E60AE7 /* Scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2AE9BCA82B71185200E60AE7 /* Scene.cpp */; };
-		2AE9BCB22B71185300E60AE7 /* Actor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2AE9BCAA2B71185300E60AE7 /* Actor.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -38,18 +32,6 @@
 		2ACECEBD2B6614B8003AA5CF /* Game1.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Game1.cpp; sourceTree = "<group>"; };
 		2ACECEBE2B6614B8003AA5CF /* Engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Engine.cpp; sourceTree = "<group>"; };
 		2ACECEBF2B6614B8003AA5CF /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		2AE9BCA12B71185200E60AE7 /* SceneDB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SceneDB.h; sourceTree = "<group>"; };
-		2AE9BCA22B71185200E60AE7 /* TemplateDB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TemplateDB.h; sourceTree = "<group>"; };
-		2AE9BCA32B71185200E60AE7 /* EngineUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EngineUtils.cpp; sourceTree = "<group>"; };
-		2AE9BCA42B71185200E60AE7 /* SceneDB.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SceneDB.cpp; sourceTree = "<group>"; };
-		2AE9BCA52B71185200E60AE7 /* Player.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Player.cpp; sourceTree = "<group>"; };
-		2AE9BCA62B71185200E60AE7 /* Player.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Player.h; sourceTree = "<group>"; };
-		2AE9BCA72B71185200E60AE7 /* TemplateDB.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TemplateDB.cpp; sourceTree = "<group>"; };
-		2AE9BCA82B71185200E60AE7 /* Scene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Scene.cpp; sourceTree = "<group>"; };
-		2AE9BCA92B71185200E60AE7 /* Scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Scene.h; sourceTree = "<group>"; };
-		2AE9BCAA2B71185300E60AE7 /* Actor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Actor.cpp; sourceTree = "<group>"; };
-		2AE9BCAB2B71185300E60AE7 /* Actor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Actor.h; sourceTree = "<group>"; };
-		2AE9BCAC2B71185300E60AE7 /* EngineUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EngineUtils.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,18 +64,6 @@
 		2ACECEB92B6614B8003AA5CF /* src */ = {
 			isa = PBXGroup;
 			children = (
-				2AE9BCAA2B71185300E60AE7 /* Actor.cpp */,
-				2AE9BCAB2B71185300E60AE7 /* Actor.h */,
-				2AE9BCA32B71185200E60AE7 /* EngineUtils.cpp */,
-				2AE9BCAC2B71185300E60AE7 /* EngineUtils.h */,
-				2AE9BCA52B71185200E60AE7 /* Player.cpp */,
-				2AE9BCA62B71185200E60AE7 /* Player.h */,
-				2AE9BCA82B71185200E60AE7 /* Scene.cpp */,
-				2AE9BCA92B71185200E60AE7 /* Scene.h */,
-				2AE9BCA42B71185200E60AE7 /* SceneDB.cpp */,
-				2AE9BCA12B71185200E60AE7 /* SceneDB.h */,
-				2AE9BCA72B71185200E60AE7 /* TemplateDB.cpp */,
-				2AE9BCA22B71185200E60AE7 /* TemplateDB.h */,
 				2ACECEBA2B6614B8003AA5CF /* Engine.h */,
 				2ACECEBB2B6614B8003AA5CF /* Game1.h */,
 				2ACECEBC2B6614B8003AA5CF /* MapHelper.h */,
@@ -160,15 +130,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2AE9BCB22B71185300E60AE7 /* Actor.cpp in Sources */,
-				2AE9BCB12B71185300E60AE7 /* Scene.cpp in Sources */,
 				2ACECEC02B6614B8003AA5CF /* Game1.cpp in Sources */,
 				2ACECEC12B6614B8003AA5CF /* Engine.cpp in Sources */,
-				2AE9BCAF2B71185300E60AE7 /* Player.cpp in Sources */,
 				2ACECEC22B6614B8003AA5CF /* main.cpp in Sources */,
-				2AE9BCAD2B71185300E60AE7 /* EngineUtils.cpp in Sources */,
-				2AE9BCB02B71185300E60AE7 /* TemplateDB.cpp in Sources */,
-				2AE9BCAE2B71185300E60AE7 /* SceneDB.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -293,7 +257,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/ThirdParty",
+					"$(PROJECT_DIR)/ThirdParty/glm/**",
 					"$(PROJECT_DIR)/src/**",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -305,7 +269,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/ThirdParty",
+					"$(PROJECT_DIR)/ThirdParty/glm/**",
 					"$(PROJECT_DIR)/src/**",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";

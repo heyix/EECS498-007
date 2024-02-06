@@ -1,5 +1,4 @@
-#ifndef TEMPLATE_DB_H
-#define TEMPLATE_DB_H
+#pragma once
 #include "Actor.h"
 #include <memory>
 #include "rapidjson/include/rapidjson/document.h"
@@ -17,4 +16,3 @@ public:
 	static const Player& LoadTemplatePlayer(const std::string& template_name);
 };
 
-#endif
