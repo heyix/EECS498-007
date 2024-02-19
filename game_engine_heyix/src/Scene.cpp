@@ -19,7 +19,7 @@ void Scene::load_actors(rapidjson::Document& scene_json)
 
 	}
 	std::sort(sorted_actor_by_id.begin(), sorted_actor_by_id.end(), EngineUtils::ActorPointerComparator());
-}
+} 
 
 void Scene::initialize_actor(const rapidjson::Value& actor, Actor& new_actor)
 {
