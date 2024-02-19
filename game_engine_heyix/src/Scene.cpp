@@ -15,7 +15,7 @@ void Scene::load_actors(rapidjson::Document& scene_json)
 
 		//id_to_actor_map[new_actor.ID] = &new_actor;
 		sorted_actor_by_id.emplace_back(&new_actor);
-		actor_position_map[EngineUtils::create_composite_key(new_actor.position)].insert(&new_actor);
+		actor_position_map[EngineUtils::create_composite_key(new_actor.position)].push_back(&new_actor);
 
 	}
 	std::sort(sorted_actor_by_id.begin(), sorted_actor_by_id.end(), EngineUtils::ActorPointerComparator());
@@ -23,25 +23,25 @@ void Scene::load_actors(rapidjson::Document& scene_json)
 
 void Scene::initialize_actor(const rapidjson::Value& actor, Actor& new_actor)
 {
-	if (actor.HasMember("name"))new_actor.actor_name = actor["name"].GetString();
-	if (actor.HasMember("view")) {
-		std::string view = actor["view"].GetString(); 
-		if(view.size() != 0)new_actor.view = view[0];
+	if (auto it = actor.FindMember("name"); it != actor.MemberEnd())new_actor.actor_name = it->value.GetString();
+	if (auto it = actor.FindMember("view"); it != actor.MemberEnd()) {
+		std::string view = it->value.GetString();
+		if (view.size() != 0)new_actor.view = view[0];
 	}
-	if (actor.HasMember("x"))new_actor.position.x = actor["x"].GetInt();
-	if (actor.HasMember("y"))new_actor.position.y = actor["y"].GetInt();
-	if (actor.HasMember("vel_x"))new_actor.velocity.x = actor["vel_x"].GetInt();
-	if (actor.HasMember("vel_y"))new_actor.velocity.y = actor["vel_y"].GetInt();
-	if (actor.HasMember("blocking"))new_actor.blocking = actor["blocking"].GetBool();
-	if (actor.HasMember("nearby_dialogue"))new_actor.nearby_dialogue = actor["nearby_dialogue"].GetString();
-	if (actor.HasMember("contact_dialogue"))new_actor.contact_dialogue = actor["contact_dialogue"].GetString();
+	if (auto it = actor.FindMember("x"); it != actor.MemberEnd())new_actor.position.x = it->value.GetInt();
+	if (auto it = actor.FindMember("y"); it != actor.MemberEnd())new_actor.position.y = it->value.GetInt();
+	if (auto it = actor.FindMember("vel_x"); it != actor.MemberEnd())new_actor.velocity.x = it->value.GetInt();
+	if (auto it = actor.FindMember("vel_y"); it != actor.MemberEnd())new_actor.velocity.y = it->value.GetInt();
+	if (auto it = actor.FindMember("blocking"); it != actor.MemberEnd())new_actor.blocking = it->value.GetBool();
+	if (auto it = actor.FindMember("nearby_dialogue"); it != actor.MemberEnd())new_actor.nearby_dialogue = it->value.GetString();
+	if (auto it = actor.FindMember("contact_dialogue"); it != actor.MemberEnd())new_actor.contact_dialogue = it->value.GetString();
 }
 
 bool Scene::check_grid_accessible(int index_y, int index_x)
 {
 	auto composite_key = EngineUtils::create_composite_key(index_x, index_y);
-	if (actor_position_map.find(composite_key) != actor_position_map.end()) {
-		for (auto i : actor_position_map[composite_key]) {
+	if (auto it = actor_position_map.find(composite_key); it!= actor_position_map.end()) {
+		for (auto i : it->second) {
 			Actor& actor = *i;
 			if (actor.blocking == true)return false;
 		}
@@ -53,10 +53,12 @@ bool Scene::move_actor(Actor& actor, int target_y, int target_x)
 {
 	if (check_grid_accessible(target_y, target_x)) {
 		auto old_pos_key = EngineUtils::create_composite_key(actor.position.x, actor.position.y);
-		auto& old_set = actor_position_map[old_pos_key];
-		old_set.erase(&actor);
-		if (old_set.size() == 0)actor_position_map.erase(old_pos_key);
-		actor_position_map[EngineUtils::create_composite_key(target_x,target_y)].insert(&actor);
+		auto it = actor_position_map.find(old_pos_key);
+		auto& old_set = it->second;
+		old_set.erase(std::lower_bound(old_set.begin(), old_set.end(), &actor, EngineUtils::ActorPointerComparator()));
+		if (old_set.size() == 0)actor_position_map.erase(it);
+		auto& new_vec = actor_position_map[EngineUtils::create_composite_key(target_x, target_y)];
+		new_vec.insert(std::lower_bound(new_vec.begin(), new_vec.end(), &actor, EngineUtils::ActorPointerComparator()), &actor);
 		actor.position.x = target_x;
 		actor.position.y = target_y;
 		return true;
@@ -71,8 +73,8 @@ void Scene::check_dialogue(std::stringstream& frame_output)
 	for (int dy = -1; dy <= 1; dy++) {
 		for (int dx = -1; dx <= 1; dx++) {
 			auto pos_key = EngineUtils::create_composite_key(player->position.x + dx, player->position.y + dy);
-			if (actor_position_map.find(pos_key) != actor_position_map.end()) {
-				for (auto i : actor_position_map[pos_key]) {
+			if (auto it = actor_position_map.find(pos_key); it!= actor_position_map.end()) {
+				for (auto i : it->second) {
 					actor_set.push_back(i);
 				}
 			}
@@ -140,19 +142,21 @@ bool Scene::check_substring_exist(const std::string& origin_string, const std::s
 
 Actor& Scene::instantiate_actor(const rapidjson::Value& actor, int& actor_index)
 {
-	bool use_template = actor.HasMember("template");
+	auto template_it = actor.FindMember("template");
+	bool use_template = template_it != actor.MemberEnd();
 	std::string template_name;
-	if (use_template) template_name = actor["template"].GetString();
-	if (actor.HasMember("name") && actor["name"].GetString() == std::string("player")) {
+	if (use_template) template_name = template_it->value.GetString();
+	if (auto it = actor.FindMember("name");  it != actor.MemberEnd() && it->value.GetString() == std::string("player")) {
 		if (use_template) {
-			_underlying_player_storage[0]=TemplateDB::LoadTemplatePlayer(template_name);
+			_underlying_player_storage[0] = TemplateDB::LoadTemplatePlayer(template_name);
 		}
 		player = &(_underlying_player_storage[0]);
 		return _underlying_player_storage[0];
 	}
 	else {
-		if (use_template)_underlying_actor_storage[actor_index]=TemplateDB::LoadTemplateActor(template_name);
+		if (use_template)_underlying_actor_storage[actor_index] = TemplateDB::LoadTemplateActor(template_name);
 		actor_index++;
-		return _underlying_actor_storage[actor_index-1];
+		return _underlying_actor_storage[actor_index - 1];
 	}
+
 }

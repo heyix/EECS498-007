@@ -38,7 +38,7 @@ private:
 	Actor& instantiate_actor(const rapidjson::Value& actor,int& actor_index);
 public:
 	std::unordered_map<int, Actor*> id_to_actor_map;
-	std::unordered_map<uint64_t, std::set<Actor*, EngineUtils::ActorPointerComparator>> actor_position_map;
+	std::unordered_map<uint64_t, std::vector<Actor*>> actor_position_map;
 	std::vector<Actor*> sorted_actor_by_id;
 	Player* player = nullptr;
 

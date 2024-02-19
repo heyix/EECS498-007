@@ -21,8 +21,8 @@ void Game1::render()
 	for (int i = up_index; i <= down_index; i++) {
 		for (int j = left_index; j <= right_index; j++) {
 			auto pos_key = EngineUtils::create_composite_key(j, i);
-			if (actor_position_map.find(pos_key) != actor_position_map.end()) {
-				auto& actor_set = actor_position_map[pos_key];
+			if (auto it = actor_position_map.find(pos_key); it!= actor_position_map.end()) {
+				auto& actor_set = it->second;
 				frame_output << (*actor_set.rbegin())->view;
 			}
 			else frame_output << ' ';
@@ -36,10 +36,8 @@ void Game1::update()
 {
 	//render first frame->check dialogue of rendered frame->start to make update for next frame
 	current_scene->check_dialogue(frame_output); 
-	if (game_status == GameStatus_running) {
-		input();
-		update_actor();
-	}
+	input();
+	update_actor();
 	check_game_status();
 	cout_frame_output();
 }
@@ -48,6 +46,7 @@ void Game1::update()
 
 void Game1::input()
 {
+	if (game_status != GameStatus_running)return;
 	frame_output << "health : " << player_health << ", score : " << score << std::endl;
 	frame_output << "Please make a decision..." << std::endl;
 	frame_output << "Your options are \"n\", \"e\", \"s\", \"w\", \"quit\"" << std::endl;
@@ -61,6 +60,7 @@ void Game1::input()
 
 void Game1::update_actor()
 {
+	if (game_status != GameStatus_running)return;
 	for (auto i: current_scene->sorted_actor_by_id) {
 		Actor& actor = *i;
 		actor.update_position();
@@ -101,7 +101,7 @@ void Game1::cout_frame_output()
 void Game1::load_config_files()
 {
 	config_files_pre_check();
-	for (auto file : config_files) {
+	for (auto& file : config_files) {
 		load_config_file(file);
 	}
 	config_files_post_check();
@@ -144,15 +144,15 @@ void Game1::config_files_post_check()
 
 void Game1::update_config_variables()
 {
-	if (config_file_map.find("rendering.config") != config_file_map.end()) {
-		rapidjson::Document& rendering_config = *config_file_map["rendering.config"];
-		if (rendering_config.HasMember("x_resolution"))camera_dimension.x = rendering_config["x_resolution"].GetInt();
-		if (rendering_config.HasMember("y_resolution"))camera_dimension.y = rendering_config["y_resolution"].GetInt();
+	if (auto it_render = config_file_map.find("rendering.config");it_render!= config_file_map.end()) {
+		rapidjson::Document& rendering_config = *it_render->second;
+		if (auto it_x = rendering_config.FindMember("x_resolution");it_x!=rendering_config.MemberEnd())camera_dimension.x = it_x->value.GetInt();
+		if (auto it_y = rendering_config.FindMember("y_resolution"); it_y != rendering_config.MemberEnd())camera_dimension.y = it_y->value.GetInt();
 	}
 	rapidjson::Document& game_config = (*config_file_map["game.config"]);
-	if (game_config.HasMember("game_over_bad_message"))game_over_bad_message = game_config["game_over_bad_message"].GetString();
-	if (game_config.HasMember("game_over_good_message"))game_over_good_message = game_config["game_over_good_message"].GetString();
-	if (game_config.HasMember("game_start_message"))game_start_message = game_config["game_start_message"].GetString();
+	if (auto it = game_config.FindMember("game_over_bad_message"); it!=game_config.MemberEnd())game_over_bad_message = it->value.GetString();
+	if (auto it = game_config.FindMember("game_over_good_message"); it != game_config.MemberEnd())game_over_good_message = it->value.GetString();
+	if (auto it = game_config.FindMember("game_start_message"); it != game_config.MemberEnd())game_start_message = it->value.GetString();
 
 	current_scene_name = game_config["initial_scene"].GetString();
 }
@@ -160,19 +160,16 @@ void Game1::update_config_variables()
 
 void Game1::load_current_scene()
 {
-	std::string relative_scene_path = "scenes/"+current_scene_name+".scene";
-	if (config_file_map.find(relative_scene_path) == config_file_map.end()) {
-		if (!EngineUtils::ResourceFileExist(relative_scene_path)) {
-			cout_frame_output();
-			std::cout << "error: scene " + current_scene_name + " is missing";
-			exit(0);
-		}
-		load_config_file(relative_scene_path);
+	std::string relative_scene_path = "scenes/" + current_scene_name + ".scene";
+	if (!EngineUtils::ResourceFileExist(relative_scene_path)) {
+		cout_frame_output();
+		std::cout << "error: scene " + current_scene_name + " is missing";
+		exit(0);
 	}
+	rapidjson::Document out_document;
+	EngineUtils::ReadJsonFile(EngineUtils::GetResourceFilePath(relative_scene_path), out_document);
 	current_scene = std::make_unique<Scene>();
-	rapidjson::Document& scene_json = (*config_file_map[relative_scene_path]);
-	current_scene->load_actors(scene_json);
-	config_file_map.erase(relative_scene_path);
+	current_scene->load_actors(out_document);
 }
 
 void Game1::change_game_status(GameStatus new_status) {
