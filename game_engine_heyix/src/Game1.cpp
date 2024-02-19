@@ -8,6 +8,7 @@ void Game1::awake()
 
 void Game1::start() {
 	if(game_start_message!="")std::cout << game_start_message << std::endl;
+	render();
 }
 
 void Game1::render()
@@ -29,13 +30,13 @@ void Game1::render()
 		}
 		frame_output << std::endl;
 	} 
+	current_scene->check_dialogue(frame_output);
 }
 
  
 void Game1::update()
 {
 	//render first frame->check dialogue of rendered frame->start to make update for next frame
-	current_scene->check_dialogue(frame_output); 
 	input();
 	update_actor();
 	check_game_status();

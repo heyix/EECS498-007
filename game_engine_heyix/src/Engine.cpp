@@ -12,8 +12,8 @@ void Engine::game_loop()
 	awake();
 	start();
 	while (is_running) {
-		render();
 		update();
+		render();
 	}
 }
 
