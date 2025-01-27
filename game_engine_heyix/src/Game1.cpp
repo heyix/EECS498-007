@@ -1,97 +1,69 @@
 #include "Game1.h"
-Game1* Game1::instance = nullptr;
+Game1::Game1()
+{
+	actor_layer = std::vector<std::vector<std::set<int>>>(HARDCODED_MAP_HEIGHT);
+	for (int i = 0; i < HARDCODED_MAP_HEIGHT; i++) {
+		actor_layer[i] = std::vector<std::set<int>>(HARDCODED_MAP_WIDTH + 1);
+	}
+}
 void Game1::awake()
 {
-	load_config_files();
-	load_current_scene();
 }
 
-void Game1::start() {
-	if(game_start_message!="")std::cout << game_start_message << std::endl;
+void Game1::start()
+{
+	std::cout << game_start_message << std::endl;
+	for (int i = 0; i < hardcoded_actors.size();i++) {
+		Actor& actor = hardcoded_actors[i];
+		actor_layer[actor.position.y][actor.position.x].insert(i);
+	}
 	render();
+}
+
+void Game1::update()
+{
+	check_dialogue();
+	if (game_status == GameStatus_running) {
+		print_turn_info();
+		input();
+		update_actor();
+	}
+	check_game_status();
+	cout_frame_output();
 }
 
 void Game1::render()
 {
-	Player* player = current_scene->player;
-	auto& actor_position_map = current_scene->actor_position_map;
-	int left_index = player->position.x - camera_dimension.x / 2;
-	int right_index = player->position.x + camera_dimension.x / 2;
-	int up_index = player->position.y - camera_dimension.y / 2;
-	int down_index =player->position.y + camera_dimension.y / 2;
+	if (!is_running || game_status!=GameStatus_running) {
+		return;
+	}
+	prepare_rendering();
+	int left_index = player.position.x - 6;
+	int right_index = player.position.x + 6;
+	int up_index = player.position.y - 4;
+	int down_index = player.position.y + 4;
 	for (int i = up_index; i <= down_index; i++) {
 		for (int j = left_index; j <= right_index; j++) {
-			auto pos_key = EngineUtils::create_composite_key(j, i);
-			if (auto it = actor_position_map.find(pos_key); it!= actor_position_map.end()) {
-				auto& actor_set = it->second;
-				frame_output << (*actor_set.rbegin())->view;
-			}
-			else frame_output << ' ';
+			if (check_out_of_bound(i, j))frame_output << ' ';
+			else frame_output << render_layer[i][j];
 		}
 		frame_output << std::endl;
-	} 
-	current_scene->check_dialogue(frame_output);
-}
-
- 
-void Game1::update()
-{
-	//render first frame->check dialogue of rendered frame->start to make update for next frame
-	input();
-	update_actor();
-	check_game_status();
-	cout_frame_output();
-}
- 
-
-
-void Game1::input()
-{
-	if (game_status != GameStatus_running)return;
-	frame_output << "health : " << player_health << ", score : " << score << std::endl;
-	frame_output << "Please make a decision..." << std::endl;
-	frame_output << "Your options are \"n\", \"e\", \"s\", \"w\", \"quit\"" << std::endl;
-	cout_frame_output();
-	std::cin >> user_input;
-	if (user_input == "quit") {
-		game_status = GameStatus_quit;
 	}
 }
 
-
-void Game1::update_actor()
+void Game1::prepare_rendering()
 {
-	if (game_status != GameStatus_running)return;
-	for (auto i: current_scene->sorted_actor_by_id) {
-		Actor& actor = *i;
-		actor.update_position();
+	for (int i = 0; i < HARDCODED_MAP_HEIGHT; i++) {
+		for (int j = 0; j < HARDCODED_MAP_WIDTH +1; j++) {
+			render_layer[i][j] = hardcoded_map[i][j];
+		}
 	}
-}
-
-
-
-void Game1::check_game_status() 
-{
-	if (game_status != GameStatus_running) {
-		if(game_status!=GameStatus_quit)frame_output << "health : " << player_health << ", score : " << score << std::endl;
-		is_running = false;
-	}	
-	if (game_status == GameStatus_bad_ending && game_over_bad_message!="")frame_output << game_over_bad_message;
-	if (game_status == GameStatus_good_ending && game_over_good_message!="")frame_output << game_over_good_message;
-	if (game_status == GameStatus_quit && game_over_bad_message!="")frame_output << game_over_bad_message;
-	if (game_status == GameStatus_changing_scene) {
-		load_current_scene();
-		change_game_status(GameStatus_running);
-		is_running = true;
+	for (int i = 0; i < hardcoded_actors.size(); i++) {
+		Actor& actor = hardcoded_actors[i];
+		render_layer[actor.position.y][actor.position.x] = actor.view;
 	}
-}
-
-
-
-bool Game1::move_actor(Actor& actor, int target_y, int target_x)
-{
-	return current_scene->move_actor(actor, target_y, target_x);
-}
+	render_layer[player.position.y][player.position.x] = player.view;
+} 
 
 void Game1::cout_frame_output()
 {
@@ -99,99 +71,136 @@ void Game1::cout_frame_output()
 	frame_output.str("");
 }
 
-void Game1::load_config_files()
+void Game1::input()
 {
-	config_files_pre_check();
-	for (auto& file : config_files) {
-		load_config_file(file);
-	}
-	config_files_post_check();
-	update_config_variables();
-	clear_config_data();
-}
-
-void Game1::clear_config_data()
-{
-	config_file_map.clear();
-}
-
-void Game1::load_config_file(const std::string& file_path)
-{
-	if (!std::filesystem::exists(EngineUtils::GetResourceFilePath(file_path)))return;
-	std::unique_ptr out_document = std::make_unique<rapidjson::Document>();
-	EngineUtils::ReadJsonFile(EngineUtils::GetResourceFilePath(file_path), *out_document);
-	config_file_map[file_path] = std::move(out_document);
-}
-
-void Game1::config_files_pre_check()
-{
-	if (!EngineUtils::ResourceFileExist("")) { 
-		std::cout << "error: resources/ missing";
-		exit(0);
-	}
-	if (!EngineUtils::ResourceFileExist("game.config")) {
-		std::cout << "error: resources/game.config missing";
-		exit(0);
+	std::cin >> user_input;
+	if (user_input == "quit") {
+		game_status = GameStatus_quit;
 	}
 }
 
-void Game1::config_files_post_check()
+void Game1::update_actor()
 {
-	if (!(*config_file_map["game.config"]).HasMember("initial_scene")) {
-		std::cout << "error: initial_scene unspecified";
-		exit(0);
+	for (int i = 0; i < hardcoded_actors.size(); i++) {
+		Actor& actor = hardcoded_actors[i];
+		if (actor.velocity.x == 0 && actor.velocity.y == 0)continue;
+		int target_x = actor.position.x + actor.velocity.x;
+		int target_y = actor.position.y + actor.velocity.y;
+		if (check_grid_accessible(target_y, target_x)) {
+			move_actor(i, target_y, target_x);
+		}
+		else {
+			actor.velocity.x *= -1;
+			actor.velocity.y *= -1;
+		}
+	}
+
+
+	if (user_input == "w" && check_grid_accessible(player.position.y,player.position.x-1))player.position.x -= 1;
+	if (user_input == "e" && check_grid_accessible(player.position.y, player.position.x + 1))player.position.x += 1;
+	if (user_input == "n" && check_grid_accessible(player.position.y -1 , player.position.x))player.position.y -= 1;
+	if (user_input == "s" && check_grid_accessible(player.position.y +1 , player.position.x))player.position.y += 1;
+}
+
+void Game1::check_game_status()
+{
+	if (game_status != GameStatus_running) {
+		if (game_status != GameStatus_quit)frame_output << "health : " << player_health << ", score : " << score << std::endl;
+		is_running = false;
+	}
+	if (game_status == GameStatus_quit)frame_output << game_over_bad_message;
+	if (game_status == GameStatus_good_ending)frame_output << game_over_good_message;
+	if (game_status == GameStatus_bad_ending)frame_output << game_over_bad_message;
+}
+
+bool Game1::check_grid_accessible(int y, int x)
+{
+	if (check_out_of_bound(y, x))return false;
+	if (render_layer[y][x] == 'b')return false; 
+	if (actor_layer[y][x].size() != 0) {
+		for (int index : actor_layer[y][x]) {
+			Actor& actor = hardcoded_actors[index];
+			if (actor.blocking == true)return false;
+		}
+	}
+	return true;
+}
+
+void Game1::print_turn_info()
+{
+	frame_output << "health : " << player_health << ", score : " << score << std::endl;
+	frame_output << "Please make a decision..." << std::endl;
+	frame_output << "Your options are \"n\", \"e\", \"s\", \"w\", \"quit\"" << std::endl;
+	cout_frame_output();
+}
+
+
+void Game1::check_dialogue()
+{
+	for (auto& actor : hardcoded_actors) {
+		int diff_x = actor.position.x - player.position.x;
+		int diff_y = actor.position.y - player.position.y;
+		if (diff_x == 0 && diff_y == 0 && actor.contact_dialogue != "") {
+			trigger_contact_dialogue(actor);
+		}
+		else if (std::abs(diff_x) <= 1 && std::abs(diff_y) <= 1 && actor.nearby_dialogue != "") {
+			trigger_nearby_dialogue(actor);
+		}
 	}
 }
 
-void Game1::update_config_variables()
+void Game1::trigger_contact_dialogue(Actor& actor)
 {
-	if (auto it_render = config_file_map.find("rendering.config");it_render!= config_file_map.end()) {
-		rapidjson::Document& rendering_config = *it_render->second;
-		if (auto it_x = rendering_config.FindMember("x_resolution");it_x!=rendering_config.MemberEnd())camera_dimension.x = it_x->value.GetInt();
-		if (auto it_y = rendering_config.FindMember("y_resolution"); it_y != rendering_config.MemberEnd())camera_dimension.y = it_y->value.GetInt();
+	frame_output << actor.contact_dialogue << std::endl;
+	check_special_dialogue(actor.contact_dialogue,actor);
+}
+
+void Game1::trigger_nearby_dialogue(Actor& actor)
+{
+	frame_output << actor.nearby_dialogue << std::endl;
+	check_special_dialogue(actor.nearby_dialogue,actor);
+}
+
+void Game1::move_actor(int actor_index, int target_y, int target_x)
+{
+	Actor& actor = hardcoded_actors[actor_index];
+	actor_layer[actor.position.y][actor.position.x].erase(actor_index);
+	actor_layer[target_y][target_x].insert(actor_index);
+	actor.position.x = target_x;
+	actor.position.y = target_y;
+}
+
+bool Game1::check_substring_exist(std::string& origin_string, std::string& substring)
+{
+	return origin_string.find(substring) != std::string::npos;
+}
+
+void Game1::check_special_dialogue(std::string& origin_string,Actor& actor)
+{
+	if (check_substring_exist(origin_string, special_dialogue[0])) {
+		change_player_health(-1);
 	}
-	rapidjson::Document& game_config = (*config_file_map["game.config"]);
-	if (auto it = game_config.FindMember("game_over_bad_message"); it!=game_config.MemberEnd())game_over_bad_message = it->value.GetString();
-	if (auto it = game_config.FindMember("game_over_good_message"); it != game_config.MemberEnd())game_over_good_message = it->value.GetString();
-	if (auto it = game_config.FindMember("game_start_message"); it != game_config.MemberEnd())game_start_message = it->value.GetString();
-
-	current_scene_name = game_config["initial_scene"].GetString();
-}
-
-
-void Game1::load_current_scene()
-{
-	std::string relative_scene_path = "scenes/" + current_scene_name + ".scene";
-	if (!EngineUtils::ResourceFileExist(relative_scene_path)) {
-		cout_frame_output();
-		std::cout << "error: scene " + current_scene_name + " is missing";
-		exit(0);
+	else if (check_substring_exist(origin_string, special_dialogue[1]) && !actor.triggered_score_up) {
+		score += 1;
+		actor.triggered_score_up = true;
 	}
-	rapidjson::Document out_document;
-	EngineUtils::ReadJsonFile(EngineUtils::GetResourceFilePath(relative_scene_path), out_document);
-	current_scene = std::make_unique<Scene>();
-	current_scene->load_actors(out_document);
-}
-
-void Game1::change_game_status(GameStatus new_status) {
-	game_status = new_status;
-}
-
-void Game1::change_current_scene(const std::string& new_scene_name)
-{
-	game_status = GameStatus_changing_scene;
-	current_scene_name = new_scene_name;
+	else if (check_substring_exist(origin_string, special_dialogue[2])) {
+		game_status = GameStatus_good_ending;
+	}
+	else if (check_substring_exist(origin_string, special_dialogue[3])) {
+		game_status = GameStatus_bad_ending;
+	}
 }
 
 void Game1::change_player_health(int change)
 {
 	player_health += change;
 	if (player_health <= 0) {
-		change_game_status(GameStatus_bad_ending);
+		game_status = GameStatus_bad_ending;
 	}
 }
 
-void Game1::change_score(int change)
+bool Game1::check_out_of_bound(int y, int x)
 {
-	score += change;
+	return y < 0 || y >= HARDCODED_MAP_HEIGHT || x < 0 || x >= HARDCODED_MAP_WIDTH;
 }

@@ -1,12 +1,4 @@
 #include "Engine.h"
-#include <iostream>
-void Engine::awake()
-{
-}
-void Engine::start()
-{
-}
-
 void Engine::game_loop()
 {
 	awake();
@@ -16,13 +8,18 @@ void Engine::game_loop()
 		render();
 	}
 }
+void Engine::awake() {
+
+}
+
+void Engine::start()
+{
+}
 
 void Engine::update()
 {
-
 }
 
 void Engine::render()
 {
-
 }

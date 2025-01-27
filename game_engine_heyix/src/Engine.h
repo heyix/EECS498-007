@@ -1,7 +1,5 @@
-#ifndef ENGINE_H
-#define ENGINE_H
-class Engine
-{
+#pragma once
+class Engine {
 public:
 	void game_loop();
 protected:
@@ -12,6 +10,3 @@ protected:
 protected:
 	bool is_running = true;
 };
-
-
-#endif

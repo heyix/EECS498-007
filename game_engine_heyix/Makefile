@@ -17,7 +17,7 @@ OBJS = $(SRCS:.cpp=.o)
 EXECUTABLE = game_engine_linux
 
 # Build the executable
-all: $(EXECUTABLE)
+all: $(EXECUTABLE) 
 
 $(EXECUTABLE): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIR) $(LIBDIR) -o $@ $(OBJS) $(LIBS)
