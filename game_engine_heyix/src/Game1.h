@@ -1,61 +1,104 @@
 #pragma once
-#include "Engine.h"
-#include "MapHelper.h"
+#include "Game.h"
 #include <iostream>
 #include <memory>
 #include <set>
 #include <sstream>
 #include <string>
+#include "rapidjson/include/rapidjson/document.h"
+#include "EngineUtils.h"
+#include <unordered_map>
+#include <algorithm>
+#include "Scene.h" 
+#include "Engine.h"
+#include <optional>
+#include "SDL2_mixer/SDL_mixer.h"
+#include "SDL2_image/SDL_image.h"
+#include <deque>
+enum GameStatus {
+	GameStatus_running, GameStatus_good_ending, GameStatus_bad_ending, GameStatus_quit, GameStatus_changing_scene,GameStatus_intro,GameStatus_bad_ending_show_image,GameStatus_good_ending_show_image
+};
+class Game1 :public Game {
+public:
 
-class Game1 :public Engine {
 public:
-	enum GameStatus {
-		GameStatus_running,GameStatus_good_ending,GameStatus_bad_ending,GameStatus_quit
+	Game1() {
+		instance = this;
 	};
-public:
-	Game1();
 protected:
 	void awake() override;
 	void start() override;
 	void update() override;
 	void render() override;
+	void process_input() override;
 
 private:
-	void prepare_rendering();
 	void cout_frame_output();
 	void input();
-	void update_actor();
+	void update_actors();
 	void check_game_status();
-	bool check_grid_accessible(int y, int x);
 	void print_turn_info();
-	void check_dialogue();
-	void trigger_contact_dialogue(Actor& actor);
-	void trigger_nearby_dialogue(Actor& actor);
-	void move_actor(int actor_index, int target_y, int target_x);
-	bool check_substring_exist(std::string& origin_string, std::string& substring);
-	void check_special_dialogue(std::string& origin_string,Actor& actor);
+	void load_config_files();
+	void pre_check_config_files();
+	void load_config_file(const std::string& file_path);
+	void after_config_files_loaded();
+	void load_current_scene();
+	void post_check_config_files();
+	void clear_config_data();
+	void init_renderer();
+	void draw_actor(Actor& actor);
+	void awake_post_check();
+	void render_actors();
+	void render_hud();
+public:
+	bool move_actor(Actor& actor, int target_y, int target_x);
+	void change_game_status(GameStatus new_satus);
+	void change_current_scene(const std::string& new_scene_name);
 	void change_player_health(int change);
-	bool check_out_of_bound(int y, int x);
+	void change_score(int change);
+	void draw_dialogue_message(const std::string& message);
+	void render_dialogue_messages();
+	bool is_in_damage_cooldown();
 public:
 	int score = 0;
 	int player_health = 3;
-	glm::ivec2 camera_position{ 19,15 };
 	std::string user_input = "";
-	Actor player{
-		"player",			// actor name
-		'p',				// view
-		glm::ivec2(19, 15),	// starting position
-		glm::ivec2(0, 0),	// starting velocity
-		false,				// blocking?
-		"",					// nearby dialogue
-		""					// made-contact dialogue
-
-	};
+	static Game1* instance;
 
 private:
-	char render_layer[HARDCODED_MAP_HEIGHT][HARDCODED_MAP_WIDTH + 1];
-	std::vector<std::vector<std::set<int>>> actor_layer;
+	glm::ivec2 camera_dimension{ 13,9 };
+	glm::ivec2 resolution{ 640,360 };
+	glm::vec2 camera_offset{ 0,0 };
+	glm::vec2 camera_position{0,0};
 	std::stringstream frame_output;
-	GameStatus game_status = GameStatus_running;
-	std::vector<std::string> special_dialogue{ "health down","score up","you win","game over" };
+	GameStatus game_status = GameStatus_intro;
+	std::string game_start_message;
+	std::string game_over_bad_message;
+	std::string game_over_good_message;
+	std::vector<std::string> config_files_name{ "game.config","rendering.config" };
+	std::unordered_map<std::string, std::unique_ptr<rapidjson::Document>> config_file_map;
+	std::string current_scene_name;
+	std::unique_ptr<Scene> current_scene;
+	std::vector<std::string> intro_images_name;
+	std::vector<std::string> intro_text;
+	std::string game_over_bad_image_name;
+	std::string game_title;
+	std::string game_over_bad_audio_name;
+	std::string game_over_good_image_name;
+	std::string game_over_good_audio_name;
+	int clear_color_r = 255;
+	int clear_color_g = 255;
+	int clear_color_b = 255;
+	int current_intro_image_index = -1;
+	int current_intro_text_index = -1;
+	std::string font_name;
+	std::string intro_bgm_name;
+	std::string gameplay_audio_name;
+	std::string hp_image;
+	int font_size = 16;
+	SDL_Color font_color{ 255,255,255,255 };
+	Mix_Chunk* intro_bgm = nullptr;
+	int pixel_per_unit_distance = 100;
+	std::deque<std::string> current_frame_dialogue_queue;
+	int last_took_damage_frame = -180;
 };

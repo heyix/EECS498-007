@@ -19,14 +19,33 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Actor.cpp" />
+    <ClCompile Include="src\AudioDB.cpp" />
     <ClCompile Include="src\Engine.cpp" />
+    <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\EngineUtils.cpp" />
     <ClCompile Include="src\Game1.cpp" />
+    <ClCompile Include="src\ImageDB.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Player.cpp" />
+    <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\Scene.cpp" />
+    <ClCompile Include="src\TemplateDB.cpp" />
+    <ClCompile Include="src\TextDB.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Actor.h" />
+    <ClInclude Include="src\AudioDB.h" />
     <ClInclude Include="src\Engine.h" />
+    <ClInclude Include="src\Game.h" />
+    <ClInclude Include="src\EngineUtils.h" />
     <ClInclude Include="src\Game1.h" />
-    <ClInclude Include="ThirdParty\MapHelper.h" />
+    <ClInclude Include="src\ImageDB.h" />
+    <ClInclude Include="src\Player.h" />
+    <ClInclude Include="src\Renderer.h" />
+    <ClInclude Include="src\Scene.h" />
+    <ClInclude Include="src\TemplateDB.h" />
+    <ClInclude Include="src\TextDB.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -80,6 +99,10 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LibraryPath>$(ProjectDir)ThirdParty\SDL2\lib\;$(ProjectDir)ThirdParty\SDL2_image\lib\;$(ProjectDir)ThirdParty\SDL2_mixer\lib\;$(ProjectDir)ThirdParty\SDL2_ttf\lib\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(PorjectDir)ThirdParty\SDL2;$(PorjectDir)ThirdParty\SDL2_image;$(PorjectDir)ThirdParty\SDL2_mixer;$(PorjectDir)ThirdParty\SDL2_ttf;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -126,7 +149,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>%(ProjectDir)ThirdParty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -136,7 +159,11 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>SDL2main.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy ThirdParty\dll\* $(OutDir)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
