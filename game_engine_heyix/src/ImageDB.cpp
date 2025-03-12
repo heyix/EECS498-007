@@ -31,6 +31,13 @@ void ImageDB::Clean_Loaded_Images()
 
 void ImageDB::Get_Image_Resolution(const std::string& image_name, float& width, float& height)
 {
+	if (auto it = queried_image_size.find(image_name); it != queried_image_size.end()) {
+		glm::ivec2& target = it->second;
+		width = target.x;
+		height = target.y;
+		return;
+	}
 	SDL_Texture* view_texture = ImageDB::Load_Image_Texture(image_name);
 	Helper::SDL_QueryTexture(view_texture, &width, &height);
+	queried_image_size[image_name] = { width,height };
 }

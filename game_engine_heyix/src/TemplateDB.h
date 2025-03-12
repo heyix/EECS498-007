@@ -9,9 +9,10 @@ class Game1;
 class TemplateDB {
 private:
 	static std::string folder_path;
+private:
+	static void Load_Components(Actor& actor, rapidjson::Document& document);
 public:
-	static std::unordered_map<std::string, Actor> template_files;
-	static Player player_template;
-	static const Actor& LoadTemplateActor(const std::string& template_name);
-	static const Player& LoadTemplatePlayer(const std::string& template_name);
+	static inline std::unordered_map<std::string, std::shared_ptr<rapidjson::Document>> template_files;
+	static void LoadTemplateActor(Actor& new_actor, const std::string& template_name);
+	static void LoadTemplatePlayer(Player& player_template, const std::string& template_name);
 };

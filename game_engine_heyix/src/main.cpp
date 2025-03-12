@@ -1,6 +1,9 @@
 #include "Game1.h"
 #include "Engine.h"
 #include <memory>
+#include "lua/lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 
 int main(int argc, char* argv[]) {
 	Engine engine;

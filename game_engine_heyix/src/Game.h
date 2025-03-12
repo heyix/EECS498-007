@@ -2,6 +2,8 @@
 #include "Renderer.h"
 #include "SDL2/SDL.h"
 #include "Helper.h"
+#include "Input.h"
+#include "GameObject.h"
 class Game {
 public:
 	void game_loop();

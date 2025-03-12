@@ -1,86 +1,199 @@
 #include "Scene.h"
 #include "Game1.h"
+#include "EngineUtils.h"
+#include "GameObjectDB.h"
+
+void Scene::initialize_scene(rapidjson::Document& scene_json)
+{
+	load_actors(scene_json);
+}
+glm::ivec2 Scene::get_box_collider_region_position(const glm::vec2& vec)
+{
+	return { static_cast<int>(vec.x / box_collider_region_size_x),static_cast<int>(vec.y / box_collider_region_size_y) };
+}
+glm::ivec2 Scene::get_box_trigger_region_position(const glm::vec2& vec)
+{
+	return { static_cast<int>(vec.x / box_trigger_region_size_x),static_cast<int>(vec.y / box_trigger_region_size_y) };
+}
 void Scene::load_actors(rapidjson::Document& scene_json)
 {
 	rapidjson::Value& actors = scene_json["actors"];
-	_underlying_actor_storage = std::vector<Actor>(actors.Size());
-	_underlying_player_storage = std::vector<Player>();
+	_underlying_actor_storage = std::vector<std::shared_ptr<Actor>>(actors.Size());
+	_underlying_player_storage = std::vector<std::shared_ptr<Player>>();
 	int actor_index = 0;
-	for (auto& actor : actors.GetArray()) {
-		Actor& new_actor = instantiate_actor(actor, actor_index);
+	for (auto& actor : actors.GetArray()) { 
+		std::shared_ptr<Actor> new_actor = instantiate_actor(actor, actor_index);
 		initialize_actor(actor, new_actor);
-		new_actor.ID = current_id++;
 
-		sorted_actor_by_id.emplace_back(&new_actor);
-		sorted_actor_by_render_order.emplace_back(&new_actor);
-		actor_position_map[EngineUtils::Create_Composite_Key(new_actor.position)].push_back(&new_actor);
+
+		sorted_actor_by_id.emplace_back(new_actor.get());
+		if (new_actor->box_collider.has_value()) {
+			box_collider_region_size_x = std::max(box_collider_region_size_x, new_actor->box_collider.value().x);
+			box_collider_region_size_y = std::max(box_collider_region_size_y, new_actor->box_collider.value().y);
+		}
+		if (new_actor->box_trigger.has_value()) {
+			box_trigger_region_size_x = std::max(box_trigger_region_size_x, new_actor->box_trigger.value().x); 
+			box_trigger_region_size_y = std::max(box_trigger_region_size_y, new_actor->box_trigger.value().y);
+		}
+	}
+	for (std::shared_ptr<Actor> actor : sorted_actor_by_id) {
+		if (actor->box_collider.has_value()) {
+			glm::ivec2 region = get_box_collider_region_position(actor->position);
+			for (int i = 0; i < directions.size(); i++) {
+				box_collider_map[EngineUtils::Create_Composite_Key(region + directions[i])].push_back(actor);
+			}
+		}
+		if (actor->box_trigger.has_value()) {
+			box_trigger_map[EngineUtils::Create_Composite_Key(get_box_trigger_region_position(actor->position))].push_back(actor);
+		}
 	}
 	if (player != nullptr) {
 		_underlying_actor_storage.pop_back();
 	}
 }
 
-void Scene::initialize_actor(const rapidjson::Value& actor, Actor& new_actor)
+void Scene::initialize_actor(const rapidjson::Value& actor, std::shared_ptr<Actor> new_actor)
 {
-	if (auto it = actor.FindMember("name"); it != actor.MemberEnd())new_actor.actor_name = it->value.GetString();
-	if (auto it = actor.FindMember("view"); it != actor.MemberEnd()) {
-		std::string view = it->value.GetString();
-		if (view.size() != 0)new_actor.view = view[0];
+	new_actor->ID = current_id++;
+	if (auto it = actor.FindMember("name"); it != actor.MemberEnd())new_actor->name = it->value.GetString();
+
+
+
+	/*if (auto it = actor.FindMember("transform_position_x"); it != actor.MemberEnd())new_actor->position.x = it->value.GetFloat();
+	if (auto it = actor.FindMember("transform_position_y"); it != actor.MemberEnd())new_actor->position.y = it->value.GetFloat();
+	if (auto it = actor.FindMember("vel_x"); it != actor.MemberEnd())new_actor->velocity.x = it->value.GetFloat();
+	if (auto it = actor.FindMember("vel_y"); it != actor.MemberEnd())new_actor->velocity.y = it->value.GetFloat();
+	if (auto it = actor.FindMember("nearby_dialogue"); it != actor.MemberEnd())new_actor->nearby_dialogue = it->value.GetString();
+	if (auto it = actor.FindMember("contact_dialogue"); it != actor.MemberEnd())new_actor->contact_dialogue = it->value.GetString();
+	if (auto it = actor.FindMember("view_image"); it != actor.MemberEnd())new_actor->set_view_image((it->value.GetString()));
+	if (auto it = actor.FindMember("view_image_back"); it != actor.MemberEnd())new_actor->set_view_image_back(it->value.GetString());
+	if (auto it = actor.FindMember("transform_scale_x"); it != actor.MemberEnd())new_actor->transform_scale.x = it->value.GetFloat();
+	if (auto it = actor.FindMember("transform_scale_y"); it != actor.MemberEnd())new_actor->transform_scale.y = it->value.GetFloat();
+	if (auto it = actor.FindMember("transform_rotation_degrees"); it != actor.MemberEnd())new_actor->transform_rotation_degrees = it->value.GetFloat();
+	if (auto it = actor.FindMember("view_pivot_offset_x"); it != actor.MemberEnd())new_actor->view_pivot_offset.x = it->value.GetFloat();
+	if (auto it = actor.FindMember("view_pivot_offset_y"); it != actor.MemberEnd())new_actor->view_pivot_offset.y = it->value.GetFloat();
+	if (auto it = actor.FindMember("render_order"); it != actor.MemberEnd())new_actor->render_order = it->value.GetInt();
+	if (auto it = actor.FindMember("movement_bounce_enabled"); it != actor.MemberEnd())new_actor->movement_bounce_enabled = it->value.GetBool();
+
+	if (auto it1 = actor.FindMember("box_collider_width"), it2 = actor.FindMember("box_collider_height"); it1 != actor.MemberEnd() && it2 != actor.MemberEnd()) {
+		new_actor->set_box_collider(it1->value.GetFloat(), it2->value.GetFloat());
 	}
-	if (auto it = actor.FindMember("transform_position_x"); it != actor.MemberEnd())new_actor.position.x = it->value.GetInt();
-	if (auto it = actor.FindMember("transform_position_y"); it != actor.MemberEnd())new_actor.position.y = it->value.GetInt();
-	if (auto it = actor.FindMember("vel_x"); it != actor.MemberEnd())new_actor.velocity.x = it->value.GetInt();
-	if (auto it = actor.FindMember("vel_y"); it != actor.MemberEnd())new_actor.velocity.y = it->value.GetInt();
-	if (auto it = actor.FindMember("blocking"); it != actor.MemberEnd())new_actor.blocking = it->value.GetBool();
-	if (auto it = actor.FindMember("nearby_dialogue"); it != actor.MemberEnd())new_actor.nearby_dialogue = it->value.GetString();
-	if (auto it = actor.FindMember("contact_dialogue"); it != actor.MemberEnd())new_actor.contact_dialogue = it->value.GetString();
-	if (auto it = actor.FindMember("view_image"); it != actor.MemberEnd())new_actor.set_view_image(it->value.GetString());
-	if (auto it = actor.FindMember("transform_scale_x"); it != actor.MemberEnd())new_actor.transform_scale.x = it->value.GetFloat();
-	if (auto it = actor.FindMember("transform_scale_y"); it != actor.MemberEnd())new_actor.transform_scale.y = it->value.GetFloat();
-	if (auto it = actor.FindMember("transform_rotation_degrees"); it != actor.MemberEnd())new_actor.transform_rotation_degrees = it->value.GetFloat();
-	if (auto it = actor.FindMember("view_pivot_offset_x"); it != actor.MemberEnd())new_actor.view_pivot_offset.x = it->value.GetFloat();
-	if (auto it = actor.FindMember("view_pivot_offset_y"); it != actor.MemberEnd())new_actor.view_pivot_offset.y = it->value.GetFloat();
-	if (auto it = actor.FindMember("render_order"); it != actor.MemberEnd())new_actor.render_order = it->value.GetInt();
-}
-bool Scene::check_grid_accessible(int y, int x)
-{
-	auto composite_key = EngineUtils::Create_Composite_Key(x, y);
-	if (auto it = actor_position_map.find(composite_key); it != actor_position_map.end()) {
-		for (auto i : it->second) {
-			Actor& actor = *i;
-			if (actor.blocking)return false; 
+	if (auto it1 = actor.FindMember("box_trigger_width"), it2 = actor.FindMember("box_trigger_height"); it1 != actor.MemberEnd() && it2 != actor.MemberEnd()) {
+		new_actor->set_box_trigger(it1->value.GetFloat(), it2->value.GetFloat());
+	}
+	if (auto it = actor.FindMember("view_image_attack"); it != actor.MemberEnd())new_actor->set_view_image_attack(it->value.GetString());
+	if (auto it = actor.FindMember("nearby_dialogue_sfx"); it != actor.MemberEnd())new_actor->nearby_dialogue_sfx = it->value.GetString();*/
+
+
+
+	if (auto it = actor.FindMember("components"); it != actor.MemberEnd() && it->value.IsObject()) {
+		for (auto componentIt = it->value.MemberBegin(); componentIt != it->value.MemberEnd(); ++componentIt) {
+			std::string componentKey = componentIt->name.GetString(); 
+			const auto& component_object = componentIt->value; 
+			std::shared_ptr<Component> new_component = new_actor->Get_Component(componentKey);
+			if (component_object.HasMember("type") && component_object["type"].IsString()) {
+				std::string componentType = component_object.FindMember("type")->value.GetString();
+				new_component = new_actor->Add_Component_Without_Calling_On_Start(componentKey, componentType);
+			}
+			
+			for (auto fieldIt = component_object.MemberBegin(); fieldIt != component_object.MemberEnd(); ++fieldIt) {
+				std::string fieldName = fieldIt->name.GetString();
+				if (fieldName == "type")continue;
+				if (fieldIt->value.IsString()) {
+					new_component->Inject_Value_Pair(fieldName, fieldIt->value.GetString());
+				}
+				else if (fieldIt->value.IsInt()) {
+					new_component->Inject_Value_Pair(fieldName, fieldIt->value.GetInt());
+				}
+				else if (fieldIt->value.IsFloat()) {
+					new_component->Inject_Value_Pair(fieldName, fieldIt->value.GetFloat());
+				}
+				else if (fieldIt->value.IsBool()) {
+					new_component->Inject_Value_Pair(fieldName, fieldIt->value.GetBool());
+				}
+			}
 		}
 	}
-	return true;
+
+	if (new_actor->name == "player") {
+		player->movement_speed = Game1::instance->game_config_data.player_movement_speed;
+		if (auto it = actor.FindMember("view_image_damage"); it != actor.MemberEnd())player->set_view_image_damage(it->value.GetString());
+		if (auto it = actor.FindMember("damage_sfx"); it != actor.MemberEnd())player->damage_sfx = it->value.GetString();
+		if (auto it = actor.FindMember("step_sfx"); it != actor.MemberEnd())player->step_sfx = it->value.GetString();
+	}
+	GameObjectDB::Add_GameObject(new_actor);
+}
+bool Scene::check_collider_collision(std::shared_ptr<Actor> actor, float target_y, float target_x)
+{
+	if(!actor->box_collider.has_value())return false;
+	glm::vec2 target_position = { target_x,target_y };
+	glm::ivec2 region = get_box_collider_region_position(target_position);
+	std::vector<std::shared_ptr<Actor>>& collision_list = box_collider_map[EngineUtils::Create_Composite_Key(region)];
+	for (std::shared_ptr<Actor> other_actor : collision_list) {
+		if(other_actor == actor)continue;
+		if (actor->colliding_actors_this_frame.find(other_actor) != actor->colliding_actors_this_frame.end())continue;
+		if (EngineUtils::AABB_Collision(target_position, other_actor->position, actor->box_collider.value(), other_actor->box_collider.value())) {
+			actor->colliding_actors_this_frame.insert(other_actor);
+			other_actor->colliding_actors_this_frame.insert(actor);
+		}
+	}
+	return actor->colliding_actors_this_frame.size() > 0;
 }
 
-bool Scene::move_actor(Actor& actor, int target_y, int target_x)
+bool Scene::move_actor(std::shared_ptr<Actor> actor, float target_y, float target_x)
 {
-	if (check_grid_accessible(target_y, target_x)) {
-		auto old_pos_key = EngineUtils::Create_Composite_Key(actor.position);
-		auto it = actor_position_map.find(old_pos_key);
-		auto& old_set = it->second;
-		old_set.erase(std::lower_bound(old_set.begin(), old_set.end(), &actor, EngineUtils::ActorPointerComparator()));
-		if (old_set.size() == 0)actor_position_map.erase(it);
-		auto& new_vec = actor_position_map[EngineUtils::Create_Composite_Key(target_x, target_y)];
-		new_vec.insert(std::lower_bound(new_vec.begin(), new_vec.end(), &actor, EngineUtils::ActorPointerComparator()), &actor);
-		actor.position.x = target_x;
-		actor.position.y = target_y;
+	if (!check_collider_collision(actor, target_y, target_x)) {
+		if (actor->box_collider.has_value()) {
+			glm::ivec2 current_collider_region = get_box_collider_region_position(actor->position);
+			glm::ivec2 target_collider_region = get_box_collider_region_position({ target_x,target_y });
+			if (current_collider_region != target_collider_region) {
+				for (int i = 0; i < directions.size(); i++) {
+					glm::ivec2 current_region = current_collider_region + directions[i];
+					auto it = box_collider_map.find(EngineUtils::Create_Composite_Key(current_region));
+					auto& old_list = it->second;
+					old_list.erase(std::lower_bound(old_list.begin(), old_list.end(), actor, EngineUtils::ActorPointerComparator()));
+				}
+				for (int i = 0; i < directions.size(); i++) {
+					glm::ivec2 target_region = target_collider_region + directions[i];
+					auto& new_list = box_collider_map[EngineUtils::Create_Composite_Key(target_region)];
+					new_list.insert(std::lower_bound(new_list.begin(), new_list.end(), actor, EngineUtils::ActorPointerComparator()), actor);
+				}
+			}
+		}
+		if (actor->box_trigger.has_value()) {
+			glm::ivec2 current_trigger_region = get_box_trigger_region_position(actor->position);
+			glm::ivec2 target_trigger_region = get_box_trigger_region_position({ target_x,target_y });
+			if (current_trigger_region != target_trigger_region) {
+				auto it = box_trigger_map.find(EngineUtils::Create_Composite_Key(current_trigger_region));
+				auto& old_list = it->second;
+				old_list.erase(std::lower_bound(old_list.begin(), old_list.end(), actor, EngineUtils::ActorPointerComparator()));
+				auto& new_list = box_trigger_map[EngineUtils::Create_Composite_Key(target_trigger_region)];
+				new_list.insert(std::lower_bound(new_list.begin(), new_list.end(), actor, EngineUtils::ActorPointerComparator()), actor);
+			}
+		}
+		actor->position.x = target_x;
+		actor->position.y = target_y;
 		return true;
 	}
 	return false;
 }
 
-void Scene::trigger_contact_dialogue(Actor& actor)
+void Scene::trigger_contact_dialogue(std::shared_ptr<Actor> actor)
 {
-	Game1::instance->draw_dialogue_message(actor.contact_dialogue);
-	check_special_dialogue(actor.contact_dialogue,actor);
+	//Game1::instance->draw_dialogue_message(actor.contact_dialogue);
+	check_special_dialogue(actor->contact_dialogue,actor);
 }
 
-void Scene::trigger_nearby_dialogue(Actor& actor)
+void Scene::trigger_nearby_dialogue(std::shared_ptr<Actor> actor)
 {
-	Game1::instance->draw_dialogue_message(actor.nearby_dialogue);
-	check_special_dialogue(actor.nearby_dialogue,actor);
+	if (actor->triggered_nearby_dialogue == false) {
+		if (actor->nearby_dialogue_sfx != "") {
+			AudioDB::Play_Audio(Helper::GetFrameNumber() % 48 + 2, actor->nearby_dialogue_sfx, 0);
+		}
+	}
+	actor->triggered_nearby_dialogue = true;
+	Game1::instance->draw_dialogue_message(actor->nearby_dialogue);
+	check_special_dialogue(actor->nearby_dialogue,actor);
 }
 
 bool Scene::check_substring_exist(const std::string& origin_string, const std::string& substring)
@@ -88,14 +201,20 @@ bool Scene::check_substring_exist(const std::string& origin_string, const std::s
 	return origin_string.find(substring) != std::string::npos;
 }
 
-void Scene::check_special_dialogue(std::string& origin_string, Actor& actor)
+void Scene::check_special_dialogue(std::string& origin_string, std::shared_ptr<Actor> actor)
 {
 	if (check_substring_exist(origin_string, "health down")) {
-		Game1::instance->change_player_health(-1);
+		if (Game1::instance->change_player_health(-1)) {
+			actor->frameAttacked = Helper::GetFrameNumber();
+			player->frameDamaged = Helper::GetFrameNumber();
+		}
 	}
-	else if (check_substring_exist(origin_string, "score up") && !actor.triggered_score_up) {
+	else if (check_substring_exist(origin_string, "score up") && !actor->triggered_score_up) {
 		Game1::instance->change_score(1);
-		actor.triggered_score_up = true;
+		actor->triggered_score_up = true;
+		if (Game1::instance->game_config_data.score_sfx != "") {
+			AudioDB::Play_Audio(1, Game1::instance->game_config_data.score_sfx, 0);
+		}
 	}
 	else if (check_substring_exist(origin_string, "you win")) {
 		Game1::instance->change_game_status(GameStatus_good_ending);
@@ -113,43 +232,58 @@ void Scene::check_special_dialogue(std::string& origin_string, Actor& actor)
 
 void Scene::check_dialogue()
 {
-	std::vector<Actor*> actor_list;
-	for (int dy = -1; dy <= 1; dy++) {
-		for (int dx = -1; dx <= 1; dx++) {
-			auto pos_key = EngineUtils::Create_Composite_Key(player->position.x + dx, player->position.y + dy);
-			if (auto it = actor_position_map.find(pos_key); it != actor_position_map.end()) {
-				for (auto i : it->second) {
-					actor_list.push_back(i);
-				}
+	if (player != nullptr) {
+		for (std::shared_ptr<Actor> actor : player->colliding_actors_this_frame) {
+			if (actor->contact_dialogue != "") {
+				trigger_contact_dialogue(actor);
 			}
 		}
+		if (player->box_trigger.has_value()) {
+			glm::ivec2 region = get_box_trigger_region_position(player->position);
+			std::vector<std::shared_ptr<Actor>> trigger_nearby_dialogue_actors;
+			for (int i = 0; i < directions.size(); i++) {
+				std::vector<std::shared_ptr<Actor>>& collision_list = box_trigger_map[EngineUtils::Create_Composite_Key(region+directions[i])];
+				for (std::shared_ptr<Actor> other_actor : collision_list) {
+					if (other_actor == player)continue;
+					if (other_actor->nearby_dialogue != "") {
+						if (EngineUtils::AABB_Collision(player->position, other_actor->position, player->box_trigger.value(), other_actor->box_trigger.value())) {
+							trigger_nearby_dialogue_actors.push_back(other_actor);
+						}
+					}
+				}
+			}
+			std::sort(trigger_nearby_dialogue_actors.begin(), trigger_nearby_dialogue_actors.end(), EngineUtils::ActorPointerComparator());
+			for (std::shared_ptr<Actor> actor : trigger_nearby_dialogue_actors) {
+				trigger_nearby_dialogue(actor);
+			}
+		}
+		
 	}
-	std::sort(actor_list.begin(), actor_list.end(), EngineUtils::ActorPointerComparator());
-	for (auto i : actor_list) {
-		Actor& actor = *i;
-		int dx = player->position.x - actor.position.x;
-		int dy = player->position.y - actor.position.y;
-		if (dx == 0 && dy == 0 && actor.contact_dialogue != "")trigger_contact_dialogue(actor);
-		else if (actor.nearby_dialogue != "")trigger_nearby_dialogue(actor);
-	}
+	
 }
 
-Actor& Scene::instantiate_actor(const rapidjson::Value& actor, int& actor_index)
+
+
+std::shared_ptr<Actor> Scene::instantiate_actor(const rapidjson::Value& actor, int& actor_index)
 {
 	auto template_it = actor.FindMember("template");
 	bool use_template = template_it != actor.MemberEnd();
 	std::string template_name;
 	if (use_template)template_name = template_it->value.GetString();
 	if (auto it = actor.FindMember("name"); it != actor.MemberEnd() && it->value.GetString() == std::string("player")) {
-		_underlying_player_storage.push_back(Player());
+		_underlying_player_storage.push_back(std::make_shared<Player>());
 		if (use_template) {
-			_underlying_player_storage[0] = TemplateDB::LoadTemplatePlayer(template_name);
+			//_underlying_player_storage[0] = Player();
+			TemplateDB::LoadTemplatePlayer(*_underlying_player_storage[0],template_name);
 		}
-		player = &(_underlying_player_storage[0]);
-		return *player;
+		player = _underlying_player_storage[0];
+		return _underlying_player_storage[0];
 	}
 	else {
-		if (use_template)_underlying_actor_storage[actor_index] = TemplateDB::LoadTemplateActor(template_name);
+		_underlying_actor_storage[actor_index] = std::make_shared<Actor>();
+		if (use_template) {
+			 TemplateDB::LoadTemplateActor(*_underlying_actor_storage[actor_index], template_name);
+		}
 		return _underlying_actor_storage[actor_index++];
 	}
 } 

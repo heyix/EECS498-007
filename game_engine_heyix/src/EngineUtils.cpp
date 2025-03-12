@@ -63,6 +63,7 @@ uint64_t EngineUtils::Create_Composite_Key(const glm::ivec2& k)
 	return result;
 }
 
+
 std::string EngineUtils::Obtain_Word_After_Phrase(const std::string& input, const std::string& phrase)
 {
 	// Find the position of the phrase in the string
@@ -89,3 +90,28 @@ std::string EngineUtils::Obtain_Word_After_Phrase(const std::string& input, cons
 	// Extract and return the word
 	return input.substr(pos, endPos - pos);
 }
+
+bool EngineUtils::AABB_Collision(glm::vec2& position1, glm::vec2& position2, glm::vec2& box1, glm::vec2& box2)
+{
+	float left1 = position1.x - box1.x * 0.5f;
+	float right1 = position1.x + box1.x * 0.5f;
+	float top1 = position1.y - box1.y * 0.5f;
+	float bottom1 = position1.y + box1.y * 0.5f;
+
+	float left2 = position2.x - box2.x * 0.5f;
+	float right2 = position2.x + box2.x * 0.5f;
+	float top2 = position2.y - box2.y * 0.5f;
+	float bottom2 = position2.y + box2.y * 0.5f;
+
+	if (left1 < right2 && left2 < right1 && top1 < bottom2 && top2 < bottom1) {
+		return true;
+	}
+	return false;
+}
+
+bool EngineUtils::Compare_Float_Equal(float f1, float f2, float epsilon)
+{
+	return glm::abs(f1 - f2) < epsilon;
+}
+
+

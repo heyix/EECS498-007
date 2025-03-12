@@ -29,4 +29,5 @@ void Engine::init_all_dbs()
 {
 	TextDB::Init_TextDB();
 	AudioDB::Init_Audio_Channel(44100, MIX_DEFAULT_FORMAT, 0, 2048);
+	LuaDB::Init_LuaDB();
 }

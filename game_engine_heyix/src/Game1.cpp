@@ -1,4 +1,5 @@
 #include "Game1.h"
+#include "EngineUtils.h"
 Game1* Game1::instance = nullptr;
 void Game1::awake()
 {
@@ -10,20 +11,28 @@ void Game1::awake()
 
 void Game1::start()
 {
-	Engine::instance->renderer->set_clear_color(clear_color_r, clear_color_g, clear_color_b, 255);
-	if(intro_bgm_name!="")AudioDB::Play_Audio(0, intro_bgm_name, -1);
+	for (auto actor : current_scene->sorted_actor_by_id) {
+		actor->On_Start();
+	}
+	AudioHelper::Mix_AllocateChannels(50);
+	Engine::instance->renderer->set_clear_color(rendering_config_data.clear_color_r, rendering_config_data.clear_color_g, rendering_config_data.clear_color_b, 255);
+	if(game_config_data.intro_bgm_name!="")AudioDB::Play_Audio(0, game_config_data.intro_bgm_name, -1);
+	if (current_scene->player != nullptr) {
+		camera_position = { current_scene->player->position.x + rendering_config_data.camera_offset.x,current_scene->player->position.y + rendering_config_data.camera_offset.y };
+	}
 }
 
 void Game1::update()
 {
+	handle_input();
 	if (game_status == GameStatus_intro) {
-		if ((current_intro_image_index == -1 || current_intro_image_index >= intro_images_name.size()) && (current_intro_text_index == -1 || current_intro_text_index >= intro_text.size())) {
+		if ((current_intro_image_index == -1 || current_intro_image_index >= game_config_data.intro_images_name.size()) && (current_intro_text_index == -1 || current_intro_text_index >= game_config_data.intro_text.size())) {
 			game_status = GameStatus_running;
-			if (intro_bgm_name != "") {
+			if (game_config_data.intro_bgm_name != "") {
 				AudioDB::Halt_Audio(0);
 			}
-			if (gameplay_audio_name != "") {
-				AudioDB::Play_Audio(0, gameplay_audio_name, -1);
+			if (game_config_data.gameplay_audio_name != "") {
+				AudioDB::Play_Audio(0, game_config_data.gameplay_audio_name, -1);
 			}
 		}
 	}
@@ -38,74 +47,126 @@ void Game1::update()
 
 void Game1::render()
 {
-	if (game_status == GameStatus_intro) {
-		if(current_intro_image_index!=-1)Engine::instance->renderer->draw_image(intro_images_name[std::min(current_intro_image_index,int(intro_images_name.size()-1))], nullptr, nullptr);
-		if(current_intro_text_index !=-1)Engine::instance->renderer->draw_text(font_name, intro_text[std::min(current_intro_text_index,int(intro_text.size()-1))], font_size, font_color, 25, resolution.y - 50);
-	}
-	else if (game_status == GameStatus_running) {
-		render_actors();
-		render_hud();
-		render_dialogue_messages();
-	}
-	else if (game_status == GameStatus_bad_ending_show_image) {
-		Engine::instance->renderer->draw_image(game_over_bad_image_name, nullptr, nullptr);
-	}
-	else if (game_status == GameStatus_good_ending_show_image) {
-		Engine::instance->renderer->draw_image(game_over_good_image_name, nullptr, nullptr);
-	}
-	current_frame_dialogue_queue.clear();
+	//if (game_status == GameStatus_intro) {
+	//	if(current_intro_image_index!=-1)Engine::instance->renderer->draw_image(game_config_data.intro_images_name[std::min(current_intro_image_index,int(game_config_data.intro_images_name.size()-1))], nullptr, nullptr);
+	//	if(current_intro_text_index !=-1)Engine::instance->renderer->draw_text(game_config_data.font_name, game_config_data.intro_text[std::min(current_intro_text_index,int(game_config_data.intro_text.size()-1))], font_size, font_color, 25, rendering_config_data.resolution.y - 50);
+	//}
+	//else if (game_status == GameStatus_running) {
+	//	render_actors();
+	//	render_hud();
+	//	render_dialogue_messages(); 
+	//}
+	//else if (game_status == GameStatus_bad_ending_show_image) {
+	//	Engine::instance->renderer->draw_image(game_config_data.game_over_bad_image_name, nullptr, nullptr);
+	//}
+	//else if (game_status == GameStatus_good_ending_show_image) {
+	//	Engine::instance->renderer->draw_image(game_config_data.game_over_good_image_name, nullptr, nullptr);
+	//}
+	//current_frame_dialogue_queue.clear();
+	//gizmo_draw_colliders();
+	//gizmo_draw_triggers();
 }
 
-void Game1::process_input()
+void Game1::handle_input()
 {
-	SDL_Event e;
-	while (Helper::SDL_PollEvent(&e)) {
-		if (e.type == SDL_QUIT) {
-			is_running = false;
-		}
-		else {
-			if (game_status == GameStatus_intro && intro_images_name.size() != 0) {
-				if (e.type == SDL_KEYDOWN && (e.key.keysym.scancode == SDL_SCANCODE_SPACE || e.key.keysym.scancode == SDL_SCANCODE_RETURN)) {
-					if (current_intro_image_index != -1 && current_intro_image_index < intro_images_name.size()) {
-						current_intro_image_index++;
-					}
-					if (current_intro_text_index != -1 && current_intro_text_index < intro_text.size()) {
-						current_intro_text_index++;
-					}
-				}
-				if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
-					if (current_intro_image_index != -1 && current_intro_image_index < intro_images_name.size()) {
-						current_intro_image_index++;
-					}
-					if (current_intro_text_index != -1 && current_intro_text_index < intro_text.size()) {
-						current_intro_text_index++;
-					}
-				}
+	if (game_status == GameStatus_intro && game_config_data.intro_images_name.size() != 0) {
+		if (Input::GetKey(SDL_SCANCODE_SPACE) || Input::GetKey(SDL_SCANCODE_RETURN)) {
+			if (current_intro_image_index != -1 && current_intro_image_index < game_config_data.intro_images_name.size()) {
+				current_intro_image_index++;
 			}
-			if (game_status == GameStatus_running) {
-				if (e.type == SDL_KEYDOWN) {
-					switch (e.key.keysym.scancode) {
-					case SDL_SCANCODE_UP:
-						user_input = 'n';
-						break;
-					case SDL_SCANCODE_DOWN:
-						user_input = 's';
-						break;
-					case SDL_SCANCODE_LEFT:
-						user_input = 'w';
-						break;
-					case SDL_SCANCODE_RIGHT:
-						user_input = 'e';
-						break;
-					}
-						
-				}
+			if (current_intro_text_index != -1 && current_intro_text_index < game_config_data.intro_text.size()) {
+				current_intro_text_index++;
 			}
 		}
-
+		if (Input::GetMouseButtonDown(SDL_BUTTON_LEFT)) {
+			if (current_intro_image_index != -1 && current_intro_image_index < game_config_data.intro_images_name.size()) {
+				current_intro_image_index++;
+			}
+			if (current_intro_text_index != -1 && current_intro_text_index < game_config_data.intro_text.size()) {
+				current_intro_text_index++;
+			}
+		}
 	}
 }
-void Game1::draw_actor(Actor& actor)
+void Game1::update_camera()
+{
+	if (current_scene->player != nullptr) {
+		glm::vec2 new_position = { current_scene->player->position.x + rendering_config_data.camera_offset.x,current_scene->player->position.y + rendering_config_data.camera_offset.y };
+		camera_position = glm::mix(camera_position, new_position, rendering_config_data.cam_ease_factor);
+	}
+}
+
+void Game1::gizmo_draw_colliders()
+{
+	for (std::shared_ptr<Actor> a : current_scene->sorted_actor_by_id)
+	{
+		Actor& actor = *a;
+		SDL_FRect rect;
+
+		// Draws this actor's collider
+		if (actor.box_collider.has_value())
+		{
+			// Use the same screen position as the actor's sprite
+			rect.x = rendering_config_data.resolution.x / 2 / rendering_config_data.zoom_factor + (actor.position.x - camera_position.x) * pixel_per_unit_distance - actor.box_collider.value().x * pixel_per_unit_distance/2;
+			rect.y = rendering_config_data.resolution.y / 2 / rendering_config_data.zoom_factor + (actor.position.y - camera_position.y) * pixel_per_unit_distance - actor.box_collider.value().y * pixel_per_unit_distance/2;
+			rect.w = actor.box_collider.value().x * pixel_per_unit_distance;
+			rect.h = actor.box_collider.value().y * pixel_per_unit_distance;
+			Engine::instance->renderer->draw_frect(rendering_config_data.zoom_factor, rect);
+		}
+	}
+}
+
+void Game1::gizmo_draw_triggers()
+{
+	for (std::shared_ptr<Actor> a : current_scene->sorted_actor_by_id)
+	{
+		Actor& actor = *a;
+		SDL_FRect rect;
+
+		// Draws this actor's collider
+		if (actor.box_trigger.has_value())
+		{
+			// Use the same screen position as the actor's sprite
+			rect.x = rendering_config_data.resolution.x / 2 / rendering_config_data.zoom_factor + (actor.position.x - camera_position.x) * pixel_per_unit_distance - actor.box_trigger.value().x * pixel_per_unit_distance / 2;
+			rect.y = rendering_config_data.resolution.y / 2 / rendering_config_data.zoom_factor + (actor.position.y - camera_position.y) * pixel_per_unit_distance - actor.box_trigger.value().y * pixel_per_unit_distance / 2;
+			rect.w = actor.box_trigger.value().x * pixel_per_unit_distance;
+			rect.h = actor.box_trigger.value().y * pixel_per_unit_distance;
+			Engine::instance->renderer->draw_frect(rendering_config_data.zoom_factor, rect);
+		}
+	}
+}
+void Game1::render_actors()
+{
+	update_camera();
+	std::vector<std::pair<std::shared_ptr<Actor>,SDL_FRect>> actors_in_screen;
+	for (auto i : current_scene->sorted_actor_by_id) {
+		Actor& actor = *i;
+		const std::string& image_name = actor.get_current_render_image_name();
+		float width, height;
+		ImageDB::Get_Image_Resolution(image_name, width, height);
+		glm::vec2 render_image_size = { width,height };
+		float screen_x = rendering_config_data.resolution.x / 2 / rendering_config_data.zoom_factor +
+			(actor.position.x - camera_position.x) * pixel_per_unit_distance -
+			actor.view_pivot_offset.x * glm::abs(actor.transform_scale.x);
+
+		float screen_y = rendering_config_data.resolution.y / 2 / rendering_config_data.zoom_factor +
+			(actor.position.y - camera_position.y) * pixel_per_unit_distance -
+			actor.view_pivot_offset.y * glm::abs(actor.transform_scale.y);
+
+		float screen_w = render_image_size.x * glm::abs(actor.transform_scale.x);
+		float screen_h = render_image_size.y * glm::abs(actor.transform_scale.y);
+		if (!(screen_x + screen_w < 0 || screen_x > rendering_config_data.resolution.x / rendering_config_data.zoom_factor ||
+			screen_y + screen_h < 0 || screen_y > rendering_config_data.resolution.y / rendering_config_data.zoom_factor)) {
+			actors_in_screen.push_back({ i,{screen_x,screen_y,screen_w,screen_h} });
+		}
+	}
+	std::sort(actors_in_screen.begin(), actors_in_screen.end(), EngineUtils::ActorRenderOrderComparator());
+	for (std::pair<std::shared_ptr<Actor>, SDL_FRect>& p :actors_in_screen) {
+		Actor& actor = *p.first;
+		draw_actor(actor,p.second);
+	}
+}
+void Game1::draw_actor(Actor& actor, SDL_FRect& rect)
 {
 	SDL_RendererFlip x_flip = SDL_FLIP_NONE;
 	SDL_RendererFlip y_flip = SDL_FLIP_NONE;
@@ -116,65 +177,56 @@ void Game1::draw_actor(Actor& actor)
 		y_flip = SDL_FLIP_VERTICAL;
 	}
 	SDL_RendererFlip flip = SDL_RendererFlip(x_flip | y_flip);
-	std::shared_ptr<SDL_FRect> rect = std::make_shared<SDL_FRect>(SDL_FRect{
-		resolution.x/2+(actor.position.x-camera_position.x)*pixel_per_unit_distance -actor.view_pivot_offset.x*glm::abs(actor.transform_scale.x),
-		resolution.y/2+(actor.position.y-camera_position.y)*pixel_per_unit_distance -actor.view_pivot_offset.y*glm::abs(actor.transform_scale.y),
-		actor.image_width * glm::abs(actor.transform_scale.x),
-		actor.image_height * glm::abs(actor.transform_scale.y)
-	});
-	std::shared_ptr<SDL_FPoint> center = std::make_shared<SDL_FPoint>(SDL_FPoint{
+	if (actor.movement_bounce_enabled && actor.intend_to_move) {
+		rect.x += 0;
+		rect.y += -glm::abs(glm::sin(Helper::GetFrameNumber() * 0.15f)) * 10.0f;
+	}
+	SDL_FPoint center =SDL_FPoint{
 		actor.view_pivot_offset.x,
 		actor.view_pivot_offset.y
-	});
-	Engine::instance->renderer->draw_image(actor.ID, actor.actor_name, actor.view_image, nullptr, rect, actor.transform_rotation_degrees, center, flip);
-
+	};
+	Engine::instance->renderer->draw_image(actor.ID, actor.name, actor.get_current_render_image_name(), nullptr, &rect, actor.transform_rotation_degrees, &center, flip, rendering_config_data.zoom_factor);
 }
 
 void Game1::awake_post_check()
 {
-	if (intro_text.size() != 0 && font_name == "") {
+	if (game_config_data.intro_text.size() != 0 && game_config_data.font_name == "") {
 		std::cout << "error: text render failed. No font configured";
 		exit(0);
 	}
-	if (current_scene->player != nullptr && hp_image == "") {
+	if (current_scene->player != nullptr && game_config_data.hp_image == "") {
 		std::cout << "error: player actor requires an hp_image be defined";
 		exit(0);
 	}
 }
 
-void Game1::render_actors()
-{
-	if(current_scene->player!=nullptr)camera_position = { current_scene->player->position.x + camera_offset.x,current_scene->player->position.y + camera_offset.y };
-	std::sort(current_scene->sorted_actor_by_render_order.begin(), current_scene->sorted_actor_by_render_order.end(), EngineUtils::ActorRenderOrderComparator());
-	for (auto i : current_scene->sorted_actor_by_render_order) {
-		Actor& actor = *i;
-		draw_actor(actor);
-	}
-}
+
 
 void Game1::render_hud()
 {
+	SDL_RenderSetScale(Engine::instance->renderer->sdl_renderer, 1.0f, 1.0f);
 	if (current_scene->player != nullptr) {
 		//render health
 		for (int i = 0; i < player_health; i++) {
 			float width = 0;
 			float height = 0;
-			ImageDB::Get_Image_Resolution(hp_image, width, height);
-			std::shared_ptr<SDL_FRect> dest_rect = std::make_shared<SDL_FRect>(
+			ImageDB::Get_Image_Resolution(game_config_data.hp_image, width, height);
+			SDL_FRect dest_rect = 
 				SDL_FRect{
 					5+i*(width+5),
 					25,
 					width,
 					height
-				}
-			);
-			Engine::instance->renderer->draw_image(hp_image, nullptr, dest_rect);
+				};
+			Engine::instance->renderer->draw_image(game_config_data.hp_image, nullptr, &dest_rect);
 		}
 
 		//render score
-		Engine::instance->renderer->draw_text(font_name, "score : " + std::to_string(score), font_size, font_color, 5, 5);
+		Engine::instance->renderer->draw_text(game_config_data.font_name, "score : " + std::to_string(score), font_size, font_color, 5, 5);
 
 	}
+	SDL_RenderSetScale(Engine::instance->renderer->sdl_renderer, rendering_config_data.zoom_factor, rendering_config_data.zoom_factor);
+
 }
 
 void Game1::draw_dialogue_message(const std::string& message)
@@ -187,7 +239,7 @@ void Game1::render_dialogue_messages()
 	int size = current_frame_dialogue_queue.size();
 	for (int i = 0; i < size; i++) {
 		std::string& message = current_frame_dialogue_queue.front();
-		Engine::instance->renderer->draw_text(font_name, message, font_size, font_color, 25, resolution.y - 50 - 50 * (size - 1 - i));
+		Engine::instance->renderer->draw_text(game_config_data.font_name, message, font_size, font_color, 25, rendering_config_data.resolution.y - 50 - 50 * (size - 1 - i));
 		current_frame_dialogue_queue.pop_front();
 	}
 }
@@ -204,25 +256,17 @@ void Game1::cout_frame_output()
 	frame_output.str("");
 }
 
-void Game1::input()
-{
-	std::cin >> user_input;
-	if (user_input == "quit") {
-		game_status = GameStatus_quit;
-	}
-}
 
 void Game1::update_actors()
 {
 	if (game_status != GameStatus_running)return;
-	if (Helper::GetFrameNumber() % 60 != 0) {
-		if(current_scene->player!=nullptr)current_scene->player->update_position();
+	for (auto i : current_scene->sorted_actor_by_id) {
+		Actor& actor = *i;
+		actor.colliding_actors_this_frame.clear();
 	}
-	else {
-		for (auto i : current_scene->sorted_actor_by_id) {
-			Actor& actor = *i;
-			actor.update_position();
-		}
+	for (auto i : current_scene->sorted_actor_by_id) {
+		Actor& actor = *i;
+		actor.update();
 	}
 }
 
@@ -230,12 +274,12 @@ void Game1::check_game_status()
 {
 	if (game_status == GameStatus_bad_ending || game_status == GameStatus_bad_ending_show_image) {
 		if (game_status == GameStatus_bad_ending) {
-			if (game_over_bad_audio_name != "") {
+			if (game_config_data.game_over_bad_audio_name != "") {
 				AudioDB::Halt_Audio(0);
-				AudioDB::Play_Audio(0, game_over_bad_audio_name, 0);
+				AudioDB::Play_Audio(0, game_config_data.game_over_bad_audio_name, 0);
 			}
 		}
-		if (game_over_bad_image_name != "") {
+		if (game_config_data.game_over_bad_image_name != "") {
 			game_status = GameStatus_bad_ending_show_image;
 		}
 		else {
@@ -244,12 +288,12 @@ void Game1::check_game_status()
 	}
 	else if (game_status == GameStatus_good_ending || game_status == GameStatus_good_ending_show_image) {
 		if (game_status == GameStatus_good_ending) {
-			if (game_over_good_audio_name != "") {
+			if (game_config_data.game_over_good_audio_name != "") {
 				AudioDB::Halt_Audio(0);
-				AudioDB::Play_Audio(0, game_over_good_audio_name, 0);
+				AudioDB::Play_Audio(0, game_config_data.game_over_good_audio_name, 0);
 			}
 		}
-		if (game_over_good_image_name != "") {
+		if (game_config_data.game_over_good_image_name != "") {
 			game_status = GameStatus_good_ending_show_image;
 		}
 		else {
@@ -276,20 +320,27 @@ void Game1::print_turn_info()
 }
 
 
-void Game1::change_player_health(int change)
+bool Game1::change_player_health(int change)
 {
 	if (change > 0) {
 		player_health += change;
+		return true;
 	}
 	else {
 		if (is_in_damage_cooldown()) {
-			return;
+			return false;
 		}
 		player_health += change;
 		last_took_damage_frame = Helper::GetFrameNumber();
+		if (current_scene->player) {
+			if (current_scene->player->damage_sfx != "") {
+				AudioDB::Play_Audio(Helper::GetFrameNumber() % 48 + 2, current_scene->player->damage_sfx, 0);
+			}
+		}
 		if (player_health <= 0) {
 			game_status = GameStatus_bad_ending;
 		}
+		return true;
 	}
 
 }
@@ -333,78 +384,14 @@ void Game1::after_config_files_loaded()
 {
 	if (auto it = config_file_map.find("rendering.config"); it != config_file_map.end()) {
 		rapidjson::Document& rendering_config = *it->second;
-		if (auto it_x = rendering_config.FindMember("x_resolution"); it_x != rendering_config.MemberEnd()) {
-			camera_dimension.x = it_x->value.GetInt();
-			resolution.x = it_x->value.GetInt();
-		}
-		if (auto it_y = rendering_config.FindMember("y_resolution"); it_y != rendering_config.MemberEnd()) {
-			camera_dimension.y = it_y->value.GetInt();
-			resolution.y = it_y->value.GetInt();
-		}
-		if (auto it = rendering_config.FindMember("clear_color_r"); it != rendering_config.MemberEnd()) {
-			clear_color_r = it->value.GetInt();
-		}
-		if (auto it = rendering_config.FindMember("clear_color_g"); it != rendering_config.MemberEnd()) {
-			clear_color_g = it->value.GetInt();
-		}
-		if (auto it = rendering_config.FindMember("clear_color_b"); it != rendering_config.MemberEnd()) {
-			clear_color_b = it->value.GetInt();
-		}
-		if (auto it = rendering_config.FindMember("cam_offset_x"); it != rendering_config.MemberEnd()) {
-			camera_offset.x = it->value.GetFloat();
-		}
-		if (auto it = rendering_config.FindMember("cam_offset_y"); it != rendering_config.MemberEnd()) {
-			camera_offset.y = it->value.GetFloat();
-		}
-		
+		rendering_config_data.set_rendering_config_data(rendering_config);
 	}
-
-
 
 	rapidjson::Document& game_config = *config_file_map["game.config"];
-	if (auto it = game_config.FindMember("game_over_bad_message"); it != game_config.MemberEnd())game_over_bad_message = it->value.GetString();
-	if (auto it = game_config.FindMember("game_over_good_message"); it != game_config.MemberEnd())game_over_good_message = it->value.GetString();
-	if (auto it = game_config.FindMember("game_start_message"); it != game_config.MemberEnd())game_start_message = it->value.GetString();
-	if (auto it = game_config.FindMember("game_title"); it != game_config.MemberEnd())game_title = it->value.GetString();
-	
-	if (auto it = game_config.FindMember("intro_image"); it != game_config.MemberEnd()) {
-		for (auto& image : it->value.GetArray()) {
-			intro_images_name.push_back(image.GetString());
-		}
-		if (intro_images_name.size() != 0)current_intro_image_index = 0;
-	}
+	game_config_data.set_game_config_data(game_config);
+	if (game_config_data.intro_images_name.size() != 0)current_intro_image_index = 0;
+	if (game_config_data.intro_text.size() != 0)current_intro_text_index = 0;
 
-	if (auto it = game_config.FindMember("intro_text"); it != game_config.MemberEnd()) {
-		for (auto& text : it->value.GetArray()) {
-			intro_text.push_back(text.GetString());
-		}
-		if (intro_text.size() != 0)current_intro_text_index = 0;
-	}
-	if (auto it = game_config.FindMember("font"); it != game_config.MemberEnd()) {
-		font_name = it->value.GetString();
-	}
-
-	if (auto it = game_config.FindMember("intro_bgm"); it != game_config.MemberEnd()) {
-		intro_bgm_name = it->value.GetString();
-	}
-	if (auto it = game_config.FindMember("gameplay_audio"); it != game_config.MemberEnd()) {
-		gameplay_audio_name = it->value.GetString();
-	}
-	if (auto it = game_config.FindMember("hp_image"); it != game_config.MemberEnd()) {
-		hp_image = it->value.GetString();
-	}
-	if (auto it = game_config.FindMember("game_over_bad_image"); it != game_config.MemberEnd()) {
-		game_over_bad_image_name = it->value.GetString();
-	}
-	if (auto it = game_config.FindMember("game_over_bad_audio"); it != game_config.MemberEnd()) {
-		game_over_bad_audio_name = it->value.GetString();
-	}
-	if (auto it = game_config.FindMember("game_over_good_image"); it != game_config.MemberEnd()) {
-		game_over_good_image_name = it->value.GetString();
-	}
-	if (auto it = game_config.FindMember("game_over_good_audio"); it != game_config.MemberEnd()) {
-		game_over_good_audio_name = it->value.GetString();
-	}
 
 	current_scene_name = game_config["initial_scene"].GetString();
 }
@@ -420,12 +407,12 @@ void Game1::load_current_scene()
 	rapidjson::Document out_document;
 	EngineUtils::Read_Json_File(EngineUtils::Get_Resource_File_Path(relative_scene_path), out_document);
 	current_scene = std::make_unique<Scene>();
-	current_scene->load_actors(out_document);
+	current_scene->initialize_scene(out_document);
 	current_frame_dialogue_queue = std::deque<std::string>();
 }
 
 void Game1::post_check_config_files()
-{
+{ 
 	if (!config_file_map["game.config"]->HasMember("initial_scene")) {
 		std::cout << "error: initial_scene unspecified";
 		exit(0);
@@ -437,14 +424,14 @@ void Game1::clear_config_data()
 	config_file_map.clear();
 }
 
-void Game1::init_renderer()
+void Game1::init_renderer() 
 {
-	Engine::instance->renderer->init_renderer(game_title.c_str(), 150, 150, resolution.x, resolution.y, -1, 0, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+	Engine::instance->renderer->init_renderer(game_config_data.game_title.c_str(), 150, 150, rendering_config_data.resolution.x, rendering_config_data.resolution.y, -1, 0, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
 }
 
 
 
-bool Game1::move_actor(Actor& actor, int target_y, int target_x)
+bool Game1::move_actor(std::shared_ptr<Actor> actor, float target_y, float target_x)
 {
 	return current_scene->move_actor(actor, target_y, target_x);
 }

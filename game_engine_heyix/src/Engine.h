@@ -5,6 +5,7 @@
 #include "ImageDB.h"
 #include "TextDB.h"
 #include "AudioDB.h"
+#include "LuaDB.h"
 
 class Engine {
 public:

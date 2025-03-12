@@ -1,4 +1,5 @@
 #include "TextDB.h"
+#include "EngineUtils.h"
 #include "Engine.h"
 std::string TextDB::folder_path = "fonts/";
 TTF_Font* TextDB::loaded_font = nullptr;
