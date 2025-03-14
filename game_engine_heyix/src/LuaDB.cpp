@@ -1,14 +1,16 @@
 #include "LuaDB.h"
 #include "EngineUtils.h"
 #include "GameObjectDB.h"
+#include "Game.h"
+#include "Component.h"
 
 void LuaDB::CppDebugLog(const std::string& message)
 {
-	std::cout << message << std::endl;
+	std::cout << message << '\n';
 }
 void LuaDB::CppErrorLog(const std::string& message)
 {
-	std::cerr << message << std::endl;
+	std::cerr << message << '\n';
 }
 void LuaDB::Init_Lua_Debug()
 {
@@ -18,15 +20,17 @@ void LuaDB::Init_Lua_Debug()
 		.addFunction("LogError", LuaDB::CppErrorLog)
 		.endNamespace();
 }
-void LuaDB::Init_Lua_Actor()
+void LuaDB::Init_Lua_Actor() 
 {
 	luabridge::getGlobalNamespace(lua_state)
 		.beginClass<GameObject>("Actor")
 		.addFunction("GetName", &GameObject::GetName)
 		.addFunction("GetID", &GameObject::GetID)
-		.addFunction("GetComponentByKey",&GameObject::Lua_GetComponentByKey)
-		.addFunction("GetComponent",&GameObject::Lua_GetComponent)
-		.addFunction("GetComponents",&GameObject::Lua_GetComponents)
+		.addFunction("GetComponentByKey", &GameObject::Lua_Get_Component_By_Key)
+		.addFunction("GetComponent", &GameObject::Lua_Get_Component)
+		.addFunction("GetComponents", &GameObject::Lua_Get_Components)
+		.addFunction("AddComponent", &GameObject::Lua_Add_Component)
+		.addFunction("RemoveComponent", &GameObject::Lua_Remove_Component)
 		.endClass();
 
 	luabridge::getGlobalNamespace(lua_state)
@@ -34,16 +38,53 @@ void LuaDB::Init_Lua_Actor()
 		.addFunction("Find", GameObjectDB::Lua_Find)
 		.addFunction("FindAll", GameObjectDB::Lua_Find_All)
 		.endNamespace();
-} 
+}
+void LuaDB::Init_Lua_Application()
+{
+	luabridge::getGlobalNamespace(lua_state)
+		.beginNamespace("Application")
+		.addFunction("Quit", Game::Lua_Quit)
+		.addFunction("Sleep", Game::Lua_Sleep)
+		.addFunction("GetFrame", Game::Lua_Get_Frame) 
+		.addFunction("OpenURL", Game::Lua_Open_URL)
+		.endNamespace();
+}
+void LuaDB::Init_Lua_Input()
+{
+	luabridge::getGlobalNamespace(lua_state)
+		.beginClass<glm::vec2>("vec2")
+		.addProperty("x", &glm::vec2::x)
+		.addProperty("y", &glm::vec2::y)
+		.endClass();
+
+	luabridge::getGlobalNamespace(lua_state)
+		.beginNamespace("Input")
+		.addFunction("GetKey", Input::Lua_Get_Key)
+		.addFunction("GetKeyDown", Input::Lua_Get_Key_Down)
+		.addFunction("GetKeyUp", Input::Lua_Get_Key_Up)
+		.addFunction("GetMousePosition", Input::Lua_Get_Mouse_Position)
+		.addFunction("GetMouseButton", Input::Lua_Get_Mouse_Button)
+		.addFunction("GetMouseButtonDown", Input::Lua_Get_Mouse_Button_Down)
+		.addFunction("GetMouseButtonUp", Input::Lua_Get_Mouse_Button_Up)
+		.addFunction("GetMouseScrollDelta", Input::Lua_Get_Mouse_Scroll_Delta)
+		.addFunction("HideCursor", Input::Lua_Hide_Cursor)
+		.addFunction("ShowCursor", Input::Lua_Show_Cursor)
+		.endNamespace();
+}
+
+
+
 void LuaDB::Init_LuaDB()
 {
 	lua_state = luaL_newstate();
 	luaL_openlibs(lua_state);
 	Init_Lua_Debug();
 	Init_Lua_Actor();
+	Init_Lua_Application();
+	Init_Lua_Input();
 }
 
-std::shared_ptr<luabridge::LuaRef> LuaDB::Create_Table(const std::string& table_name)
+luabridge::LuaRef& LuaDB::Create_Table(const std::string& table_name)
 {
 	auto it = loaded_lua_tables.find(table_name);
 	if ( it != loaded_lua_tables.end()) {
@@ -58,19 +99,18 @@ std::shared_ptr<luabridge::LuaRef> LuaDB::Create_Table(const std::string& table_
 		std::cout << "problem with lua file " + table_name;
 		exit(0);
 	}
-	std::shared_ptr<luabridge::LuaRef> table_ref = std::make_shared<luabridge::LuaRef>(luabridge::getGlobal(lua_state, table_name.c_str()));
-	loaded_lua_tables[table_name] = table_ref;
-	return table_ref;
+	auto it2 = loaded_lua_tables.insert({ table_name,luabridge::getGlobal(lua_state, table_name.c_str())});
+	return (it2.first)->second;
 }
 
-std::shared_ptr<luabridge::LuaRef> LuaDB::Create_Object_Table(const std::string& template_name)
+luabridge::LuaRef LuaDB::Create_Object_Table(const std::string& template_name)
 {
-	std::shared_ptr<luabridge::LuaRef> new_table = std::make_shared<luabridge::LuaRef>(luabridge::newTable(lua_state));
-	Establish_Inheritance(*new_table, *Get_Lua_Ref(template_name));
+	luabridge::LuaRef new_table = luabridge::newTable(lua_state);
+	Establish_Inheritance(new_table, Get_Lua_Ref(template_name));
 	return new_table;
 }
 
-std::shared_ptr<luabridge::LuaRef> LuaDB::Get_Lua_Ref(const std::string& name)
+luabridge::LuaRef& LuaDB::Get_Lua_Ref(const std::string& name)
 {
 	return Create_Table(name);
 }

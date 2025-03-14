@@ -18,12 +18,12 @@ class Scene {
 public:
 	void load_actors(rapidjson::Document& scene_json);
 	void initialize_actor(const rapidjson::Value& actor, std::shared_ptr<Actor> new_actor);
-	bool check_collider_collision(std::shared_ptr<Actor> actor,float target_y, float target_x);
-	bool move_actor(std::shared_ptr<Actor> actor, float target_y, float target_x);
-	void trigger_contact_dialogue(std::shared_ptr<Actor> actor);
-	void trigger_nearby_dialogue(std::shared_ptr<Actor> actor);
+	bool check_collider_collision(Actor& actor,float target_y, float target_x);
+	bool move_actor(Actor& actor, float target_y, float target_x);
+	void trigger_contact_dialogue(Actor& actor);
+	void trigger_nearby_dialogue(Actor& actor);
 	bool check_substring_exist(const std::string& origin_string, const std::string& substring);
-	void check_special_dialogue(std::string& origin_string, std::shared_ptr<Actor> actor);
+	void check_special_dialogue(std::string& origin_string, Actor& actor);
 	void check_dialogue();
 	void initialize_scene(rapidjson::Document& scene_json);
 	glm::ivec2 get_box_collider_region_position(const glm::vec2& vec);
@@ -31,10 +31,10 @@ public:
 private:
 	std::shared_ptr<Actor> instantiate_actor(const rapidjson::Value& actor, int& actor_index);
 public:
-	std::shared_ptr<Player> player = nullptr;
-	std::vector<std::shared_ptr<Actor>> sorted_actor_by_id;
-	std::unordered_map<uint64_t, std::vector<std::shared_ptr<Actor>>> box_collider_map;
-	std::unordered_map<uint64_t, std::vector<std::shared_ptr<Actor>>> box_trigger_map;
+	Player* player = nullptr;
+	std::vector<Actor*> sorted_actor_by_id;
+	std::unordered_map<uint64_t, std::vector<Actor*>> box_collider_map;
+	std::unordered_map<uint64_t, std::vector<Actor*>> box_trigger_map;
 	const std::vector<glm::ivec2> directions = { glm::ivec2{0,0}, glm::ivec2{0,1}, glm::ivec2{0,-1}, glm::ivec2{-1,0}, glm::ivec2{1,0}, glm::ivec2{-1,-1}, glm::ivec2{1,-1}, glm::ivec2{-1,1}, glm::ivec2{1,1} };
 
 private:

@@ -7,7 +7,6 @@
 #include <unordered_set>
 #include <unordered_map>
 #include "GameObject.h"
-#include <memory>
 class Actor: public GameObject{
 public:
 	glm::vec2 position{ 0,0 };
@@ -26,7 +25,7 @@ public:
 	bool triggered_score_up = false;
 	bool triggered_nearby_dialogue = false;
 	bool intend_to_move = false;
-	std::unordered_set<std::shared_ptr<Actor>> colliding_actors_this_frame;
+	std::unordered_set<Actor*> colliding_actors_this_frame;
 	float last_intented_velocity_y = 0.0f;
 	int frameAttacked = -100;
 	std::string view_image_attack;

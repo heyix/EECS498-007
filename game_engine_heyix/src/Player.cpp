@@ -40,7 +40,7 @@ void Player::update_position()
 		this->intend_to_move = false;
 	}
 	move_position *= movement_speed;
-	if (Game1::instance->move_actor(std::static_pointer_cast<Player>(shared_from_this()), position.y + move_position.y, position.x + move_position.x)) {
+	if (Game1::instance->move_actor(*this, position.y + move_position.y, position.x + move_position.x)) {
 		 
 	}
 }

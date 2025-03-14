@@ -5,22 +5,37 @@
 class GameObject;
 class Component {
 public:
-	std::shared_ptr<GameObject> holder_object = nullptr;
+	GameObject* holder_object;
 	std::string key;
-	std::shared_ptr<luabridge::LuaRef> lua_component = nullptr;
+	std::string template_name;
+	luabridge::LuaRef lua_component;
+	bool pending_removing = false;
+	std::shared_ptr<luabridge::LuaRef> on_start_func = nullptr;
+	std::shared_ptr<luabridge::LuaRef> on_update_func = nullptr;
+	std::shared_ptr<luabridge::LuaRef> on_late_update_func = nullptr;
+
 public:
-	Component(std::shared_ptr<GameObject> holder, const std::string& key, std::shared_ptr<luabridge::LuaRef> lua_ref)
-		:holder_object(holder),key(key),lua_component(lua_ref)
+	Component(GameObject& holder, const std::string& key, const std::string& template_name,const luabridge::LuaRef& lua_ref)
+		:holder_object(&holder),key(key), template_name(template_name),lua_component(lua_ref)
 	{
-		(*lua_component)["key"] = key;
-		(*lua_component)["actor"] = holder.get();
+		lua_component["key"] = key;
+		lua_component["actor"] = holder_object;
+		set_enabled(true);
+
+		on_start_func = std::make_shared<luabridge::LuaRef>(lua_component["OnStart"]);
+		if (!on_start_func->isFunction())on_start_func = nullptr;
+
+		on_update_func = std::make_shared<luabridge::LuaRef>(lua_component["OnUpdate"]);
+		if (!on_update_func->isFunction())on_update_func = nullptr;
+
+		on_late_update_func = std::make_shared<luabridge::LuaRef>(lua_component["OnLateUpdate"]);
+		if (!on_late_update_func->isFunction())on_late_update_func = nullptr;
 	}
 	void On_Start();
 	void On_Update();
 	void On_Destroy();
+	void On_LateUpdate();
 
-	template<typename T>
-	void Inject_Value_Pair(std::string& key, const T& value) {
-		(*lua_component)[key] = value;
-	}
+	bool get_enabled();
+	void set_enabled(bool new_enable);
 };

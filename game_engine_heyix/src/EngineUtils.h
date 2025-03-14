@@ -13,15 +13,15 @@ class EngineUtils {
 public:
 	class ActorPointerComparator {
 	public:
-		bool operator()(const std::shared_ptr<Actor> a,const std::shared_ptr<Actor> b)const {
+		bool operator()(const Actor* a,const Actor* b)const {
 			return a->ID < b->ID;
 		}
 	};
 	class ActorRenderOrderComparator {
 	public:
-		bool operator()(const std::pair<std::shared_ptr<Actor>, SDL_FRect>& p1, const std::pair<std::shared_ptr<Actor>, SDL_FRect>& p2)const {
-			std::shared_ptr<Actor> a = p1.first;
-			std::shared_ptr<Actor> b = p2.first;
+		bool operator()(const std::pair<Actor*, SDL_FRect>& p1, const std::pair<Actor*, SDL_FRect>& p2)const {
+			Actor* a = p1.first;
+			Actor* b = p2.first;
 			float order_a = a->position.y;
 			float order_b = b->position.y;
 			if (a->render_order.has_value()) {
@@ -47,4 +47,5 @@ public:
 	static std::string Obtain_Word_After_Phrase(const std::string& input, const std::string& phrase);
 	static bool AABB_Collision(glm::vec2& position1, glm::vec2& position2, glm::vec2& box1, glm::vec2& box2);
 	static bool Compare_Float_Equal(float f1, float f2,float epsilon = 0.001f);
+	static void ReportError(const std::string& actor_name, const luabridge::LuaException& e);
 };

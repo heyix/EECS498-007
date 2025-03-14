@@ -7,6 +7,11 @@ void GameObjectDB::Add_GameObject(std::shared_ptr<GameObject> new_gameobject)
 	gameobjects_by_name[new_gameobject->name][new_gameobject->ID] = new_gameobject;
 }
 
+std::shared_ptr<GameObject> GameObjectDB::Instantiate_GameObject(const std::string& actor_template_name)
+{
+	return std::shared_ptr<GameObject>();
+}
+
 GameObject* GameObjectDB::Lua_Find(const std::string& name)
 {
 	auto it = gameobjects_by_name.find(name);
@@ -28,4 +33,9 @@ luabridge::LuaRef GameObjectDB::Lua_Find_All(const std::string& name)
 		result[index++] = p.second.get();
 	}
 	return result;
+}
+
+GameObject* GameObjectDB::Lua_Instantiate(const std::string& actor_template_name)
+{
+	return Instantiate_GameObject(actor_template_name).get();
 }

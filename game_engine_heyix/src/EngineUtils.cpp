@@ -114,4 +114,13 @@ bool EngineUtils::Compare_Float_Equal(float f1, float f2, float epsilon)
 	return glm::abs(f1 - f2) < epsilon;
 }
 
+void EngineUtils::ReportError(const std::string& actor_name, const luabridge::LuaException& e)
+{
+	std::string error_message = e.what();
+
+	std::replace(error_message.begin(), error_message.end(), '\\', '/');
+
+	std::cout << "\033[31m" << actor_name << " : " << error_message << "\033[0m" << std::endl;
+}
+
 

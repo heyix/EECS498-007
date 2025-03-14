@@ -55,7 +55,7 @@ private:
 	void gizmo_draw_colliders();
 	void gizmo_draw_triggers();
 public:
-	bool move_actor(std::shared_ptr<Actor> actor, float target_y, float target_x);
+	bool move_actor(Actor& actor, float target_y, float target_x);
 	void change_game_status(GameStatus new_satus);
 	void change_current_scene(const std::string& new_scene_name);
 	bool change_player_health(int change);

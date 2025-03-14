@@ -3,28 +3,40 @@
 Game1* Game1::instance = nullptr;
 void Game1::awake()
 {
-	init_renderer();
 	load_config_files();
+	init_renderer();
 	load_current_scene();
 	awake_post_check();
 }
 
 void Game1::start()
 {
-	for (auto actor : current_scene->sorted_actor_by_id) {
+	for (Actor* actor : current_scene->sorted_actor_by_id) {
 		actor->On_Start();
 	}
-	AudioHelper::Mix_AllocateChannels(50);
+	//AudioHelper::Mix_AllocateChannels(50);
 	Engine::instance->renderer->set_clear_color(rendering_config_data.clear_color_r, rendering_config_data.clear_color_g, rendering_config_data.clear_color_b, 255);
-	if(game_config_data.intro_bgm_name!="")AudioDB::Play_Audio(0, game_config_data.intro_bgm_name, -1);
-	if (current_scene->player != nullptr) {
-		camera_position = { current_scene->player->position.x + rendering_config_data.camera_offset.x,current_scene->player->position.y + rendering_config_data.camera_offset.y };
-	}
+	//if(game_config_data.intro_bgm_name!="")AudioDB::Play_Audio(0, game_config_data.intro_bgm_name, -1);
+	//if (current_scene->player != nullptr) {
+	//	camera_position = { current_scene->player->position.x + rendering_config_data.camera_offset.x,current_scene->player->position.y + rendering_config_data.camera_offset.y };
+	//}
 }
 
 void Game1::update()
 {
-	handle_input();
+	for (Actor* actor : current_scene->sorted_actor_by_id) {
+		actor->Process_Added_Components();
+	}
+	for (Actor* actor : current_scene->sorted_actor_by_id) {
+		actor->On_Update();
+	}
+	for (Actor* actor : current_scene->sorted_actor_by_id) {
+		actor->On_LateUpdate();
+	}
+	for (Actor* actor : current_scene->sorted_actor_by_id) {
+		actor->Process_Removed_Components();
+	}
+	/*handle_input();
 	if (game_status == GameStatus_intro) {
 		if ((current_intro_image_index == -1 || current_intro_image_index >= game_config_data.intro_images_name.size()) && (current_intro_text_index == -1 || current_intro_text_index >= game_config_data.intro_text.size())) {
 			game_status = GameStatus_running;
@@ -35,14 +47,14 @@ void Game1::update()
 				AudioDB::Play_Audio(0, game_config_data.gameplay_audio_name, -1);
 			}
 		}
-	}
+	} 
 
 	if (game_status == GameStatus_running) {
 		update_actors();
 		if (current_scene->player != nullptr)current_scene->check_dialogue();
-	}
-
-	check_game_status();
+	} 
+	 
+	check_game_status(); */
 }
 
 void Game1::render()
@@ -98,7 +110,7 @@ void Game1::update_camera()
 
 void Game1::gizmo_draw_colliders()
 {
-	for (std::shared_ptr<Actor> a : current_scene->sorted_actor_by_id)
+	for (Actor* a : current_scene->sorted_actor_by_id)
 	{
 		Actor& actor = *a;
 		SDL_FRect rect;
@@ -118,7 +130,7 @@ void Game1::gizmo_draw_colliders()
 
 void Game1::gizmo_draw_triggers()
 {
-	for (std::shared_ptr<Actor> a : current_scene->sorted_actor_by_id)
+	for (Actor* a : current_scene->sorted_actor_by_id)
 	{
 		Actor& actor = *a;
 		SDL_FRect rect;
@@ -138,7 +150,7 @@ void Game1::gizmo_draw_triggers()
 void Game1::render_actors()
 {
 	update_camera();
-	std::vector<std::pair<std::shared_ptr<Actor>,SDL_FRect>> actors_in_screen;
+	std::vector<std::pair<Actor*,SDL_FRect>> actors_in_screen;
 	for (auto i : current_scene->sorted_actor_by_id) {
 		Actor& actor = *i;
 		const std::string& image_name = actor.get_current_render_image_name();
@@ -161,7 +173,7 @@ void Game1::render_actors()
 		}
 	}
 	std::sort(actors_in_screen.begin(), actors_in_screen.end(), EngineUtils::ActorRenderOrderComparator());
-	for (std::pair<std::shared_ptr<Actor>, SDL_FRect>& p :actors_in_screen) {
+	for (std::pair<Actor*, SDL_FRect>& p :actors_in_screen) {
 		Actor& actor = *p.first;
 		draw_actor(actor,p.second);
 	}
@@ -431,7 +443,7 @@ void Game1::init_renderer()
 
 
 
-bool Game1::move_actor(std::shared_ptr<Actor> actor, float target_y, float target_x)
+bool Game1::move_actor(Actor& actor, float target_y, float target_x)
 {
 	return current_scene->move_actor(actor, target_y, target_x);
 }

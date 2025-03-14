@@ -45,7 +45,7 @@ void Actor::update_position()
 	}
 
 
-	if (!Game1::instance->move_actor(std::static_pointer_cast<Actor>(shared_from_this()), target_y, target_x)) {
+	if (!Game1::instance->move_actor(*this, target_y, target_x)) {
 		velocity.x *= -1;
 		velocity.y *= -1;
 	}
