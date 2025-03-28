@@ -1,0 +1,29 @@
+== RENDER LOGGER ==
+Study the following SDL_RenderCopyEx() calls to debug render-related issues.
+Enable render logger mode on your computer by setting the RENDERLOGGER environmental variable.
+frame:actor_id:actor_name
+
+2:0: dstrect -13.5 0 667 360 angle 0 center 333.5 180 flip 0 renderscale 1 1
+2:0: dstrect 382.5 242.5 125 125 angle 0 center 62.5 62.5 flip 0 renderscale 1 1
+2:0: dstrect 440 138.5 80 83 angle 0 center 40 41.5 flip 0 renderscale 1 1
+3:0: dstrect -13.5 0 667 360 angle 0 center 333.5 180 flip 0 renderscale 1 1
+3:0: dstrect 382.5 242.5 125 125 angle 0 center 62.5 62.5 flip 0 renderscale 1 1
+3:0: dstrect 440 138.5 80 83 angle 0 center 40 41.5 flip 0 renderscale 1 1
+4:0: dstrect -13.5 0 667 360 angle 0 center 333.5 180 flip 0 renderscale 1 1
+4:0: dstrect 382.5 242.5 125 125 angle 0 center 62.5 62.5 flip 0 renderscale 1 1
+4:0: dstrect 440 138.5 80 83 angle 0 center 40 41.5 flip 0 renderscale 1 1
+5:0: dstrect -13.5 0 667 360 angle 0 center 333.5 180 flip 0 renderscale 1 1
+5:0: dstrect 382.5 242.5 125 125 angle 0 center 62.5 62.5 flip 0 renderscale 1 1
+5:0: dstrect 440 138.5 80 83 angle 0 center 40 41.5 flip 0 renderscale 1 1
+6:0: dstrect -13.5 0 667 360 angle 0 center 333.5 180 flip 0 renderscale 1 1
+6:0: dstrect 382.5 242.5 125 125 angle 0 center 62.5 62.5 flip 0 renderscale 1 1
+6:0: dstrect 440 138.5 80 83 angle 0 center 40 41.5 flip 0 renderscale 1 1
+7:0: dstrect -13.5 0 667 360 angle 0 center 333.5 180 flip 0 renderscale 1 1
+7:0: dstrect 382.5 242.5 125 125 angle 0 center 62.5 62.5 flip 0 renderscale 1 1
+7:0: dstrect 440 138.5 80 83 angle 0 center 40 41.5 flip 0 renderscale 1 1
+8:0: dstrect -13.5 0 667 360 angle 0 center 333.5 180 flip 0 renderscale 1 1
+8:0: dstrect 382.5 242.5 125 125 angle 0 center 62.5 62.5 flip 0 renderscale 1 1
+8:0: dstrect 440 138.5 80 83 angle 0 center 40 41.5 flip 0 renderscale 1 1
+9:0: dstrect -13.5 0 667 360 angle 0 center 333.5 180 flip 0 renderscale 1 1
+9:0: dstrect 382.5 242.5 125 125 angle 0 center 62.5 62.5 flip 0 renderscale 1 1
+9:0: dstrect 440 138.5 80 83 angle 0 center 40 41.5 flip 0 renderscale 1 1

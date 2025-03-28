@@ -2,11 +2,7 @@
 #include <memory>
 #include "Game.h"
 #include "Renderer.h"
-#include "ImageDB.h"
-#include "TextDB.h"
-#include "AudioDB.h"
-#include "LuaDB.h"
-
+class Game;
 class Engine {
 public:
 	Engine();

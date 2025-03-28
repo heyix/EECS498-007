@@ -49,4 +49,7 @@ void GameConfigData::set_game_config_data(rapidjson::Document& game_config)
 	//if (auto it = game_config.FindMember("score_sfx"); it != game_config.MemberEnd()) {
 	//	score_sfx = it->value.GetString();
 	//}
+	if (auto it = game_config.FindMember("initial_scene"); it != game_config.MemberEnd()) {
+		initial_scene_name = it->value.GetString();
+	}
 }

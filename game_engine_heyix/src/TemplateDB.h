@@ -1,11 +1,11 @@
 #pragma once
-#include "Actor.h"
 #include <memory>
 #include "rapidjson/include/rapidjson/document.h"
 #include <unordered_map>
-#include "Player.h"
+#include <string>
 
 class Game1;
+class GameObject;
 class TemplateDB {
 private:
 	static std::string folder_path;

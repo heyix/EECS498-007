@@ -109,12 +109,8 @@ bool EngineUtils::AABB_Collision(glm::vec2& position1, glm::vec2& position2, glm
 	return false;
 }
 
-bool EngineUtils::Compare_Float_Equal(float f1, float f2, float epsilon)
-{
-	return glm::abs(f1 - f2) < epsilon;
-}
 
-void EngineUtils::ReportError(const std::string& actor_name, const luabridge::LuaException& e)
+void EngineUtils::Report_Error(const std::string& actor_name, const luabridge::LuaException& e)
 {
 	std::string error_message = e.what();
 

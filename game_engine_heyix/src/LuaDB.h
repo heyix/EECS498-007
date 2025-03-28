@@ -7,19 +7,28 @@
 class LuaDB {
 private:
 	static void CppDebugLog(const std::string& message);
-	static void CppErrorLog(const std::string& message);
 	static void Init_Lua_Debug();
 	static void Init_Lua_Actor();
 	static void Init_Lua_Application();
 	static void Init_Lua_Input();
+	static void Init_Lua_Text();
+	static void Init_Lua_Audio();
+	static void Init_Lua_Image();
+	static void Init_Lua_Camera();
+	static void Init_Lua_Scene();
+	static void Init_Lua_Vector2();
+	static void Init_Lua_RigidBody();
+	static void Init_Lua_Component();
+	static void Init_Lua_EventBus();
+	static void Init_Lua_Collision();
+	static void Init_Lua_Physics();
+	static void Init_Lua_ParticleSystem();
 public:
 	static void Init_LuaDB();
-	static luabridge::LuaRef& Create_Table(const std::string& table_name);
-	static luabridge::LuaRef Create_Object_Table(const std::string& template_name);
-	static luabridge::LuaRef& Get_Lua_Ref(const std::string& name);
+	static luabridge::LuaRef& Create_Template_Table_Using_Local_File(const std::string& table_name);
+	static luabridge::LuaRef Create_Object_Table(const std::string& template_name,bool use_local_file = true);
 	static void Establish_Inheritance(luabridge::LuaRef& instance_table, luabridge::LuaRef& parent_table);
-
-
+	static luabridge::LuaRef& Create_Template_Table(const std::string& table_name);
 
 	template<typename... Args>
 	static void Call_Lua_Function_With_Self(luabridge::LuaRef& luaref, const std::string& func_name, Args... args) {
@@ -34,8 +43,12 @@ public:
 	}
 
 	template<typename T>
-	static T Get_Value_From_Lua_Ref(luabridge::LuaRef& luaref, const std::string& key) {
+	static T Get_Value_From_Lua_Ref(const luabridge::LuaRef& luaref, const std::string& key) {
 		return (luaref)[key].cast<T>();
+	}
+	template<typename T>
+	static T Cast_Lua_Ref(const luabridge::LuaRef& luaref) {
+		return luaref.cast<T>();
 	}
 public:
 	static inline lua_State* lua_state;

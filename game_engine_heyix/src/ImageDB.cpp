@@ -41,3 +41,28 @@ void ImageDB::Get_Image_Resolution(const std::string& image_name, float& width, 
 	Helper::SDL_QueryTexture(view_texture, &width, &height);
 	queried_image_size[image_name] = { width,height };
 }
+
+void ImageDB::Lua_Draw_UI(const std::string& image_name, float x, float y)
+{
+	Engine::instance->renderer->draw_ui(image_name, x, y);
+}
+
+void ImageDB::Lua_Draw_UI_Ex(const std::string& image_name, float x, float y, float r, float g, float b, float a, int sorting_order)
+{
+	Engine::instance->renderer->draw_ui_ex(image_name, x, y, r, g, b, a, sorting_order);
+}
+
+void ImageDB::Lua_Draw(const std::string& image_name, float x, float y)
+{
+	Engine::instance->renderer->draw(image_name, x, y);
+}
+
+void ImageDB::Lua_Draw_Ex(const std::string& image_name, float x, float y, float rotation_degrees, float scale_x, float scale_y, float pivot_x, float pivot_y, float r, float g, float b, float a, int sorting_order)
+{
+	Engine::instance->renderer->draw_ex(image_name, x, y, rotation_degrees, scale_x, scale_y, pivot_x, pivot_y, r, g, b, a, sorting_order);
+}
+
+void ImageDB::Lua_Draw_Pixel(float x, float y, float r, float g, float b, float a)
+{
+	Engine::instance->renderer->draw_pixel(x, y, r, g, b, a);
+}

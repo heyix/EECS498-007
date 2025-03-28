@@ -37,7 +37,7 @@ void AudioDB::Init_Audio_Channel(int frequency, Uint16 format, int channels, int
 	AudioHelper::Mix_OpenAudio(frequency, format, channels, chunksize);
 }
 
-void AudioDB::Play_Audio(int channel,std::string audio_name,int loops)
+void AudioDB::Play_Audio(int channel,const std::string& audio_name,int loops)
 {
 	AudioHelper::Mix_PlayChannel(channel, Load_Audio(audio_name), loops);
 }
@@ -45,4 +45,19 @@ void AudioDB::Play_Audio(int channel,std::string audio_name,int loops)
 void AudioDB::Halt_Audio(int channel)
 {
 	AudioHelper::Mix_HaltChannel(channel);
+}
+
+void AudioDB::Lua_Play(int channel, const std::string& clip_name, bool does_loop)
+{
+	Play_Audio(channel, clip_name, does_loop ? -1 : 0);
+}
+
+void AudioDB::Lua_Halt(int channel)
+{
+	Halt_Audio(channel);
+}
+
+void AudioDB::Lua_Set_Volume(int channel, float volume)
+{
+	AudioHelper::Mix_Volume(channel, volume);
 }
