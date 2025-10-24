@@ -43,6 +43,12 @@
     <Filter Include="Source Files\Components">
       <UniqueIdentifier>{e318e0c5-72c9-4d49-9ddc-e636ee30d85f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Physics">
+      <UniqueIdentifier>{1fa3d3c7-ee54-4307-b1a5-cd8698a00dfb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Physics">
+      <UniqueIdentifier>{fc7d18dc-67d5-4d92-b899-1133342078a2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -363,6 +369,9 @@
     <ClCompile Include="src\ParticleSystem.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
+    <ClCompile Include="src\PhysicsBody.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Game.h">
@@ -679,6 +688,9 @@
     </ClInclude>
     <ClInclude Include="src\ParticleSystem.h">
       <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PhysicsBody.h">
+      <Filter>Header Files\Physics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

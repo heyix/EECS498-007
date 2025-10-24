@@ -48,9 +48,9 @@ luabridge::LuaRef PhysicsDB::Lua_Raycast(const Vector2& pos, const Vector2& dir,
 		return luabridge::LuaRef(LuaDB::lua_state);
 	}
 	Vector2 end = pos + (dir * dist);
-	b2Vec2 end_pos = b2Vec2(end.x,end.y);
+	b2Vec2 end_pos = b2Vec2(end.x(),end.y());
 	SingleHitRayCastCallback callback;
-	physics_world->RayCast(&callback, { pos.x,pos.y }, end_pos);
+	physics_world->RayCast(&callback, { pos.x(),pos.y() }, end_pos);
 	if (!callback.fixture_found) {
 		return luabridge::LuaRef(LuaDB::lua_state);
 	}
@@ -70,9 +70,9 @@ luabridge::LuaRef PhysicsDB::Lua_Raycast_All(const Vector2& pos, const Vector2& 
 		return result;
 	}
 	Vector2 end = pos + (dir * dist);
-	b2Vec2 end_pos{ end.x,end.y };
+	b2Vec2 end_pos{ end.x(),end.y()};
 	AllHitRayCastCallback callback;
-	physics_world->RayCast(&callback, { pos.x,pos.y }, end_pos);
+	physics_world->RayCast(&callback, { pos.x(),pos.y()}, end_pos);
 	if (callback.hits.empty()) {
 		return result;
 	}

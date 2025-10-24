@@ -39,6 +39,7 @@
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ParticleSystem.cpp" />
+    <ClCompile Include="src\PhysicsBody.cpp" />
     <ClCompile Include="src\PhysicsDB.cpp" />
     <ClCompile Include="src\RayCastCallback.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
@@ -146,6 +147,7 @@
     <ClInclude Include="src\ImageDB.h" />
     <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\ParticleSystem.h" />
+    <ClInclude Include="src\PhysicsBody.h" />
     <ClInclude Include="src\PhysicsDB.h" />
     <ClInclude Include="src\RayCastCallback.h" />
     <ClInclude Include="src\Renderer.h" />

@@ -58,19 +58,19 @@ Vector2 RigidBody::Get_Position()
 
 void RigidBody::Add_Force(const Vector2& force)
 {
-	b2Vec2 b2force(force.x, force.y);
+	b2Vec2 b2force(force.x(), force.y());
 	body->ApplyForceToCenter(b2force, true);
 }
 
 void RigidBody::Set_Velocity(const Vector2& velocity)
 {
-	b2Vec2 b2vel(velocity.x, velocity.y);
+	b2Vec2 b2vel(velocity.x(), velocity.y());
 	body->SetLinearVelocity(b2vel);
 }
 
 void RigidBody::Set_Position(const Vector2& position)
 {
-	b2Vec2 b2pos(position.x, position.y);
+	b2Vec2 b2pos(position.x(), position.y());
 	body->SetTransform(b2pos, body->GetAngle());
 }
 
@@ -85,7 +85,7 @@ void RigidBody::Set_Up_Direction(const Vector2& direction)
 	Vector2 dir = direction;
 	 dir.Normalize();
 
-	float angle = glm::atan(dir.y, dir.x) - b2_pi * 0.5f;
+	float angle = glm::atan(dir.y(), dir.x()) - b2_pi * 0.5f;
 
 	body->SetTransform(body->GetPosition(), angle);
 }
@@ -95,7 +95,7 @@ void RigidBody::Set_Right_Direction(const Vector2& direction)
 	Vector2 dir = direction;
 	dir.Normalize();
 
-	float angle = glm::atan(dir.y, dir.x);
+	float angle = glm::atan(dir.y(), dir.x());
 	body->SetTransform(body->GetPosition(), angle);
 }
 
