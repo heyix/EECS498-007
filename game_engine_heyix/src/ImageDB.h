@@ -28,4 +28,4 @@ public:
 	static void Lua_Draw(const std::string& image_name, float x, float y);
 	static void Lua_Draw_Ex(const std::string& image_name, float x, float y, float rotation_degrees, float scale_x, float scale_y, float pivot_x, float pivot_y, float r, float g, float b, float a, int sorting_order);
 	static void Lua_Draw_Pixel(float x, float y, float r, float g, float b, float a);
-};
+}; 
