@@ -40,6 +40,8 @@ public:
     b2Fixture* Get_Fixture() { return fixture; }
     void On_Attached_Rigidbody_Destroyed();
     void Try_Attach_To_Rigidbody();
+public:
+    static inline std::vector<std::string> Collider_Types_Names{ "BoxCollider","CircleCollider" };
 private:
     std::shared_ptr<RigidBody> Find_Attached_RigidBody();
 public:

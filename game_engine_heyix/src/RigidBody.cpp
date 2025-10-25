@@ -193,7 +193,7 @@ void RigidBody::Notify_Children_To_Attach_Colliders(Transform* current_transform
 		if (child && child->holder_object) {
 			GameObject* go = child->holder_object;
 
-			for (const std::string& type : { "BoxCollider", "CircleCollider" }) {
+			for (const std::string& type : ColliderBase::Collider_Types_Names) {
 				for (auto& weak : go->Get_Components(type)) {
 					if (auto collider = std::dynamic_pointer_cast<ColliderBase>(weak.lock())) {
 						collider->Try_Attach_To_Rigidbody();
