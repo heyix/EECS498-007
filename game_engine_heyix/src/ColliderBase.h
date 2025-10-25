@@ -6,6 +6,10 @@
 #include "RigidBody.h"
 class ColliderBase :public CppComponent {
 public:
+    enum class ColliderType {
+        Circle,Box
+    };
+public:
     ColliderBase(GameObject& holder, const std::string& key, const std::string& template_name, const luabridge::LuaRef& lua_ref)
         :CppComponent(holder, key, template_name, luabridge::LuaRef(LuaDB::lua_state, this))
     {
@@ -18,9 +22,8 @@ public:
     bool is_trigger = false;
     float friction = 0.3f;
     float bounciness = 0.3f;
-
+    ColliderType collider_type;
 public:
-    std::string collider_type = "box";
     b2Fixture* fixture = nullptr;
     std::weak_ptr<RigidBody> attached_body;
 protected:
