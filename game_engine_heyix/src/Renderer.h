@@ -7,49 +7,47 @@
 #include  <deque>
 #include <algorithm>
 #include "glm/glm.hpp"
-
+#include <utility>
 
 class ImageDrawRequest {
 public:
-	ImageDrawRequest(const std::string& image_name, const SDL_FRect* src_rect, const SDL_FRect* dest_rect,const SDL_Color& render_color, int sorting_order)
-		:image_name(image_name), use_ex(false), flip(SDL_RendererFlip()), render_color(render_color),sorting_order(sorting_order)
+	ImageDrawRequest(float x, float y, float r, float g, float b, float a) 
+		:image_name(nullptr),x(x),y(y),r(r),g(g),b(b),a(a),sorting_order(0)
 	{
-		if (src_rect) {
-			this->src_rect = *src_rect;
-		}
-		if (dest_rect) {
-			this->dest_rect = *dest_rect;
-		}
 	}
-	ImageDrawRequest( const std::string& image_name, const SDL_FRect* src_rect, const SDL_FRect* dest_rect, const float angle, const SDL_FPoint* center, const SDL_RendererFlip& flip, const SDL_Color& render_color, int sorting_order)
-		:image_name(image_name), use_ex(true), angle(angle), render_color(render_color), flip(flip), sorting_order(sorting_order)
+	ImageDrawRequest(const std::string& image_name, float x, float y, float r, float g, float b, float a, int sorting_order) 
+		:image_name(&image_name),x(x),y(y),r(r),g(g),b(b),a(a),sorting_order(sorting_order),use_ex(false)
 	{
-		if (src_rect) {
-			this->src_rect = *src_rect;
-		}
-		if (dest_rect) {
-			this->dest_rect = *dest_rect;
-		}
-		if (center) {
-			this->center = *center;
-		}
 	}
-	ImageDrawRequest(const glm::vec2& point_position,const SDL_Color& render_color)
-		:drawed_point_position(point_position),render_color(render_color),sorting_order(0), flip(SDL_RendererFlip())
+	ImageDrawRequest(const std::string& image_name, float x, float y, float rotation_degrees, float scale_x, float scale_y, float pivot_x, float pivot_y, float r, float g, float b, float a, int sorting_order) 
+		:image_name(&image_name),x(x),y(y), rotation_degrees(rotation_degrees), scale_x(scale_x), scale_y(scale_y), pivot_x(pivot_x), pivot_y(pivot_y), r(r),g(g),b(b),a(a),sorting_order(sorting_order),use_ex(true)
 	{
-
 	}
+	ImageDrawRequest(std::string&& new_image_name, float x, float y, float r, float g, float b, float a, int sorting_order)
+		:owned_image(std::make_unique<std::string>(std::move(new_image_name))), image_name(owned_image.get()), x(x), y(y), r(r), g(g), b(b), a(a), sorting_order(sorting_order), use_ex(false)
+	{
+	}
+	ImageDrawRequest(std::string&& new_image_name, float x, float y, float rotation_degrees, float scale_x, float scale_y, float pivot_x, float pivot_y, float r, float g, float b, float a, int sorting_order)
+		:owned_image(std::make_unique<std::string>(std::move(new_image_name))), image_name(owned_image.get()), x(x), y(y), rotation_degrees(rotation_degrees), scale_x(scale_x), scale_y(scale_y), pivot_x(pivot_x), pivot_y(pivot_y), r(r), g(g), b(b), a(a), sorting_order(sorting_order), use_ex(true)
+	{
+	}
+private:
+	std::unique_ptr<std::string> owned_image = nullptr;
 public:
-	std::string image_name;
-	std::optional<SDL_FRect> src_rect;
-	std::optional<SDL_FRect> dest_rect;
-	float angle = 0.0f;
-	std::optional<SDL_FPoint> center;
-	SDL_RendererFlip flip;
+	const std::string* image_name;
+	float x; 
+	float y; 
+	std::optional<float> rotation_degrees; 
+	std::optional<float> scale_x;
+	std::optional<float> scale_y; 
+	std::optional<float> pivot_x;
+	std::optional<float> pivot_y;
+	float r;
+	float g;
+	float b;
+	float a;
+	std::optional<int> sorting_order;
 	bool use_ex = false;
-	std::optional<glm::vec2> drawed_point_position;
-	SDL_Color render_color;
-	int sorting_order = 0;
 };
 
 class ImageDrawRequestComparator {
@@ -101,11 +99,28 @@ public:
 	void set_clear_color(int r, int g, int b,int a);
 	void draw_text(const std::string& font_name, const std::string& text_content, int font_size, const SDL_Color& font_color, float x, float y,float zoom_factor = 1.0f);
 	void draw_frect(float zoom_factor, SDL_FRect& rect);
-	void draw_ui(const std::string& image_name, float x, float y);
-	void draw_ui_ex(const std::string& image_name, float x, float y, float r, float g, float b, float a, int sorting_order);
-	void draw(const std::string& image_name, float x, float y);
-	void draw_ex(const std::string& image_name, float x, float y, float rotation_degrees, float scale_x, float scale_y, float pivot_x, float pivot_y, float r, float g, float b, float a, int sorting_order);
 	void draw_pixel(float x, float y, float r, float g, float b, float a);
+
+	template<typename T>
+	void draw_ui(T&& image_name, float x, float y)
+	{
+		draw_ui_ex(std::forward<T>(image_name), x, y, 255, 255, 255, 255, 0);
+	}
+	template<typename T>
+	void draw_ui_ex(T&& image_name, float x, float y, float r, float g, float b, float a, int sorting_order)
+	{
+		ui_image_request_queue.emplace_back(std::forward<T>(image_name),x,y,r,g,b,a,sorting_order);
+	}
+	template<typename T>
+	void draw(T&& image_name, float x, float y)
+	{
+		draw_ex(std::forward<T>(image_name), x, y, 0, 1, 1, 0.5f, 0.5f, 255, 255, 255, 255, 0);
+	}
+	template<typename T>
+	void draw_ex(T&& image_name, float x, float y, float rotation_degrees, float scale_x, float scale_y, float pivot_x, float pivot_y, float r, float g, float b, float a, int sorting_order)
+	{
+		scene_space_image_request_queue.emplace_back( std::forward<T>(image_name), x, y, rotation_degrees,scale_x, scale_y, pivot_x, pivot_y,  r,  g,  b,  a, sorting_order );
+	}
 public:
 	void Render_And_Clear_All_Scene_Space_Image_Requests();
 	void Render_And_Clear_All_UI_Image_Requests();

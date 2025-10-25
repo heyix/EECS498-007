@@ -1,14 +1,15 @@
 #include "ContactListener.h"
 #include "GameObject.h"
 #include "RigidBody.h"
+#include "ColliderBase.h"
 void ContactListener::BeginContact(b2Contact* contact)
 {
 	b2Fixture* fixtureA = contact->GetFixtureA();
 	b2Fixture* fixtureB = contact->GetFixtureB();
-	RigidBody* rigidA = reinterpret_cast<RigidBody*>(fixtureA->GetUserData().pointer);
-	RigidBody* rigidB = reinterpret_cast<RigidBody*>(fixtureB->GetUserData().pointer);
-	GameObject* objectA = rigidA->holder_object;
-	GameObject* objectB = rigidB->holder_object;
+	ColliderBase* colliderA = reinterpret_cast<ColliderBase*>(fixtureA->GetUserData().pointer);
+	ColliderBase* colliderB = reinterpret_cast<ColliderBase*>(fixtureB->GetUserData().pointer);
+	GameObject* objectA = colliderA->holder_object;
+	GameObject* objectB = colliderB->holder_object;
 	b2WorldManifold manifold;
 	contact->GetWorldManifold(&manifold);
 	if (fixtureA->IsSensor() && fixtureB->IsSensor()) {
@@ -29,10 +30,10 @@ void ContactListener::EndContact(b2Contact* contact)
 {
 	b2Fixture* fixtureA = contact->GetFixtureA();
 	b2Fixture* fixtureB = contact->GetFixtureB();
-	RigidBody* rigidA = reinterpret_cast<RigidBody*>(fixtureA->GetUserData().pointer);
-	RigidBody* rigidB = reinterpret_cast<RigidBody*>(fixtureB->GetUserData().pointer);
-	GameObject* objectA = rigidA->holder_object;
-	GameObject* objectB = rigidB->holder_object;
+	ColliderBase* colliderA = reinterpret_cast<ColliderBase*>(fixtureA->GetUserData().pointer);
+	ColliderBase* colliderB = reinterpret_cast<ColliderBase*>(fixtureB->GetUserData().pointer);
+	GameObject* objectA = colliderA->holder_object;
+	GameObject* objectB = colliderB->holder_object;
 	b2WorldManifold manifold;
 	contact->GetWorldManifold(&manifold);
 	if (fixtureA->IsSensor() && fixtureB->IsSensor()) {

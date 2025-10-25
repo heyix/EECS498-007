@@ -36,7 +36,9 @@ private:
 	void init_camera();
 	void init_game_data();
 	void after_init_game_data();
+	void sync_rigidbody_and_transform();
 	//void change_current_scene(const std::string& new_scene_name);
+	std::shared_ptr<GameObject> instantiate_gameobject_recursive(const rapidjson::Value& actor_json, std::shared_ptr<GameObject> parent);
 public:
 	Game() {
 		instance = this;
@@ -48,7 +50,7 @@ public:
 
 public:
 	void Remove_GameObject(GameObject* gameobject);
-	std::shared_ptr<GameObject> Instantiate_GameObject_From_Template(const std::string& actor_template_name);
+	std::weak_ptr<GameObject> Instantiate_GameObject_From_Template(const std::string& actor_template_name);
 	void Add_Instantiated_GameObject(std::shared_ptr<GameObject> new_object);
 	glm::ivec2 Get_Camera_Dimension();
 	glm::vec2 Get_Camera_Position();
@@ -58,7 +60,7 @@ public:
 	void Load_Scene(const std::string& scene_name);
 	std::string& Get_Current_Scene_Name();
 	void Dont_Destroy(luabridge::LuaRef& actor);
-	std::shared_ptr<GameObject> Find_GameObject_By_Name(const std::string& name);
+	std::weak_ptr<GameObject> Find_GameObject_By_Name(const std::string& name);
 	luabridge::LuaRef Find_All_GameObjects_By_Name(const std::string& name);
 private:
 	GameData game_data;

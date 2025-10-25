@@ -16,6 +16,9 @@
 #include "ContactListener.h"
 #include "PhysicsDB.h"
 #include "ParticleSystem.h"
+#include "Transform.h"
+#include "BoxCollider.h"
+#include "CircleCollider.h"
 void LuaDB::CppDebugLog(const std::string& message)
 {
 	std::cout << message << '\n';
@@ -206,7 +209,69 @@ void LuaDB::Init_Lua_Physics()
 void LuaDB::Init_Lua_ParticleSystem()
 {
 	luabridge::getGlobalNamespace(lua_state)
-		.beginClass<ParticleSystem>("ParticleSystem")
+		.deriveClass<ParticleSystem,CppComponent>("ParticleSystem")
+		.addProperty("x", &ParticleSystem::Lua_GetX, &ParticleSystem::Lua_SetX)
+		.addProperty("y", &ParticleSystem::Lua_GetY, &ParticleSystem::Lua_SetY)
+		.addProperty("frames_between_bursts", &ParticleSystem::Lua_Get_Frame_Between_Burst, &ParticleSystem::Lua_Set_Frame_Between_Burst)
+		.addProperty("burst_quantity", &ParticleSystem::Lua_Get_Burst_Quantity, &ParticleSystem::Lua_Set_Burst_Quantity)
+		.addProperty("start_scale_min", &ParticleSystem::Lua_Get_Start_Scale_Min, &ParticleSystem::Lua_Set_Start_Scale_Min)
+		.addProperty("start_scale_max", &ParticleSystem::Lua_Get_Start_Scale_Max, &ParticleSystem::Lua_Set_Start_Scale_Max)
+		.addProperty("rotation_min", &ParticleSystem::Lua_Get_Rotation_Min, &ParticleSystem::Lua_Set_Rotation_Min)
+		.addProperty("rotation_max", &ParticleSystem::Lua_Get_Rotation_Max, &ParticleSystem::Lua_Set_Rotation_Max)
+		.addProperty("start_color_r", &ParticleSystem::Lua_Get_Start_Color_r, &ParticleSystem::Lua_Set_Start_Color_r)
+		.addProperty("start_color_g", &ParticleSystem::Lua_Get_Start_Color_g, &ParticleSystem::Lua_Set_Start_Color_g)
+		.addProperty("start_color_b", &ParticleSystem::Lua_Get_Start_Color_b, &ParticleSystem::Lua_Set_Start_Color_b)
+		.addProperty("start_color_a", &ParticleSystem::Lua_Get_Start_Color_a, &ParticleSystem::Lua_Set_Start_Color_a)
+		.addProperty("emit_radius_min", &ParticleSystem::Lua_Get_Emit_Radius_Min, &ParticleSystem::Lua_Set_Emit_Radius_Min)
+		.addProperty("emit_radius_max", &ParticleSystem::Lua_Get_Emit_Radius_Max, &ParticleSystem::Lua_Set_Emit_Radius_Max)
+		.addProperty("emit_angle_min", &ParticleSystem::Lua_Get_Emit_Angle_Min, &ParticleSystem::Lua_Set_Emit_Angle_Min)
+		.addProperty("emit_angle_max", &ParticleSystem::Lua_Get_Emit_Angle_Max, &ParticleSystem::Lua_Set_Emit_Angle_Max)
+		.addProperty("image", &ParticleSystem::Lua_Get_Image, &ParticleSystem::Lua_Set_Image)
+		.addProperty("sorting_order", &ParticleSystem::Lua_Get_Sorting_Order, &ParticleSystem::Lua_Set_Sorting_Order)
+		.addProperty("duration_frames", &ParticleSystem::Lua_Get_Duration_Frames, &ParticleSystem::Lua_Set_Duration_Frames)
+		.addProperty("start_speed_min", &ParticleSystem::Lua_Get_Start_Speed_Min, &ParticleSystem::Lua_Set_Start_Speed_Min)
+		.addProperty("start_speed_max", &ParticleSystem::Lua_Get_Start_Speed_Max, &ParticleSystem::Lua_Set_Start_Speed_Max)
+		.addProperty("rotation_speed_min", &ParticleSystem::Lua_Get_Rotation_Speed_Min, &ParticleSystem::Lua_Set_Rotation_Speed_Min)
+		.addProperty("rotation_speed_max", &ParticleSystem::Lua_Get_Rotation_Speed_Max, &ParticleSystem::Lua_Set_Rotation_Speed_Max)
+		.addProperty("gravity_scale_x", &ParticleSystem::Lua_Get_Gravity_Scale_X, &ParticleSystem::Lua_Set_Gravity_Scale_X)
+		.addProperty("gravity_scale_y", &ParticleSystem::Lua_Get_Gravity_Scale_Y, &ParticleSystem::Lua_Set_Gravity_Scale_Y)
+		.addProperty("drag_factor", &ParticleSystem::Lua_Get_Drag_Factor, &ParticleSystem::Lua_Set_Drag_Factor)
+		.addProperty("angular_drag_factor", &ParticleSystem::Lua_Get_Angular_Drag_Factor, &ParticleSystem::Lua_Set_Angular_Drag_Factor)
+		.addProperty("end_scale", &ParticleSystem::Lua_Get_End_Scale, &ParticleSystem::Lua_Set_End_Scale)
+		.addProperty("end_color_r", &ParticleSystem::Lua_Get_End_Color_r, &ParticleSystem::Lua_Set_End_Color_r)
+		.addProperty("end_color_g", &ParticleSystem::Lua_Get_End_Color_g, &ParticleSystem::Lua_Set_End_Color_g)
+		.addProperty("end_color_b", &ParticleSystem::Lua_Get_End_Color_b, &ParticleSystem::Lua_Set_End_Color_b)
+		.addProperty("end_color_a", &ParticleSystem::Lua_Get_End_Color_a, &ParticleSystem::Lua_Set_End_Color_a)
+		.addFunction("Play",&ParticleSystem::Lua_Play)
+		.addFunction("Stop",&ParticleSystem::Lua_Stop)
+		.addFunction("Burst",&ParticleSystem::Lua_Burst)
+		.endClass();
+}
+void LuaDB::Init_Lua_Transform()
+{
+	luabridge::getGlobalNamespace(lua_state)
+		.deriveClass<Transform, CppComponent>("Transform")
+		.addFunction("GetLocalPosition", &Transform::Lua_Get_Local_Position)
+		.addFunction("SetLocalPosition", &Transform::Lua_Set_Local_Position)
+		.addFunction("GetWorldPosition", &Transform::Lua_Get_World_Position)
+		.addFunction("SetWorldPosition", &Transform::Lua_Set_World_Position)
+		.addFunction("SetWorldPositionXY", &Transform::Lua_Set_World_PositionXY)
+		.addFunction("SetParent", &Transform::Lua_Set_Parent)
+		.addFunction("Translate", &Transform::Lua_Translate)
+		.addProperty("localPosition", &Transform::Lua_Get_Local_Position, &Transform::Lua_Set_Local_Position)
+		.addProperty("position", &Transform::Lua_Get_World_Position, &Transform::Lua_Set_World_Position)
+		.endClass();
+}
+void LuaDB::Init_Lua_Colliders()
+{
+	luabridge::getGlobalNamespace(lua_state)
+		.beginClass<ColliderBase>("ColliderBase")
+		.endClass();
+	luabridge::getGlobalNamespace(lua_state)
+		.deriveClass<BoxCollider, ColliderBase>("BoxCollider")
+		.endClass();
+	luabridge::getGlobalNamespace(lua_state)
+		.deriveClass<CircleCollider, ColliderBase>("CircleCollider")
 		.endClass();
 }
 void LuaDB::Init_Lua_RigidBody()
@@ -228,16 +293,16 @@ void LuaDB::Init_Lua_RigidBody()
 		.addFunction("GetGravityScale", &RigidBody::Lua_Get_Gravity_Scale)
 		.addFunction("GetUpDirection", &RigidBody::Lua_Get_Up_Direction)
 		.addFunction("GetRightDirection", &RigidBody::Lua_Get_Right_Direction)
+		.addFunction("Translate", &RigidBody::Lua_Translate)
+		.addFunction("SetPositionXY", &RigidBody::Lua_Set_PositionXY)
 		.addProperty("x", &RigidBody::Lua_GetX, &RigidBody::Lua_SetX)
 		.addProperty("y", &RigidBody::Lua_GetY, &RigidBody::Lua_SetY)
 		.addProperty("body_type", &RigidBody::Lua_Get_Body_Type, &RigidBody::Lua_Set_Body_Type)
 		.addProperty("precise", &RigidBody::Lua_Get_Precise, &RigidBody::Lua_Set_Precise)
 		.addProperty("gravity_scale", &RigidBody::Lua_Get_Gravity_Scale, &RigidBody::Lua_Set_Gravity_Scale)
-		.addProperty("density", &RigidBody::Lua_Get_Density, &RigidBody::Lua_Set_Density)
 		.addProperty("angular_friction", &RigidBody::Lua_Get_Angular_Friction, &RigidBody::Lua_Set_Angular_Friction)
 		.addProperty("rotation", &RigidBody::Lua_Get_Rotation, &RigidBody::Lua_Set_Rotation)
-		.addProperty("has_collider", &RigidBody::Lua_Get_Has_Collider, &RigidBody::Lua_Set_Has_Collider)
-		.addProperty("has_trigger", &RigidBody::Lua_Get_Has_Trigger, &RigidBody::Lua_Set_Has_Trigger)
+		.addProperty("position", &RigidBody::Lua_Get_Position,&RigidBody::Lua_Set_Position)
 		.endClass();
 }
 
@@ -265,6 +330,8 @@ void LuaDB::Init_LuaDB()
 	Init_Lua_Collision();
 	Init_Lua_Physics();
 	Init_Lua_ParticleSystem();
+	Init_Lua_Transform();
+	Init_Lua_Colliders();
 }
 
 luabridge::LuaRef& LuaDB::Create_Template_Table_Using_Local_File(const std::string& table_name)

@@ -20,7 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AudioDB.cpp" />
+    <ClCompile Include="src\BoxCollider.cpp" />
     <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\CircleCollider.cpp" />
+    <ClCompile Include="src\ColliderBase.cpp" />
     <ClCompile Include="src\Component.cpp" />
     <ClCompile Include="src\ComponentDB.cpp" />
     <ClCompile Include="src\ContactListener.cpp" />
@@ -48,6 +51,7 @@
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\TemplateDB.cpp" />
     <ClCompile Include="src\TextDB.cpp" />
+    <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\Vector2.cpp" />
     <ClCompile Include="ThirdParty\box2d\collision\b2_broad_phase.cpp" />
     <ClCompile Include="ThirdParty\box2d\collision\b2_chain_shape.cpp" />
@@ -129,7 +133,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AudioDB.h" />
+    <ClInclude Include="src\BoxCollider.h" />
     <ClInclude Include="src\Camera.h" />
+    <ClInclude Include="src\CircleCollider.h" />
+    <ClInclude Include="src\ColliderBase.h" />
     <ClInclude Include="src\Component.h" />
     <ClInclude Include="src\ComponentDB.h" />
     <ClInclude Include="src\ContactListener.h" />
@@ -156,6 +163,7 @@
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\TemplateDB.h" />
     <ClInclude Include="src\TextDB.h" />
+    <ClInclude Include="src\Transform.h" />
     <ClInclude Include="src\Vector2.h" />
     <ClInclude Include="ThirdParty\box2d\b2_api.h" />
     <ClInclude Include="ThirdParty\box2d\b2_block_allocator.h" />

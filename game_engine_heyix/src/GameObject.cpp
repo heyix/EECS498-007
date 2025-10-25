@@ -14,7 +14,7 @@ std::shared_ptr<Component> GameObject::Get_Component_From_LuaRef(luabridge::LuaR
 	return components[key];
 }
 
-void GameObject::Record_Component_Lifecycle_Functions(std::shared_ptr<Component> component)
+void GameObject::Record_Component_Lifecycle_Functions(Component* component)
 {
 	std::string& key = component->key;
 	if (component->has_on_start) {
@@ -43,7 +43,7 @@ void GameObject::Record_Component_Lifecycle_Functions(std::shared_ptr<Component>
 	}
 }
 
-void GameObject::Unrecord_Component_Lifecycle_Functions(std::shared_ptr<Component> component)
+void GameObject::Unrecord_Component_Lifecycle_Functions(Component* component)
 {
 	std::string& key = component->key;
 	components_required_on_start.erase(key);
@@ -56,7 +56,7 @@ void GameObject::Unrecord_Component_Lifecycle_Functions(std::shared_ptr<Componen
 	components_required_on_destroy.erase(key);
 }
 
-void GameObject::Remove_Component(std::shared_ptr<Component> component)
+void GameObject::Remove_Component(Component* component)
 {
 	std::string& key = component->key;
 	std::string& type = component->template_name;
@@ -72,7 +72,7 @@ GameObject::~GameObject()
 void GameObject::On_Update()
 {
 	for (auto& p : components_required_on_update) {
-		std::shared_ptr<Component>& component = p.second;
+		Component* component = p.second;
 		if (!component->pending_removing) {
 			try {
 				component->On_Update();
@@ -91,7 +91,7 @@ void GameObject::On_Start()
 	}
 	on_start_triggered = true;
 	for (auto& p : components_required_on_start) {
-		std::shared_ptr<Component>& component = p.second;
+		Component* component = p.second;
 		if (!component->pending_removing) {
 			try {
 				component->On_Start();
@@ -109,8 +109,11 @@ void GameObject::On_Destroy()
 		return;
 	}
 	on_destroy_triggered = true;
+	for (auto& p : components) {
+		p.second->pending_removing = true;
+	}
 	for (auto& p : components_required_on_destroy) {
-		std::shared_ptr<Component>& component = p.second;
+		Component* component = p.second;
 		try {
 			component->On_Destroy();
 		}
@@ -123,7 +126,7 @@ void GameObject::On_Destroy()
 void GameObject::On_LateUpdate()
 {
 	for (auto& p : components_required_on_lateupdate) {
-		std::shared_ptr<Component>& component = p.second;
+		Component* component = p.second;
 		if (!component->pending_removing) {
 			try {
 				component->On_LateUpdate();
@@ -138,7 +141,7 @@ void GameObject::On_LateUpdate()
 void GameObject::On_Collision_Enter(Collision collision)
 {
 	for (auto& p : components_required_on_collision_enter) {
-		std::shared_ptr<Component>& component = p.second;
+		Component* component = p.second;
 		if (!component->pending_removing) {
 			try {
 				component->On_Collision_Enter(collision);
@@ -153,7 +156,7 @@ void GameObject::On_Collision_Enter(Collision collision)
 void GameObject::On_Collision_Exit(Collision collision)
 {
 	for (auto& p : components_required_on_collision_exit) {
-		std::shared_ptr<Component>& component = p.second;
+		Component* component = p.second;
 		if (!component->pending_removing) {
 			try {
 				component->On_Collision_Exit(collision);
@@ -168,7 +171,7 @@ void GameObject::On_Collision_Exit(Collision collision)
 void GameObject::On_Trigger_Enter(Collider collider)
 {
 	for (auto& p : components_required_on_trigger_enter) {
-		std::shared_ptr<Component>& component = p.second;
+		Component* component = p.second;
 		if (!component->pending_removing) {
 			try {
 				component->On_Trigger_Enter(collider);
@@ -183,7 +186,7 @@ void GameObject::On_Trigger_Enter(Collider collider)
 void GameObject::On_Trigger_Exit(Collider collider)
 {
 	for (auto& p : components_required_on_trigger_exit) {
-		std::shared_ptr<Component>& component = p.second;
+		Component* component = p.second;
 		if (!component->pending_removing) {
 			try {
 				component->On_Trigger_Exit(collider);
@@ -195,39 +198,93 @@ void GameObject::On_Trigger_Exit(Collider collider)
 	}
 }
 
-std::shared_ptr<Component> GameObject::Add_Component(const std::string& key, const std::string& template_name)
+std::weak_ptr<Component> GameObject::Add_Component(const std::string& key, const std::string& template_name)
 {
-	std::shared_ptr<Component> new_component = Add_Component_Without_Calling_On_Start(key, template_name);
-	new_component->On_Start();
+	std::weak_ptr<Component> new_component = Add_Component_Without_Calling_On_Start(key, template_name);
+	new_component.lock()->On_Start();
 	return new_component;
 }
 
-std::shared_ptr<Component> GameObject::Get_Component_By_Key(const std::string& key)
+std::weak_ptr<Component> GameObject::Get_Component_By_Key(const std::string& key)
 {
 	auto it = components.find(key);
 	if (it == components.end()) {
-		return nullptr;
+		return std::weak_ptr<Component>{};
 	}
 	if (it->second->pending_removing == true) {
-		return nullptr;
+		return std::weak_ptr<Component>{};
 	}
 	return it->second;
 }
 
-std::shared_ptr<Component> GameObject::Add_Component_Without_Calling_On_Start(const std::string& key, const std::string& template_name)
+std::weak_ptr<Transform> GameObject::Get_Transform()
 {
-	std::shared_ptr<Component> new_component = ComponentDB::Instantiate_Component(*this, key, template_name);
+	return transform;
+}
+
+std::weak_ptr<Component> GameObject::Add_Component_Without_Calling_On_Start(const std::string& key, const std::string& component_type)
+{
+	std::shared_ptr<Component> new_component = ComponentDB::Instantiate_Component(*this, key, component_type);
+	if (component_type == "Transform") {
+		transform = std::dynamic_pointer_cast<Transform>(new_component);
+	}
 	Add_Instantiated_Component_Without_Calling_On_Start(new_component);
 	return new_component;
 }
 
+std::weak_ptr<Component> GameObject::Get_Component(const std::string& component_type)
+{
+	auto it = components_by_type_name.find(component_type);
+	if (it == components_by_type_name.end() || it->second.empty()) {
+		return std::weak_ptr<Component>();
+	}
+	for (auto& p : it->second) {
+		if (p.second->pending_removing) {
+			continue;
+		}
+		return p.second;
+	}
+	return std::weak_ptr<Component>();
+}
+std::vector<std::weak_ptr<Component>> GameObject::Get_Components(const std::string& component_type)
+{
+	std::vector<std::weak_ptr<Component>> result;
+	auto it = components_by_type_name.find(component_type);
+	if (it == components_by_type_name.end() || it->second.empty()) {
+		return result;
+	}
+	for (auto& p : it->second) {
+		if (p.second->pending_removing) {
+			continue;
+		}
+		result.push_back(p.second);
+	}
+	return result;
+}
 void GameObject::Add_Instantiated_Component_Without_Calling_On_Start(std::shared_ptr<Component> new_component)
 {
 	std::string& key = new_component->key;
 	std::string& template_name = new_component->template_name;
+	auto old_it = components.find(key);
+	if (ComponentDB::unique_component_types.count(template_name)) {
+		if (auto it = components_by_type_name.find(template_name); it != components_by_type_name.end() && it->second.size() != 0) {
+			auto old_component = it->second.begin()->second;
+			components.erase(old_component->key);
+			it->second.erase(old_component->key);
+			Unrecord_Component_Lifecycle_Functions(old_component.get());
+		}
+	}
+	else {
+		if (old_it != components.end()) {
+			auto old_component = old_it->second;
+			std::string& type = old_it->second->template_name;
+			components_by_type_name[type].erase(key);
+			Unrecord_Component_Lifecycle_Functions(old_component.get());
+		}
+	}
 	components[key] = new_component;
 	components_by_type_name[template_name][key] = new_component;
-	Record_Component_Lifecycle_Functions(new_component);
+	Record_Component_Lifecycle_Functions(new_component.get());
 }
 
 
@@ -242,9 +299,9 @@ void GameObject::Process_Added_Components()
 
 void GameObject::Process_Removed_Components()
 {
-	for (std::shared_ptr<Component>& component : components_pending_removing) {
+	for (std::shared_ptr<Component> component : components_pending_removing) { 
 		component->On_Destroy();
-		Remove_Component(component);
+		Remove_Component(component.get());
 	}
 	components_pending_removing.clear();
 }
@@ -278,6 +335,11 @@ int GameObject::Lua_GetID()
 
 luabridge::LuaRef GameObject::Lua_Get_Component(const std::string& type_name)
 {
+	//std::cout << name << " ";
+	//for (auto& p : components) {
+	//	std::cout << p.first << " " << p.second->template_name << std::endl;
+	//}
+	//std::cout << std::endl;
 	auto it = components_by_type_name.find(type_name);
 	if (it == components_by_type_name.end() || it->second.empty()) {
 		return luabridge::LuaRef(LuaDB::lua_state);
@@ -310,6 +372,12 @@ luabridge::LuaRef GameObject::Lua_Get_Components(const std::string& type_name)
 
 luabridge::LuaRef GameObject::Lua_Add_Component(const std::string& type_name)
 {
+	if (ComponentDB::unique_component_types.count(type_name)) {
+		if (auto it = components_by_type_name.find(type_name); it != components_by_type_name.end() && it->second.size() != 0) {
+			std::cerr << "Attempted to add a not allowed duplicate component: " << type_name;
+			exit(0);
+		}
+	}
 	std::shared_ptr<Component> new_component = ComponentDB::Instantiate_Component(*this, "r" + std::to_string(ComponentDB::number_add_component_called++), type_name);
 	components_pending_adding.push_back(new_component);
 	return new_component->lua_component;

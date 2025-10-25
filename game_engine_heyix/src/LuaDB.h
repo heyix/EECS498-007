@@ -23,6 +23,8 @@ private:
 	static void Init_Lua_Collision();
 	static void Init_Lua_Physics();
 	static void Init_Lua_ParticleSystem();
+	static void Init_Lua_Transform();
+	static void Init_Lua_Colliders();
 public:
 	static void Init_LuaDB();
 	static luabridge::LuaRef& Create_Template_Table_Using_Local_File(const std::string& table_name);

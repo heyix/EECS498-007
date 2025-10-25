@@ -59,7 +59,7 @@ void LuaComponent::On_Trigger_Exit(const Collider& collider)
 
 void LuaComponent::Set_Enabled(bool new_enable)
 {
-	ComponentDB::Inject_Component_Key_Value_Pair(*this, "enabled", new_enable);
+	ComponentDB::Add_Key_Value_Pair_To_Component(*this, "enabled", new_enable);
 }
 
 void LuaComponent::Add_Int_Property(const std::string& key, int new_property)

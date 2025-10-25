@@ -2,11 +2,27 @@
 #include "GameObject.h"
 #include "LuaComponent.h"
 #include "RigidBody.h"
+#include "ParticleSystem.h"
+#include "Transform.h"
+#include "BoxCollider.h"
+#include "CircleCollider.h"
 void ComponentDB::Init_ComponentDB()
 {
     component_registry["Rigidbody"] = [](GameObject& holder_object, const std::string& key, const std::string& component_type) {
         return std::make_shared<RigidBody>(holder_object, key, component_type);
     };
+    component_registry["ParticleSystem"] = [](GameObject& holder_object, const std::string& key, const std::string& component_type) {
+        return std::make_shared<ParticleSystem>(holder_object, key, component_type);
+    };
+    component_registry["Transform"] = [](GameObject& holder_object, const std::string& key, const std::string& component_type) {
+        return std::make_shared<Transform>(holder_object, key, component_type);
+        };
+    component_registry["BoxCollider"] = [](GameObject& holder_object, const std::string& key, const std::string& component_type) {
+        return std::make_shared<BoxCollider>(holder_object, key, component_type);
+        };
+    component_registry["CircleCollider"] = [](GameObject& holder_object, const std::string& key, const std::string& component_type) {
+        return std::make_shared<CircleCollider>(holder_object, key, component_type);
+        };
 }
 std::shared_ptr<Component> ComponentDB::Instantiate_Component(GameObject& holder_object, const std::string& key, const std::string& component_type)
 {

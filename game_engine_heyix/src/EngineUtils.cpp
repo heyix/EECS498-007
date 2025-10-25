@@ -119,4 +119,9 @@ void EngineUtils::Report_Error(const std::string& actor_name, const luabridge::L
 	std::cout << "\033[31m" << actor_name << " : " << error_message << "\033[0m" << std::endl;
 }
 
+float EngineUtils::Linear_Interpolate(float start, float end, float progress)
+{
+	return glm::mix(start, end, progress);
+}
+
 

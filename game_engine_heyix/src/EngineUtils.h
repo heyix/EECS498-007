@@ -49,4 +49,5 @@ public:
 	static std::string Obtain_Word_After_Phrase(const std::string& input, const std::string& phrase);
 	static bool AABB_Collision(glm::vec2& position1, glm::vec2& position2, glm::vec2& box1, glm::vec2& box2);
 	static void Report_Error(const std::string& actor_name, const luabridge::LuaException& e);
+	static float Linear_Interpolate(float start, float end, float progress);
 };

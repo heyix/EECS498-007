@@ -2,12 +2,15 @@
 #include "PhysicsDB.h"
 #include "glm/glm.hpp"
 #include "ContactListener.h"
+#include "ColliderBase.h"
+#include "Transform.h"
+#include "GameObject.h"
 RigidBody::RigidBody(GameObject& holder, const std::string& key, const std::string& template_name)
 	:CppComponent(holder, key, template_name, luabridge::LuaRef(LuaDB::lua_state, this))
 {
 	PhysicsDB::Rigidbody_Instantiated();
 	has_on_start = true;
-
+	has_on_destroy = true;
 
 	body_def.type = b2_dynamicBody;
 
@@ -18,6 +21,16 @@ RigidBody::RigidBody(GameObject& holder, const std::string& key, const std::stri
 	body = PhysicsDB::Create_Body(&body_def);
 }
 
+void RigidBody::SetX(float x)
+{
+	Vector2 position{ x,body->GetPosition().y };
+	Set_Position(position);
+}
+void RigidBody::SetY(float y)
+{
+	Vector2 position{ body->GetPosition().x,y };
+	Set_Position(position);
+}
 
 void RigidBody::Set_Precise(bool precise)
 {
@@ -50,7 +63,7 @@ std::string RigidBody::Get_Body_Type() const
 }
 
 
-Vector2 RigidBody::Get_Position()
+Vector2 RigidBody::Get_Position()const
 {
 	b2Vec2 position = body->GetPosition();
 	return Vector2(position.x,position.y);
@@ -58,20 +71,22 @@ Vector2 RigidBody::Get_Position()
 
 void RigidBody::Add_Force(const Vector2& force)
 {
-	b2Vec2 b2force(force.x(), force.y());
+	b2Vec2 b2force(force.GetX(), force.GetY());
 	body->ApplyForceToCenter(b2force, true);
 }
 
 void RigidBody::Set_Velocity(const Vector2& velocity)
 {
-	b2Vec2 b2vel(velocity.x(), velocity.y());
+	b2Vec2 b2vel(velocity.GetX(), velocity.GetY());
 	body->SetLinearVelocity(b2vel);
 }
 
 void RigidBody::Set_Position(const Vector2& position)
 {
-	b2Vec2 b2pos(position.x(), position.y());
+	b2Vec2 b2pos(position.GetX(), position.GetY());
 	body->SetTransform(b2pos, body->GetAngle());
+	std::shared_ptr<Transform> transform = this->holder_object->Get_Transform().lock();
+	transform->Set_World_Position(Get_Position());
 }
 
 void RigidBody::Set_Angular_Velocity(float degrees_clockwise)
@@ -85,7 +100,7 @@ void RigidBody::Set_Up_Direction(const Vector2& direction)
 	Vector2 dir = direction;
 	 dir.Normalize();
 
-	float angle = glm::atan(dir.y(), dir.x()) - b2_pi * 0.5f;
+	float angle = glm::atan(dir.GetY(), dir.GetX()) - b2_pi * 0.5f;
 
 	body->SetTransform(body->GetPosition(), angle);
 }
@@ -95,7 +110,7 @@ void RigidBody::Set_Right_Direction(const Vector2& direction)
 	Vector2 dir = direction;
 	dir.Normalize();
 
-	float angle = glm::atan(dir.y(), dir.x());
+	float angle = glm::atan(dir.GetY(), dir.GetX());
 	body->SetTransform(body->GetPosition(), angle);
 }
 
@@ -130,12 +145,74 @@ Vector2 RigidBody::Get_Right_Direction()
 	return Vector2(c, s);
 }
 
+b2Body* RigidBody::Get_Body()
+{
+	return body;
+}
+
+b2Fixture* RigidBody::Attach_Collider_To_RigidBody(ColliderBase* collider)
+{
+	if (body == nullptr) {
+		return nullptr;
+	}
+	if (default_phantom_fixture != nullptr) {
+		body->DestroyFixture(default_phantom_fixture);
+		default_phantom_fixture = nullptr;
+	}
+	b2FixtureDef& fixture_def = collider->Get_Fixture_Def();
+	fixture_def.density = density;
+	attached_colliders.insert(collider);
+	return body->CreateFixture(&fixture_def);
+}
+
+void RigidBody::Unattach_Collider_From_RigidBody(ColliderBase* collider)
+{
+	b2Fixture* fixture = collider->Get_Fixture();
+	if (fixture && body) {
+		body->DestroyFixture(fixture);
+	}
+	attached_colliders.erase(collider);
+}
+
+void RigidBody::Lua_Translate(float dx, float dy)
+{
+	Vector2 position{ GetX() + dx,GetY() + dy };
+	Set_Position(position);
+}
+
+void RigidBody::Lua_Set_PositionXY(float x, float y)
+{
+	Vector2 position{ x,y };
+	Set_Position(position);
+}
+
+
+void RigidBody::Notify_Children_To_Attach_Colliders(Transform* current_transform)
+{
+	for (Transform* child : current_transform->Get_Children()) {
+		if (child && child->holder_object) {
+			GameObject* go = child->holder_object;
+
+			for (const std::string& type : { "BoxCollider", "CircleCollider" }) {
+				for (auto& weak : go->Get_Components(type)) {
+					if (auto collider = std::dynamic_pointer_cast<ColliderBase>(weak.lock())) {
+						collider->Try_Attach_To_Rigidbody();
+					}
+				}
+			}
+			Notify_Children_To_Attach_Colliders(child);
+		}
+	}
+}
+
 void RigidBody::On_Start()
 {
-	init_collider();
-	init_trigger();
-	if (!has_collider && !has_trigger)
-	{
+	std::weak_ptr<Transform> transform_weak = holder_object->Get_Transform();
+	if (auto transform = transform_weak.lock()) {
+		Set_Position(transform->Get_World_Position());
+		Notify_Children_To_Attach_Colliders(transform.get());
+	}
+	if (body->GetFixtureList() == nullptr) {
 		b2PolygonShape phantom_shape;
 		phantom_shape.SetAsBox(width * 0.5f, height * 0.5f);
 
@@ -147,13 +224,17 @@ void RigidBody::On_Start()
 		filter.categoryBits = CollisionCategory::CollisionCategory_Phatom;
 		filter.maskBits = CollisionCategory::CollsionCategory_None;
 		phantom_fixture_def.filter = filter;
-		body->CreateFixture(&phantom_fixture_def);
+		default_phantom_fixture = body->CreateFixture(&phantom_fixture_def);
 	}
 }
 
 void RigidBody::On_Destroy()
 {
 	PhysicsDB::Destroy_Body(body);
+	body = nullptr;
+	for (ColliderBase* collider : attached_colliders) {
+		collider->On_Attached_Rigidbody_Destroyed();
+	}
 }
 
 void RigidBody::Add_Int_Property(const std::string& key, int new_property)
@@ -167,9 +248,6 @@ void RigidBody::Add_Int_Property(const std::string& key, int new_property)
 	else if (key == "gravity_scale") {
 		Set_Gravity_Scale(new_property);
 	}
-	else if (key == "density") {
-		density = new_property;
-	}
 	else if (key == "angular_friction") {
 		Set_Angular_Friction(new_property);
 	}
@@ -182,26 +260,11 @@ void RigidBody::Add_Int_Property(const std::string& key, int new_property)
 	else if (key == "height") {
 		height = new_property;
 	}
-	else if (key == "radius") {
-		radius = new_property;
-	}
-	else if (key == "friction") {
-		friction = new_property;
-	}
-	else if (key == "bounciness") {
-		bounciness = new_property;
-	}
-	else if (key == "trigger_width") {
-		trigger_width = new_property;
-	}
-	else if (key == "trigger_height") {
-		trigger_height = new_property;
-	}
-	else if (key == "trigger_radius") {
-		trigger_radius = new_property;
+	else if (key == "density") {
+		density = new_property;
 	}
 	else {
-		std::cout << "Attempt to set undefined int key: " << new_property << std::endl;
+		std::cout << "Attempt to set undefined int key: " << key << std::endl;
 	}
 }
 
@@ -216,9 +279,6 @@ void RigidBody::Add_Float_Property(const std::string& key, float new_property)
 	else if (key == "gravity_scale") {
 		Set_Gravity_Scale(new_property);
 	}
-	else if (key == "density") {
-		density = new_property;
-	}
 	else if (key == "angular_friction") {
 		Set_Angular_Friction(new_property);
 	}
@@ -231,26 +291,11 @@ void RigidBody::Add_Float_Property(const std::string& key, float new_property)
 	else if (key == "height") {
 		height = new_property;
 	}
-	else if (key == "radius") {
-		radius = new_property;
-	}
-	else if (key == "friction") {
-		friction = new_property;
-	}
-	else if (key == "bounciness") {
-		bounciness = new_property;
-	}
-	else if (key == "trigger_width") {
-		trigger_width = new_property;
-	}
-	else if (key == "trigger_height") {
-		trigger_height = new_property;
-	}
-	else if (key == "trigger_radius") {
-		trigger_radius = new_property;
+	else if (key == "density") {
+		density = new_property;
 	}
 	else {
-		std::cout << "Attempt to set undefined float key: " << new_property << std::endl;
+		std::cout << "Attempt to set undefined float key: " << key << std::endl;
 	}
 
 }
@@ -260,14 +305,8 @@ void RigidBody::Add_Bool_Property(const std::string& key, bool new_property)
 	if (key == "precise") {
 		Set_Precise(new_property);
 	}
-	else if (key == "has_collider") {
-		Set_Has_Collider(new_property);
-	}
-	else if (key == "has_trigger") {
-		Set_Has_Trigger(new_property);
-	}
 	else {
-		std::cout << "Attempt to set undefined bool key: " << new_property << std::endl;
+		std::cout << "Attempt to set undefined bool key: " << key << std::endl;
 	}
 }
 
@@ -276,71 +315,9 @@ void RigidBody::Add_String_Property(const std::string& key, const std::string& n
 	if (key == "body_type") {
 		Set_Body_Type(new_property);
 	}
-	else if (key == "collider_type") {
-		collider_type = new_property;
-	}
-	else if (key == "trigger_type") {
-		trigger_type = new_property;
-	}
 	else {
-		std::cout << "Attempt to set undefined string key: " << new_property << std::endl;
+		std::cout << "Attempt to set undefined string key: " << key << std::endl;
 	}
 }
 
-void RigidBody::init_collider()
-{
-	if (!has_collider) {
-		return;
-	}
-	std::unique_ptr<b2Shape> shape = nullptr;
-	if (collider_type == "box") {
-		std::unique_ptr<b2PolygonShape> polygon_shape = std::make_unique<b2PolygonShape>();
-		polygon_shape->SetAsBox(width * 0.5f, height * 0.5f);
-		shape = std::move(polygon_shape);
-	}
-	else if (collider_type == "circle") {
-		std::unique_ptr<b2CircleShape> circle_shape = std::make_unique<b2CircleShape>();
-		circle_shape->m_radius = radius;
-		shape = std::move(circle_shape);
-	}
-	b2FixtureDef fixture;
-	fixture.isSensor = false;
-	fixture.shape = shape.get();
-	fixture.density = density;
-	fixture.restitution = bounciness;
-	fixture.friction = friction;
-	fixture.userData.pointer = reinterpret_cast<uintptr_t>(this);
-	b2Filter filter;
-	filter.categoryBits = CollisionCategory::CollisionCategory_Collider;
-	filter.maskBits = CollisionCategory::CollisionCategory_Collider;
-	fixture.filter = filter;
-	body->CreateFixture(&fixture);
-}
 
-void RigidBody::init_trigger()
-{
-	if (!has_trigger) {
-		return;
-	}
-	std::unique_ptr<b2Shape> shape = nullptr;
-	if (trigger_type == "box") {
-		std::unique_ptr<b2PolygonShape> polygon_shape = std::make_unique<b2PolygonShape>();
-		polygon_shape->SetAsBox(trigger_width * 0.5f, trigger_height * 0.5f);
-		shape = std::move(polygon_shape);
-	}
-	else if (trigger_type == "circle") {
-		std::unique_ptr<b2CircleShape> circle_shape = std::make_unique<b2CircleShape>();
-		circle_shape->m_radius = trigger_radius;
-		shape = std::move(circle_shape);
-	}
-	b2FixtureDef fixture;
-	fixture.isSensor = true;
-	fixture.shape = shape.get();
-	fixture.density = density;
-	fixture.userData.pointer = reinterpret_cast<uintptr_t>(this);
-	b2Filter filter;
-	filter.categoryBits = CollisionCategory::CollisionCategory_Trigger;
-	filter.maskBits = CollisionCategory::CollisionCategory_Trigger;
-	fixture.filter = filter;
-	body->CreateFixture(&fixture);
-}

@@ -6,6 +6,8 @@
 #include "lua/lua.hpp"
 #include "LuaBridge/LuaBridge.h"
 #include "ContactListener.h"
+#include <unordered_set>
+#include "Transform.h"
 class Component;
 class GameObject{
 public:
@@ -14,16 +16,19 @@ public:
 		bool operator()(std::shared_ptr<GameObject> a,std::shared_ptr<GameObject> b)const {
 			return a->ID < b->ID;
 		}
+		bool operator()(GameObject* a, GameObject* b)const {
+			return a->ID < b->ID;
+		}
 	};
 private:
-	std::map<std::string, std::shared_ptr<Component>> components_required_on_start;
-	std::map<std::string, std::shared_ptr<Component>> components_required_on_update;
-	std::map<std::string, std::shared_ptr<Component>> components_required_on_destroy;
-	std::map<std::string, std::shared_ptr<Component>> components_required_on_lateupdate;
-	std::map<std::string, std::shared_ptr<Component>> components_required_on_collision_enter;
-	std::map<std::string, std::shared_ptr<Component>> components_required_on_collision_exit;
-	std::map<std::string, std::shared_ptr<Component>> components_required_on_trigger_enter;
-	std::map<std::string, std::shared_ptr<Component>> components_required_on_trigger_exit;
+	std::map<std::string, Component*> components_required_on_start;
+	std::map<std::string, Component*> components_required_on_update;
+	std::map<std::string, Component*> components_required_on_destroy;
+	std::map<std::string, Component*> components_required_on_lateupdate;
+	std::map<std::string, Component*> components_required_on_collision_enter;
+	std::map<std::string, Component*> components_required_on_collision_exit;
+	std::map<std::string, Component*> components_required_on_trigger_enter;
+	std::map<std::string, Component*> components_required_on_trigger_exit;
 
 
 	std::unordered_map<std::string, std::shared_ptr<Component>> components;
@@ -31,11 +36,13 @@ private:
 
 	std::vector<std::shared_ptr<Component>> components_pending_adding;
 	std::vector<std::shared_ptr<Component>> components_pending_removing;
+	std::shared_ptr<Transform> transform = nullptr;
 private:
 	std::shared_ptr<Component> Get_Component_From_LuaRef(luabridge::LuaRef& luaref);
-	void Record_Component_Lifecycle_Functions(std::shared_ptr<Component> component);
-	void Unrecord_Component_Lifecycle_Functions(std::shared_ptr<Component> component);
-	void Remove_Component(std::shared_ptr<Component> component);
+	void Record_Component_Lifecycle_Functions(Component* component);
+	void Unrecord_Component_Lifecycle_Functions(Component* component);
+	void Remove_Component(Component* component);
+	void Add_Instantiated_Component_Without_Calling_On_Start(std::shared_ptr<Component> new_component);
 private:
 	bool dont_destroy_on_load = false;
 public:
@@ -54,10 +61,12 @@ public:
 	void On_Trigger_Enter(Collider collider);
 	void On_Trigger_Exit(Collider collider);
 
-	std::shared_ptr<Component> Add_Component(const std::string& key, const std::string& template_name);
-	std::shared_ptr<Component> Get_Component_By_Key(const std::string& key);
-	std::shared_ptr<Component> Add_Component_Without_Calling_On_Start(const std::string& key, const std::string& template_name);
-	void Add_Instantiated_Component_Without_Calling_On_Start(std::shared_ptr<Component> new_component);
+	std::weak_ptr<Component> Add_Component(const std::string& key, const std::string& template_name);
+	std::weak_ptr<Component> Get_Component_By_Key(const std::string& key);
+	std::weak_ptr<Transform> Get_Transform();
+	std::weak_ptr<Component> Add_Component_Without_Calling_On_Start(const std::string& key, const std::string& component_type);
+	std::weak_ptr<Component> Get_Component(const std::string& component_type);
+	std::vector<std::weak_ptr<Component>> Get_Components(const std::string& component_type);
 	void Process_Added_Components();
 	void Process_Removed_Components();
 	void Deactive_All_Components();

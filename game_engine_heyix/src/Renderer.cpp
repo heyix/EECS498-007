@@ -45,72 +45,10 @@ void Renderer::draw_frect(float zoom_factor, SDL_FRect& rect)
 	frect_draw_request_queue.push_back(FRectDrawRequest(zoom_factor, rect));
 
 }
-void Renderer::draw_ui(const std::string& image_name, float x, float y)
-{
-	draw_ui_ex(image_name, x, y, 255, 255, 255, 255, 0);
-}
-void Renderer::draw_ui_ex(const std::string& image_name, float x, float y, float r, float g, float b, float a, int sorting_order)
-{
-	float width = 0;
-	float height = 0;
-	ImageDB::Get_Image_Resolution(image_name, width, height);
-	SDL_FRect dest_rect = {
-		x,y,width,height
-	};
-	SDL_Color color{ static_cast<Uint8>(r),static_cast<Uint8>(g),static_cast<Uint8>(b),static_cast<Uint8>(a) };
-	ui_image_request_queue.push_back({ image_name,nullptr,&dest_rect,color,sorting_order });
-}
-void Renderer::draw(const std::string& image_name, float x, float y)
-{
-		draw_ex(image_name, x, y, 0, 1, 1, 0.5f, 0.5f, 255, 255, 255, 255, 0);
-}
-void Renderer::draw_ex(const std::string& image_name, float x, float y, float rotation_degrees, float scale_x, float scale_y, float pivot_x, float pivot_y, float r, float g, float b, float a, int sorting_order)
-{
-	const int pixels_per_meter = 100;
-	glm::vec2 final_rendering_position =
-		glm::vec2(x, y) - Engine::instance->running_game->Get_Camera_Position();
 
-	float width;
-	float height;
-	ImageDB::Get_Image_Resolution(image_name, width, height);
-
-	/* Apply scale */
-	SDL_RendererFlip flip_mode = SDL_FLIP_NONE;
-	if (scale_x < 0)
-		flip_mode = SDL_FLIP_HORIZONTAL;
-	if (scale_y < 0)
-		flip_mode = SDL_FLIP_VERTICAL;
-
-	float x_scale = glm::abs(scale_x);
-	float y_scale = glm::abs(scale_y);
-	width *= x_scale;
-	height *= y_scale;
-
-	SDL_FPoint pivot_point = {
-		pivot_x * width,
-		pivot_y * height
-	};
-
-	glm::ivec2 cam_dimensions = Engine::instance->running_game->Get_Camera_Dimension();
-	float zoom_factor = Engine::instance->running_game->Get_Zoom_Factor();
-	float pos_x = (
-		final_rendering_position.x * pixels_per_meter +
-		cam_dimensions.x * 0.5f * (1.0f / zoom_factor) -
-		pivot_point.x
-		);
-	float pos_y = (
-		final_rendering_position.y * pixels_per_meter +
-		cam_dimensions.y * 0.5f * (1.0f / zoom_factor) -
-		pivot_point.y
-		);
-	const SDL_FRect dest_rect{ pos_x,pos_y,width,height };
-	SDL_Color color{ static_cast<Uint8>(r),static_cast<Uint8>(g),static_cast<Uint8>(b),static_cast<Uint8>(a) };
-	scene_space_image_request_queue.push_back({ image_name,nullptr,&dest_rect,rotation_degrees,&pivot_point,static_cast<SDL_RendererFlip>(flip_mode),color,sorting_order});
-}
 void Renderer::draw_pixel(float x, float y, float r, float g, float b, float a)
 {
-	SDL_Color color{ static_cast<Uint8>(r),static_cast<Uint8>(g),static_cast<Uint8>(b),static_cast<Uint8>(a) };
-	pixels_request_queue.push_back({ {x,y},color });
+	pixels_request_queue.push_back({ x,y,r,g,b,a });
 }
 void Renderer::Render_And_Clear_All_UI_Image_Requests()
 {
@@ -120,11 +58,10 @@ void Renderer::Render_And_Clear_All_UI_Image_Requests()
 void Renderer::Render_And_Clear_All_Pixel_Draw_Request()
 {
 	for (auto& image_request : pixels_request_queue) {
-		SDL_Color& color = image_request.render_color;
-		glm::vec2& point_position = image_request.drawed_point_position.value();
+		SDL_Color color{ static_cast<Uint8>(image_request.r),static_cast<Uint8>(image_request.g),static_cast<Uint8>(image_request.b),static_cast<Uint8>(image_request.a) };
 		SDL_SetRenderDrawColor(sdl_renderer, color.r, color.g, color.b, color.a);
 		SDL_SetRenderDrawBlendMode(sdl_renderer, SDL_BLENDMODE_BLEND);
-		SDL_RenderDrawPoint(sdl_renderer, point_position.x, point_position.y);
+		SDL_RenderDrawPoint(sdl_renderer, image_request.x, image_request.y);
 		SDL_SetRenderDrawBlendMode(sdl_renderer, SDL_BLENDMODE_NONE);
 	}
 	pixels_request_queue.clear();
@@ -172,16 +109,61 @@ void Renderer::render_and_clear_image_request_queue(std::vector<ImageDrawRequest
 {
 	std::stable_sort(request_queue.begin(), request_queue.end(), ImageDrawRequestComparator());
 	for (auto& image_request : request_queue) {
-		SDL_Color& color = image_request.render_color;
-		SDL_Texture* texture = ImageDB::Load_Image_Texture(image_request.image_name);
+		SDL_Texture* texture = ImageDB::Load_Image_Texture(*image_request.image_name);
 		if (!image_request.use_ex) {
+			float width = 0;
+			float height = 0;
+			ImageDB::Get_Image_Resolution(*image_request.image_name, width, height);
+			SDL_FRect dest_rect = {
+				image_request.x,image_request.y,width,height
+			};
+			SDL_Color color{ static_cast<Uint8>(image_request.r),static_cast<Uint8>(image_request.g),static_cast<Uint8>(image_request.b),static_cast<Uint8>(image_request.a) };
+
 			SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
 			SDL_SetTextureAlphaMod(texture, color.a);
-			Helper::SDL_RenderCopy(sdl_renderer, texture, get_pointer(image_request.src_rect), get_pointer(image_request.dest_rect));
+			Helper::SDL_RenderCopy(sdl_renderer, texture, nullptr, &dest_rect);
 			SDL_SetTextureColorMod(texture, 255, 255, 255);
 			SDL_SetTextureAlphaMod(texture, 255);
 		}
 		else {
+			const int pixels_per_meter = 100;
+			glm::vec2 final_rendering_position =
+				glm::vec2(image_request.x, image_request.y) - Engine::instance->running_game->Get_Camera_Position();
+
+			float width;
+			float height;
+			ImageDB::Get_Image_Resolution(*image_request.image_name, width, height);
+			/* Apply scale */
+			SDL_RendererFlip flip_mode = SDL_FLIP_NONE;
+			if (image_request.scale_x < 0)
+				flip_mode = SDL_FLIP_HORIZONTAL;
+			if (image_request.scale_y < 0)
+				flip_mode = SDL_FLIP_VERTICAL;
+
+			float x_scale = glm::abs(image_request.scale_x.value());
+			float y_scale = glm::abs(image_request.scale_y.value());
+			width *= x_scale;
+			height *= y_scale;
+
+			SDL_FPoint pivot_point = {
+				image_request.pivot_x.value() * width,
+				image_request.pivot_y.value() * height
+			};
+
+			glm::ivec2 cam_dimensions = Engine::instance->running_game->Get_Camera_Dimension();
+			float zoom_factor = Engine::instance->running_game->Get_Zoom_Factor();
+			float pos_x = (
+				final_rendering_position.x * pixels_per_meter +
+				cam_dimensions.x * 0.5f * (1.0f / zoom_factor) -
+				pivot_point.x
+				);
+			float pos_y = (
+				final_rendering_position.y * pixels_per_meter +
+				cam_dimensions.y * 0.5f * (1.0f / zoom_factor) -
+				pivot_point.y
+				);
+			const SDL_FRect dest_rect{ pos_x,pos_y,width,height };
+			SDL_Color color{ static_cast<Uint8>(image_request.r),static_cast<Uint8>(image_request.g),static_cast<Uint8>(image_request.b),static_cast<Uint8>(image_request.a) };
 			//if (image_request.dest_rect.has_value())
 			//{
 			//	const SDL_FRect& dr = image_request.dest_rect.value();
@@ -203,10 +185,10 @@ void Renderer::render_and_clear_image_request_queue(std::vector<ImageDrawRequest
 			//		<< "flip " << static_cast<int>(image_request.flip) << " "
 			//		<< "renderscale 1 1"
 			//		<< std::endl;
-			//}
+			//} 
 			SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
 			SDL_SetTextureAlphaMod(texture, color.a);
-			Helper::SDL_RenderCopyEx(0, "", sdl_renderer, texture, get_pointer(image_request.src_rect), get_pointer(image_request.dest_rect), image_request.angle, get_pointer(image_request.center), image_request.flip);
+			Helper::SDL_RenderCopyEx(0, "", sdl_renderer, texture, nullptr, &dest_rect, image_request.rotation_degrees.value(), &pivot_point, static_cast<SDL_RendererFlip>(flip_mode));
 			SDL_SetTextureColorMod(texture, 255, 255, 255);
 			SDL_SetTextureAlphaMod(texture, 255);
 		}

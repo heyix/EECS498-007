@@ -21,11 +21,6 @@ float Vector2::Dot(const Vector2& a, const Vector2& b)
 	return b2Dot(a.vector2, b.vector2);
 }
 
-float Vector2::Cross(const Vector2& a, const Vector2& b)
-{
-	return b2Cross(a.vector2, b.vector2);
-}
-
 
 
 Vector2 Vector2::Lua_Operator_Add(const Vector2& other)

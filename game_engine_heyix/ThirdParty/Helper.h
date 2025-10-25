@@ -1,17 +1,11 @@
-	/* Hey Student --
- * For the purposes of autograding (and to gain additional features like Input Recording Mode)...
- *
- * 1) Always use Helper::CreateRenderer() instead of vanilla ::SDL_CreateRenderer()
- * 2) Always use Helper::SDL_PollEvent() instead of vanilla ::SDL_PollEvent()
- * 3) Always use Helper::SDL_RenderPresent() instead of vanilla ::SDL_RenderPresent()
- * 4) Never use ::SDL_GetKeyboardState() in this course, as it will ignore injected input events.
- * Get all of your input-related events from Helper::SDL_PollEvent() instead.
+/* Hey Student --
+ * Take a look at some of the public static variables below-- you may use them to help you debug.
  */
 
 #ifndef INPUTHELPER_H
 #define INPUTHELPER_H
 
-#define HELPER_VERSION 0.9
+#define HELPER_VERSION 0.91
 
 #include <unordered_map>
 #include <queue>
@@ -22,6 +16,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <iomanip>
+#include <random>
 
  /* WARNING : You may need to adjust the following include paths if your headers / file structures are different. */
  /* Here is the instructor solution folder structure (if we make $(ProjectDir) a include directory, these paths are valid. */
@@ -520,6 +515,36 @@ private:
 		}
 
 		input_status = INPUT_FILE_PRESENT;
+	}
+};
+
+/* Utilized for homework 9 */
+class RandomEngine
+{
+	std::default_random_engine engine;
+	std::uniform_real_distribution<float> distribution;
+
+public:
+	/* Please look up the correct seed value for your usage purposes. Find it in the homework9 assignment spec. */
+	RandomEngine(float min, float max, int seed_look_up_in_assignment_spec_pls)
+	{
+		Configure(min, max, seed_look_up_in_assignment_spec_pls);
+	}
+
+	/* Please look up the correct seed value for your usage purposes. Find it in the homework9 assignment spec. */
+	void Configure(float min, float max, int seed_look_up_in_assignment_spec_pls)
+	{
+		engine = std::default_random_engine(seed_look_up_in_assignment_spec_pls);
+		distribution = std::uniform_real_distribution<float>(min, max);
+	}
+
+	/* If you use this constructor, don't forget to configure the engine later. */
+	RandomEngine() {}
+
+	/* Get a random number in the specified range. */
+	inline float Sample()
+	{
+		return distribution(engine);
 	}
 };
 
