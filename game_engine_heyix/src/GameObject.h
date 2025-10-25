@@ -42,6 +42,8 @@ private:
 	std::shared_ptr<Component> Get_Component_From_LuaRef(luabridge::LuaRef& luaref);
 	void Record_Component_Lifecycle_Functions(Component* component);
 	void Unrecord_Component_Lifecycle_Functions(Component* component);
+	void Record_Component_Mappings(std::shared_ptr<Component> component);
+	void Unrecord_Component_Mappings(Component* component);
 	void Remove_Component(Component* component);
 	void Add_Instantiated_Component_Without_Calling_On_Start(std::shared_ptr<Component> new_component);
 private:

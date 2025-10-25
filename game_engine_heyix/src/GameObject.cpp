@@ -56,15 +56,45 @@ void GameObject::Unrecord_Component_Lifecycle_Functions(Component* component)
 	components_required_on_destroy.erase(key);
 }
 
-void GameObject::Remove_Component(Component* component)
+void GameObject::Record_Component_Mappings(std::shared_ptr<Component> new_component)
+{
+	std::string& key = new_component->key;
+	std::string& template_name = new_component->template_name;
+
+
+	components[key] = new_component;
+	components_by_type_name[template_name][key] = new_component;
+	for (ComponentGroup group : new_component->component_groups) {
+		components_by_components_group[group][key] = new_component;
+	}
+}
+
+void GameObject::Unrecord_Component_Mappings(Component* component)
 {
 	std::string& key = component->key;
-	std::string& type = component->template_name;
+	std::string& template_name = component->template_name;
+
+
 	components.erase(key);
-	components_by_type_name[type].erase(key);
-	for (ComponentGroup group : component->component_groups) {
-		components_by_components_group[group].erase(key);
+
+	auto it1 = components_by_type_name.find(template_name);
+	it1->second.erase(key);
+	if (it1->second.empty()) {
+		components_by_type_name.erase(it1);
 	}
+
+	for (ComponentGroup group : component->component_groups) {
+		auto it2 = components_by_components_group.find(group);
+		it2->second.erase(key);
+		if (it2->second.empty()) {
+			components_by_components_group.erase(it2);
+		}
+	}
+}
+
+void GameObject::Remove_Component(Component* component)
+{
+	Unrecord_Component_Mappings(component);
 	Unrecord_Component_Lifecycle_Functions(component);
 }
 
@@ -287,30 +317,18 @@ void GameObject::Add_Instantiated_Component_Without_Calling_On_Start(std::shared
 	if (ComponentDB::unique_component_types.count(template_name)) {
 		if (auto it = components_by_type_name.find(template_name); it != components_by_type_name.end() && it->second.size() != 0) {
 			auto old_component = it->second.begin()->second;
-			components.erase(old_component->key);
-			it->second.erase(old_component->key);
-			for (ComponentGroup group : old_component->component_groups) {
-				components_by_components_group[group].erase(old_component->key);
-			}
+			Unrecord_Component_Mappings(old_component.get());
 			Unrecord_Component_Lifecycle_Functions(old_component.get());
 		}
 	}
 	else {
 		if (old_it != components.end()) {
 			auto old_component = old_it->second;
-			std::string& type = old_it->second->template_name;
-			components_by_type_name[type].erase(key);
-			for (ComponentGroup group : old_component->component_groups) {
-				components_by_components_group[group].erase(old_component->key);
-			}
+			Unrecord_Component_Mappings(old_component.get());
 			Unrecord_Component_Lifecycle_Functions(old_component.get());
 		}
 	}
-	components[key] = new_component;
-	components_by_type_name[template_name][key] = new_component;
-	for (ComponentGroup group : new_component->component_groups) {
-		components_by_components_group[group][key] = new_component;
-	}
+	Record_Component_Mappings(new_component);
 	Record_Component_Lifecycle_Functions(new_component.get());
 }
 
