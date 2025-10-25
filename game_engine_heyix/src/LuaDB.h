@@ -25,6 +25,7 @@ private:
 	static void Init_Lua_ParticleSystem();
 	static void Init_Lua_Transform();
 	static void Init_Lua_Colliders();
+	static void Init_Lua_DrawBodyComponent();
 public:
 	static void Init_LuaDB();
 	static luabridge::LuaRef& Create_Template_Table_Using_Local_File(const std::string& table_name);

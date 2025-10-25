@@ -44,6 +44,8 @@ public:
 	static float Dot(const Vector2& a, const Vector2& b);
 	static float Cross(const Vector2& a, const Vector2& b);
 public:
+	static Vector2 Zero() { return Vector2(0.0f, 0.0f); }
+public:
 	float Lua_Normalize() { return Normalize(); }
 	float Lua_Length() { return Length(); }
 	Vector2 Lua_Operator_Add(const Vector2& other);

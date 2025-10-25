@@ -274,6 +274,13 @@ void LuaDB::Init_Lua_Colliders()
 		.deriveClass<CircleCollider, ColliderBase>("CircleCollider")
 		.endClass();
 }
+#include "DrawBodyComponent.h"
+void LuaDB::Init_Lua_DrawBodyComponent()
+{
+	luabridge::getGlobalNamespace(lua_state)
+		.deriveClass<DrawBodyComponent, CppComponent>("DrawBodyComponent")
+		.endClass();
+}
 void LuaDB::Init_Lua_RigidBody()
 {
 	luabridge::getGlobalNamespace(lua_state)
@@ -332,6 +339,7 @@ void LuaDB::Init_LuaDB()
 	Init_Lua_ParticleSystem();
 	Init_Lua_Transform();
 	Init_Lua_Colliders();
+	Init_Lua_DrawBodyComponent();
 }
 
 luabridge::LuaRef& LuaDB::Create_Template_Table_Using_Local_File(const std::string& table_name)

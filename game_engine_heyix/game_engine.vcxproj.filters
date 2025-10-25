@@ -43,12 +43,6 @@
     <Filter Include="Source Files\Components">
       <UniqueIdentifier>{e318e0c5-72c9-4d49-9ddc-e636ee30d85f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Physics">
-      <UniqueIdentifier>{1fa3d3c7-ee54-4307-b1a5-cd8698a00dfb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Physics">
-      <UniqueIdentifier>{fc7d18dc-67d5-4d92-b899-1133342078a2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Components\CppComponents">
       <UniqueIdentifier>{e0ec4dd4-9b3b-44df-9a28-4dc2bafebebe}</UniqueIdentifier>
     </Filter>
@@ -61,47 +55,20 @@
     <Filter Include="Source Files\Components\CppComponents\PhysicsComponents">
       <UniqueIdentifier>{5751e4bd-de84-4f0a-992b-f6c8d2ac9cac}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\FlatPhysics">
+      <UniqueIdentifier>{1fa3d3c7-ee54-4307-b1a5-cd8698a00dfb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\FlatPhysics">
+      <UniqueIdentifier>{fc7d18dc-67d5-4d92-b899-1133342078a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Engine">
+      <UniqueIdentifier>{5cddb5f2-2027-4ce6-a18e-5c02dc137526}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine">
+      <UniqueIdentifier>{98b73623-a3e0-4647-9969-8e87fcbdea50}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\EngineUtils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Scene.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TemplateDB.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ImageDB.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TextDB.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AudioDB.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Input.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GameConfigData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RenderingConfigData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ThirdParty\lua\lapi.c">
       <Filter>Source Files\lua</Filter>
     </ClCompile>
@@ -197,21 +164,6 @@
     </ClCompile>
     <ClCompile Include="ThirdParty\lua\lzio.c">
       <Filter>Source Files\lua</Filter>
-    </ClCompile>
-    <ClCompile Include="src\LuaDB.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GameObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GameObjectDB.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GameData.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ThirdParty\box2d\collision\b2_broad_phase.cpp">
       <Filter>Source Files\box2d\collision</Filter>
@@ -348,12 +300,6 @@
     <ClCompile Include="ThirdParty\box2d\rope\b2_rope.cpp">
       <Filter>Source Files\box2d\rope</Filter>
     </ClCompile>
-    <ClCompile Include="src\EventBus.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Vector2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Component.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
@@ -366,17 +312,8 @@
     <ClCompile Include="src\LuaComponent.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
-    <ClCompile Include="src\PhysicsDB.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ContactListener.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RayCastCallback.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PhysicsBody.cpp">
-      <Filter>Source Files\Physics</Filter>
+    <ClCompile Include="src\FlatBody.cpp">
+      <Filter>Source Files\FlatPhysics</Filter>
     </ClCompile>
     <ClCompile Include="src\ParticleSystem.cpp">
       <Filter>Source Files\Components\CppComponents</Filter>
@@ -396,44 +333,86 @@
     <ClCompile Include="src\RigidBody.cpp">
       <Filter>Source Files\Components\CppComponents\PhysicsComponents</Filter>
     </ClCompile>
+    <ClCompile Include="src\FlatWorld.cpp">
+      <Filter>Source Files\FlatPhysics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AudioDB.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Camera.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ContactListener.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\EngineUtils.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\EventBus.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameConfigData.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameData.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameObject.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameObjectDB.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ImageDB.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LuaDB.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PhysicsDB.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RayCastCallback.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderingConfigData.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TemplateDB.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TextDB.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Vector2.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FlatMath.cpp">
+      <Filter>Source Files\FlatPhysics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DrawBodyComponent.cpp">
+      <Filter>Source Files\FlatPhysics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Game.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\EngineUtils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Scene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TemplateDB.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Renderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ImageDB.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TextDB.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\AudioDB.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Input.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GameConfigData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\RenderingConfigData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ThirdParty\lua\lapi.h">
       <Filter>Header Files\lua</Filter>
     </ClInclude>
@@ -517,21 +496,6 @@
     </ClInclude>
     <ClInclude Include="ThirdParty\lua\lzio.h">
       <Filter>Header Files\lua</Filter>
-    </ClInclude>
-    <ClInclude Include="src\LuaDB.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GameObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GameObjectDB.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GameData.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ThirdParty\box2d\b2_api.h">
       <Filter>Header Files\box2d</Filter>
@@ -680,12 +644,6 @@
     <ClInclude Include="ThirdParty\box2d\dynamics\b2_polygon_contact.h">
       <Filter>Source Files\box2d\dynamics</Filter>
     </ClInclude>
-    <ClInclude Include="src\EventBus.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Vector2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Component.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
@@ -698,17 +656,8 @@
     <ClInclude Include="src\LuaComponent.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="src\PhysicsDB.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ContactListener.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\RayCastCallback.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\PhysicsBody.h">
-      <Filter>Header Files\Physics</Filter>
+    <ClInclude Include="src\FlatBody.h">
+      <Filter>Header Files\FlatPhysics</Filter>
     </ClInclude>
     <ClInclude Include="src\ParticleSystem.h">
       <Filter>Header Files\Components\CppComponents</Filter>
@@ -730,6 +679,81 @@
     </ClInclude>
     <ClInclude Include="src\ComponentGroup.h">
       <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatWorld.h">
+      <Filter>Header Files\FlatPhysics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AudioDB.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Camera.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ContactListener.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\EngineUtils.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\EventBus.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GameConfigData.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GameData.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GameObject.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GameObjectDB.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ImageDB.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuaDB.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PhysicsDB.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RayCastCallback.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RenderingConfigData.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TemplateDB.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TextDB.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Vector2.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatMath.h">
+      <Filter>Header Files\FlatPhysics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DrawBodyComponent.h">
+      <Filter>Header Files\FlatPhysics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
