@@ -49,6 +49,18 @@
     <Filter Include="Source Files\Physics">
       <UniqueIdentifier>{fc7d18dc-67d5-4d92-b899-1133342078a2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Components\CppComponents">
+      <UniqueIdentifier>{e0ec4dd4-9b3b-44df-9a28-4dc2bafebebe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Components\CppComponents">
+      <UniqueIdentifier>{e7727d0b-c424-492f-a2ef-7e6ac5df7293}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Components\CppComponents\PhysicsComponents">
+      <UniqueIdentifier>{a699adaa-5ef0-44a7-9685-fb0b53b062f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Components\CppComponents\PhysicsComponents">
+      <UniqueIdentifier>{5751e4bd-de84-4f0a-992b-f6c8d2ac9cac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -354,9 +366,6 @@
     <ClCompile Include="src\LuaComponent.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
-    <ClCompile Include="src\RigidBody.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
     <ClCompile Include="src\PhysicsDB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -366,23 +375,26 @@
     <ClCompile Include="src\RayCastCallback.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ParticleSystem.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
     <ClCompile Include="src\PhysicsBody.cpp">
       <Filter>Source Files\Physics</Filter>
     </ClCompile>
-    <ClCompile Include="src\BoxCollider.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="src\CircleCollider.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ColliderBase.cpp">
-      <Filter>Source Files\Components</Filter>
+    <ClCompile Include="src\ParticleSystem.cpp">
+      <Filter>Source Files\Components\CppComponents</Filter>
     </ClCompile>
     <ClCompile Include="src\Transform.cpp">
-      <Filter>Source Files\Components</Filter>
+      <Filter>Source Files\Components\CppComponents</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BoxCollider.cpp">
+      <Filter>Source Files\Components\CppComponents\PhysicsComponents</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CircleCollider.cpp">
+      <Filter>Source Files\Components\CppComponents\PhysicsComponents</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ColliderBase.cpp">
+      <Filter>Source Files\Components\CppComponents\PhysicsComponents</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RigidBody.cpp">
+      <Filter>Source Files\Components\CppComponents\PhysicsComponents</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -686,9 +698,6 @@
     <ClInclude Include="src\LuaComponent.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="src\RigidBody.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
     <ClInclude Include="src\PhysicsDB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -698,23 +707,26 @@
     <ClInclude Include="src\RayCastCallback.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ParticleSystem.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
     <ClInclude Include="src\PhysicsBody.h">
       <Filter>Header Files\Physics</Filter>
     </ClInclude>
-    <ClInclude Include="src\BoxCollider.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="src\CircleCollider.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ColliderBase.h">
-      <Filter>Header Files\Components</Filter>
+    <ClInclude Include="src\ParticleSystem.h">
+      <Filter>Header Files\Components\CppComponents</Filter>
     </ClInclude>
     <ClInclude Include="src\Transform.h">
-      <Filter>Header Files\Components</Filter>
+      <Filter>Header Files\Components\CppComponents</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BoxCollider.h">
+      <Filter>Header Files\Components\CppComponents\PhysicsComponents</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CircleCollider.h">
+      <Filter>Header Files\Components\CppComponents\PhysicsComponents</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ColliderBase.h">
+      <Filter>Header Files\Components\CppComponents\PhysicsComponents</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RigidBody.h">
+      <Filter>Header Files\Components\CppComponents\PhysicsComponents</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
