@@ -30,6 +30,27 @@ public:
 	Vector2 operator*(float scalar) const {
 		return Vector2(vector2.x * scalar, vector2.y * scalar);
 	}
+	Vector2& operator+=(const Vector2& other) {
+		vector2.x += other.vector2.x;
+		vector2.y += other.vector2.y;
+		return *this;
+	}
+
+	Vector2& operator-=(const Vector2& other) {
+		vector2.x -= other.vector2.x;
+		vector2.y -= other.vector2.y;
+		return *this;
+	}
+
+	Vector2& operator*=(float s) {
+		vector2.x *= s;
+		vector2.y *= s;
+		return *this;
+	}
+
+	Vector2 operator-() const {
+		return Vector2(-vector2.x, -vector2.y);
+	}
 	bool operator==(const Vector2& other) const {
 		return vector2 == other.vector2;
 	}

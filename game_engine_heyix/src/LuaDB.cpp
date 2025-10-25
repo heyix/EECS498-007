@@ -124,6 +124,7 @@ void LuaDB::Init_Lua_Camera()
 		.addFunction("GetPositionY", Camera::Lua_Get_Position_Y)
 		.addFunction("SetZoom", Camera::Lua_Set_Zoom)
 		.addFunction("GetZoom", Camera::Lua_Get_Zoom)
+		.addFunction("GetCameraDimension",Camera::Lua_Get_Camera_Dimension)
 		.endNamespace();
 }
 

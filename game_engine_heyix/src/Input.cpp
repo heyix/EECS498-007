@@ -86,6 +86,11 @@ bool Input::GetMouseButtonUp(Uint8 button)
 	return mouse_button_states[button] == Input_State_Just_Became_Up;
 }
 
+Vector2 Input::GetMousePosition()
+{
+	return { mouse_position.x,mouse_position.y };
+}
+
 bool Input::Lua_Get_Key(const std::string& keycode)
 {
 	auto it = __keycode_to_scancode.find(keycode);

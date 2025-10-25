@@ -1,5 +1,6 @@
 #pragma once
 #include "glm/glm.hpp"
+#include "Vector2.h"
 class Camera {
 private:
 	glm::vec2 camera_position{ 0,0 };
@@ -18,4 +19,5 @@ public:
 	static float Lua_Get_Position_Y();
 	static void Lua_Set_Zoom(float zoom_factor);
 	static float Lua_Get_Zoom();
+	static Vector2 Lua_Get_Camera_Dimension();
 };

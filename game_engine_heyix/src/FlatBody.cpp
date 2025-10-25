@@ -4,6 +4,13 @@
 #include "FlatWorld.h"
 #include "iostream"
 #include "FlatMath.h"
+void FlatPhysics::FlatBody::Move(Vector2 amount)
+{
+	this->position += amount;
+}
+void FlatPhysics::FlatBody::MoveTo(Vector2 position)
+{
+}
 bool FlatPhysics::FlatBody::CreateCircleBody(float radius, Vector2 position, float density, bool is_static, float restitution, std::unique_ptr<FlatBody>& out_body, std::string* error_message)
 {
 	float area = radius * radius * M_PI;

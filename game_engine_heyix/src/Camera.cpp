@@ -55,3 +55,9 @@ float Camera::Lua_Get_Zoom()
 {
 	return Engine::instance->running_game->Get_Zoom_Factor();
 }
+
+Vector2 Camera::Lua_Get_Camera_Dimension()
+{
+	auto dim = Engine::instance->running_game->Get_Camera_Dimension(); // glm::ivec2
+	return Vector2{ static_cast<float>(dim.x), static_cast<float>(dim.y) };
+}

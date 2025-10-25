@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include "glm/glm.hpp"
+#include "Vector2.h"
 enum Input_State {
 	Input_State_Up,
 	Input_State_Down,
@@ -22,6 +23,7 @@ public:
 	static bool GetMouseButton(Uint8 button);
 	static bool GetMouseButtonDown(Uint8 button);
 	static bool GetMouseButtonUp(Uint8 button);
+	static Vector2 GetMousePosition();
 public:
 	static bool Lua_Get_Key(const std::string& keycode);
 	static bool Lua_Get_Key_Down(const std::string& keycode);

@@ -61,6 +61,9 @@ namespace FlatPhysics {
 	public:
 		const Vector2& GetPosition()const { return position; }
 	public:
+		void Move(Vector2 amount);
+		void MoveTo(Vector2 position);
+	public:
 		static bool CreateCircleBody(float radius, Vector2 position, float density, bool is_static, float restitution, std::unique_ptr<FlatBody>& out_body, std::string* error_message = nullptr);
 		static bool CreateBoxBody(float width, float height, Vector2 position, float density, bool is_static, float restitution, std::unique_ptr<FlatBody>& out_body, std::string* error_message = nullptr);
 	};
