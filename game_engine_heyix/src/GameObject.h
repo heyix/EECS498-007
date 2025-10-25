@@ -33,6 +33,7 @@ private:
 
 	std::unordered_map<std::string, std::shared_ptr<Component>> components;
 	std::unordered_map<std::string, std::map<std::string,std::shared_ptr<Component>>> components_by_type_name;
+	std::unordered_map<ComponentGroup, std::map<std::string, std::shared_ptr<Component>>> components_by_components_group;
 
 	std::vector<std::shared_ptr<Component>> components_pending_adding;
 	std::vector<std::shared_ptr<Component>> components_pending_removing;
@@ -67,6 +68,7 @@ public:
 	std::weak_ptr<Component> Add_Component_Without_Calling_On_Start(const std::string& key, const std::string& component_type);
 	std::weak_ptr<Component> Get_Component(const std::string& component_type);
 	std::vector<std::weak_ptr<Component>> Get_Components(const std::string& component_type);
+	std::vector<std::weak_ptr<Component>> Get_Components_By_Components_Group(ComponentGroup component_group);
 	void Process_Added_Components();
 	void Process_Removed_Components();
 	void Deactive_All_Components();

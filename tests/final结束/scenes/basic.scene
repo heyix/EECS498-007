@@ -1,0 +1,99 @@
+{
+	"actors": [
+		{
+			"name": "GameManager",
+			"components": {
+				"1": {
+					"type": "GameManager"
+				}
+			}
+		},
+		{
+			"name": "background1",
+			"components": {
+				"1": {
+					"type": "Transform",
+					"x": 0,
+					"y": 0
+				},
+				"2": {
+					"type": "MovingBackground"
+				},
+				"3": {
+					"type": "SpriteRenderer",
+					"sprite": "background"
+				}
+			}
+		},
+		{
+			"name": "background2",
+			"components": {
+				"1": {
+					"type": "Transform",
+					"x": 667,
+					"y": 0
+				},
+				"2": {
+					"type": "MovingBackground"
+				},
+				"3": {
+					"type": "SpriteRenderer",
+					"sprite": "background"
+				}
+			}
+		},
+		{
+			"name": "donna",
+			"components": {
+				"1": {
+					"type": "Transform",
+					"x": 100,
+					"y": 100
+				},
+				"2": {
+					"type": "Donna"
+				},
+				"3": {
+					"type": "KeyboardControl"
+				},
+				"4": {
+					"type": "DonnaAnimation"
+				},
+				"5": {
+					"type": "SpriteRenderer",
+					"sprite": "donna1"
+				}
+			}
+		},
+		{
+			"name": "bgm",
+			"components": {
+				"1": {
+					"type": "PlayAudio",
+					"clip": "sky_bgm",
+					"loop": true
+				}
+			}
+		},
+		{
+			"name": "hud",
+			"components": {
+				"1": {
+					"type": "Hud"
+				}
+			}
+		},
+		{
+			"name": "Enemy2",
+			"template":"Enemy2",
+			"components": {
+				"5": {
+					"type": "BoxCollider",
+					"is_trigger":true,
+					"trigger_width":50,
+					"trigger_height":50
+				}
+			}
+		}
+	]
+}

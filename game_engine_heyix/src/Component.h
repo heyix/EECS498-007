@@ -3,6 +3,7 @@
 #include "LuaBridge/LuaBridge.h"
 #include <memory>
 #include "ContactListener.h"
+#include "ComponentGroup.h"
 class GameObject;
 class Component {
 public:
@@ -19,7 +20,7 @@ public:
 	bool has_on_trigger_enter = false;
 	bool has_on_trigger_exit = false;
 	luabridge::LuaRef lua_component;
-
+	std::vector<ComponentGroup> component_groups;
 public:
 	Component(GameObject& holder, const std::string& key, const std::string& template_name, const luabridge::LuaRef& lua_ref)
 		:holder_object(&holder),key(key), template_name(template_name), lua_component(lua_ref)

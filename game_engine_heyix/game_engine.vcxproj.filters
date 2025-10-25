@@ -728,5 +728,8 @@
     <ClInclude Include="src\RigidBody.h">
       <Filter>Header Files\Components\CppComponents\PhysicsComponents</Filter>
     </ClInclude>
+    <ClInclude Include="src\ComponentGroup.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -139,6 +139,7 @@
     <ClInclude Include="src\ColliderBase.h" />
     <ClInclude Include="src\Component.h" />
     <ClInclude Include="src\ComponentDB.h" />
+    <ClInclude Include="src\ComponentGroup.h" />
     <ClInclude Include="src\ContactListener.h" />
     <ClInclude Include="src\CppComponent.h" />
     <ClInclude Include="src\EventBus.h" />

@@ -6,6 +6,7 @@
 #include "Transform.h"
 #include "BoxCollider.h"
 #include "CircleCollider.h"
+#include "Component.h"
 void ComponentDB::Init_ComponentDB()
 {
     component_registry["Rigidbody"] = [](GameObject& holder_object, const std::string& key, const std::string& component_type) {

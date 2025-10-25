@@ -11,7 +11,7 @@ std::shared_ptr<Component> GameObject::Get_Component_From_LuaRef(luabridge::LuaR
 	if (it == components.end()) {
 		return nullptr;
 	}
-	return components[key];
+	return it->second;
 }
 
 void GameObject::Record_Component_Lifecycle_Functions(Component* component)
@@ -62,6 +62,9 @@ void GameObject::Remove_Component(Component* component)
 	std::string& type = component->template_name;
 	components.erase(key);
 	components_by_type_name[type].erase(key);
+	for (ComponentGroup group : component->component_groups) {
+		components_by_components_group[group].erase(key);
+	}
 	Unrecord_Component_Lifecycle_Functions(component);
 }
 
@@ -261,6 +264,21 @@ std::vector<std::weak_ptr<Component>> GameObject::Get_Components(const std::stri
 	}
 	return result;
 }
+std::vector<std::weak_ptr<Component>> GameObject::Get_Components_By_Components_Group(ComponentGroup component_group)
+{
+	std::vector<std::weak_ptr<Component>> result;
+	auto it = components_by_components_group.find(component_group);
+	if (it == components_by_components_group.end() || it->second.empty()) {
+		return result;
+	}
+	for (auto& p : it->second) {
+		if (p.second->pending_removing) {
+			continue;
+		}
+		result.push_back(p.second);
+	}
+	return result;
+}
 void GameObject::Add_Instantiated_Component_Without_Calling_On_Start(std::shared_ptr<Component> new_component)
 {
 	std::string& key = new_component->key;
@@ -271,6 +289,9 @@ void GameObject::Add_Instantiated_Component_Without_Calling_On_Start(std::shared
 			auto old_component = it->second.begin()->second;
 			components.erase(old_component->key);
 			it->second.erase(old_component->key);
+			for (ComponentGroup group : old_component->component_groups) {
+				components_by_components_group[group].erase(old_component->key);
+			}
 			Unrecord_Component_Lifecycle_Functions(old_component.get());
 		}
 	}
@@ -279,11 +300,17 @@ void GameObject::Add_Instantiated_Component_Without_Calling_On_Start(std::shared
 			auto old_component = old_it->second;
 			std::string& type = old_it->second->template_name;
 			components_by_type_name[type].erase(key);
+			for (ComponentGroup group : old_component->component_groups) {
+				components_by_components_group[group].erase(old_component->key);
+			}
 			Unrecord_Component_Lifecycle_Functions(old_component.get());
 		}
 	}
 	components[key] = new_component;
 	components_by_type_name[template_name][key] = new_component;
+	for (ComponentGroup group : new_component->component_groups) {
+		components_by_components_group[group][key] = new_component;
+	}
 	Record_Component_Lifecycle_Functions(new_component.get());
 }
 
