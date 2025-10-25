@@ -8,5 +8,10 @@ public:
 		collider_type = "circle";
 	}
 	void Create_Fixture_Def(const Vector2& offset)override;
-
+public:
+	float radius = 0.5f;
+	float trigger_radius = 0.5f;
+public:
+	virtual bool Add_Collider_Specific_Int_Property(const std::string& key, int new_property)override;
+	virtual bool Add_Collider_Specific_Float_Property(const std::string& key, float new_property)override;
 };

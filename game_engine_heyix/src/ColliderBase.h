@@ -16,18 +16,9 @@ public:
 public:
     Vector2 offset;
     bool is_trigger = false;
-    float width = 1.0f;
-    float height = 1.0f;
-    float radius = 0.5f;
     float friction = 0.3f;
     float bounciness = 0.3f;
 
-
-
-
-    float trigger_width = 1.0f;
-    float trigger_height = 1.0f;
-    float trigger_radius = 0.5f;
 public:
     std::string collider_type = "box";
     b2Fixture* fixture = nullptr;
@@ -49,4 +40,8 @@ public:
     virtual void Add_Int_Property(const std::string& key, int new_property) override;
     virtual void Add_Float_Property(const std::string& key, float new_property) override;
     virtual void Add_Bool_Property(const std::string& key, bool new_property) override;
+    virtual bool Add_Collider_Specific_Int_Property(const std::string& key, int new_property);
+    virtual bool Add_Collider_Specific_Float_Property(const std::string& key, float new_property);
+    virtual bool Add_Collider_Specific_Bool_Property(const std::string& key, bool new_property);
+
 };

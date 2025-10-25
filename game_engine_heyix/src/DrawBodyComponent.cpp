@@ -4,7 +4,8 @@
 #include "Engine.h"
 #include "Game.h"
 #include <algorithm>
-#include "ColliderBase.h"
+#include "BoxCollider.h"
+#include "CircleCollider.h"
 void DrawBodyComponent::On_Update()
 {
     DrawBody();
@@ -18,12 +19,12 @@ void DrawBodyComponent::On_Start()
 	if (shape == FlatPhysics::ShapeType::Box) {
 		std::unique_ptr<FlatPhysics::FlatBody> body;
 		std::string error_message;
-        auto collider = std::dynamic_pointer_cast<ColliderBase>(this->holder_object->Get_Component("BoxCollider").lock());
+        auto collider = std::dynamic_pointer_cast<BoxCollider>(this->holder_object->Get_Component("BoxCollider").lock());
 		FlatPhysics::FlatBody::CreateBoxBody(collider->width, collider->height, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body, &error_message);
 	}
 	else {
 		std::unique_ptr<FlatPhysics::FlatBody> body;
-        auto collider = std::dynamic_pointer_cast<ColliderBase>(this->holder_object->Get_Component("CircleCollider").lock());
+        auto collider = std::dynamic_pointer_cast<CircleCollider>(this->holder_object->Get_Component("CircleCollider").lock());
 		FlatPhysics::FlatBody::CreateCircleBody(collider->radius, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body);
 	}
 }

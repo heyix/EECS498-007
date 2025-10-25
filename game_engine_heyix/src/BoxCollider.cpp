@@ -29,3 +29,43 @@ void BoxCollider::Create_Fixture_Def(const Vector2& offset)
 		fixture_def.filter = filter;
 	}
 }
+
+bool BoxCollider::Add_Collider_Specific_Int_Property(const std::string& key, int new_property)
+{
+	if (key == "width") {
+		width = new_property;
+	}
+	else if (key == "height") {
+		height = new_property;
+	}
+	else if (key == "trigger_width") {
+		trigger_width = new_property;
+	}
+	else if (key == "trigger_height") {
+		trigger_height = new_property;
+	}
+	else {
+		return false;
+	}
+	return true;
+}
+
+bool BoxCollider::Add_Collider_Specific_Float_Property(const std::string& key, float new_property)
+{
+	if (key == "width") {
+		width = new_property;
+	}
+	else if (key == "height") {
+		height = new_property;
+	}
+	else if (key == "trigger_width") {
+		trigger_width = new_property;
+	}
+	else if (key == "trigger_height") {
+		trigger_height = new_property;
+	}
+	else {
+		return false;
+	}
+	return true;
+}

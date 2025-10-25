@@ -31,3 +31,31 @@ void CircleCollider::Create_Fixture_Def(const Vector2& offset)
 		fixture_def.filter = filter;
 	}
 }
+
+bool CircleCollider::Add_Collider_Specific_Int_Property(const std::string& key, int new_property)
+{
+	if (key == "radius") {
+		radius = new_property;
+	}
+	else if (key == "trigger_radius") {
+		trigger_radius = new_property;
+	}
+	else {
+		return false;
+	}
+	return true;
+}
+
+bool CircleCollider::Add_Collider_Specific_Float_Property(const std::string& key, float new_property)
+{
+	if (key == "radius") {
+		radius = new_property;
+	}
+	else if (key == "trigger_radius") {
+		trigger_radius = new_property;
+	}
+	else{
+		return false;
+	}
+	return true;
+}

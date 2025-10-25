@@ -61,63 +61,31 @@ void ColliderBase::On_Destroy()
 
 void ColliderBase::Add_Int_Property(const std::string& key, int new_property)
 {
-	if (key == "width") {
-		width = new_property;
-	}
-	else if (key == "height") {
-		height = new_property;
-	}
-	else if (key == "radius") {
-		radius = new_property;
-	}
-	else if (key == "friction") {
+	if (key == "friction") {
 		friction = new_property;
 	}
 	else if (key == "bounciness") {
 		bounciness = new_property;
 	}
-	else if (key == "trigger_width") {
-		trigger_width = new_property;
-	}
-	else if (key == "trigger_height") {
-		trigger_height = new_property;
-	}
-	else if (key == "trigger_radius") {
-		trigger_radius = new_property;
-	}
 	else {
-		std::cout << "Attempt to set undefined int key: " << key << std::endl;
+		if (!Add_Collider_Specific_Int_Property(key, new_property)) {
+			std::cout << "Attempt to set undefined int key: " << key << std::endl;
+		}
 	}
 }
 
 void ColliderBase::Add_Float_Property(const std::string& key, float new_property)
 {
-	if (key == "width") {
-		width = new_property;
-	}
-	else if (key == "height") {
-		height = new_property;
-	}
-	else if (key == "radius") {
-		radius = new_property;
-	}
-	else if (key == "friction") {
+	if (key == "friction") {
 		friction = new_property;
 	}
 	else if (key == "bounciness") {
 		bounciness = new_property;
 	}
-	else if (key == "trigger_width") {
-		trigger_width = new_property;
-	}
-	else if (key == "trigger_height") {
-		trigger_height = new_property;
-	}
-	else if (key == "trigger_radius") {
-		trigger_radius = new_property;
-	}
 	else {
-		std::cout << "Attempt to set undefined float key: " << key << std::endl;
+		if (!Add_Collider_Specific_Float_Property(key, new_property)) {
+			std::cout << "Attempt to set undefined float key: " << key << std::endl;
+		}
 	}
 }
 
@@ -126,6 +94,26 @@ void ColliderBase::Add_Bool_Property(const std::string& key, bool new_property)
 	if (key == "is_trigger") {
 		is_trigger = new_property;
 	}
+	else {
+		if (!Add_Collider_Specific_Bool_Property(key, new_property)) {
+			std::cout << "Attempt to set undefined bool key: " << key << std::endl;
+		}
+	}
+}
+
+bool ColliderBase::Add_Collider_Specific_Int_Property(const std::string& key, int new_property)
+{
+	return false;
+}
+
+bool ColliderBase::Add_Collider_Specific_Float_Property(const std::string& key, float new_property)
+{
+	return false;
+}
+
+bool ColliderBase::Add_Collider_Specific_Bool_Property(const std::string& key, bool new_property)
+{
+	return false;
 }
 
 

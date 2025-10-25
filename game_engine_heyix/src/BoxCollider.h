@@ -8,4 +8,12 @@ public:
 		collider_type = "box";
 	}
 	void Create_Fixture_Def(const Vector2& offset)override;
+public:
+	float width = 1.0f;
+	float height = 1.0f;
+	float trigger_width = 1.0f;
+	float trigger_height = 1.0f;
+public:
+	virtual bool Add_Collider_Specific_Int_Property(const std::string& key, int new_property)override;
+	virtual bool Add_Collider_Specific_Float_Property(const std::string& key, float new_property)override;
 };
