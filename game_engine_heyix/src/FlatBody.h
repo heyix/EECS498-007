@@ -59,7 +59,9 @@ namespace FlatPhysics {
 
 		const ShapeType shape_type;
 	public:
-		static bool CreateCircleBody(float radius, Vector2 position, float density, bool is_static, float restitution, std::unique_ptr<FlatBody>& out_body, std::string& error_message);
-		static bool CreateBoxBody(float width, float height, Vector2 position, float density, bool is_static, float restitution, std::unique_ptr<FlatBody>& out_body, std::string& error_message);
+		const Vector2& GetPosition()const { return position; }
+	public:
+		static bool CreateCircleBody(float radius, Vector2 position, float density, bool is_static, float restitution, std::unique_ptr<FlatBody>& out_body, std::string* error_message = nullptr);
+		static bool CreateBoxBody(float width, float height, Vector2 position, float density, bool is_static, float restitution, std::unique_ptr<FlatBody>& out_body, std::string* error_message = nullptr);
 	};
 }
