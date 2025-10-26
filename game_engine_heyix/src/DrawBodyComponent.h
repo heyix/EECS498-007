@@ -19,4 +19,5 @@ private:
     std::unique_ptr<FlatPhysics::FlatBody> body;
 private:
     void DrawBody();
+    void MoveFirstBody();
 };

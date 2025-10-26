@@ -20,7 +20,7 @@ GameObject* GameObjectDB::Lua_Find(const std::string& name)
 
 luabridge::LuaRef GameObjectDB::Lua_Find_All(const std::string& name)
 {
-	return Engine::instance->running_game->Find_All_GameObjects_By_Name(name);
+	return Engine::instance->running_game->Find_All_Lua_GameObjects_By_Name(name);
 }
 
 GameObject* GameObjectDB::Lua_Instantiate(const std::string& actor_template_name)

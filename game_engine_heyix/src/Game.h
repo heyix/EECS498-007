@@ -61,7 +61,8 @@ public:
 	std::string& Get_Current_Scene_Name();
 	void Dont_Destroy(luabridge::LuaRef& actor);
 	std::weak_ptr<GameObject> Find_GameObject_By_Name(const std::string& name);
-	luabridge::LuaRef Find_All_GameObjects_By_Name(const std::string& name);
+	std::vector<std::weak_ptr<GameObject>> Find_All_GameObjects_By_Name(const std::string& name);
+	luabridge::LuaRef Find_All_Lua_GameObjects_By_Name(const std::string& name);
 private:
 	GameData game_data;
 	std::string current_scene_name;

@@ -253,12 +253,6 @@ void RigidBody::Add_Int_Property(const std::string& key, int new_property)
 	else if (key == "rotation") {
 		Set_Rotation(new_property);
 	}
-	else if (key == "width") {
-		width = new_property;
-	}
-	else if (key == "height") {
-		height = new_property;
-	}
 	else if (key == "density") {
 		density = new_property;
 	}
@@ -283,12 +277,6 @@ void RigidBody::Add_Float_Property(const std::string& key, float new_property)
 	}
 	else if (key == "rotation") {
 		Set_Rotation(new_property);
-	}
-	else if (key == "width") {
-		width = new_property;
-	}
-	else if (key == "height") {
-		height = new_property;
 	}
 	else if (key == "density") {
 		density = new_property;

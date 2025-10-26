@@ -245,9 +245,13 @@ std::weak_ptr<GameObject> Game::Find_GameObject_By_Name(const std::string& name)
 {
 	return current_scene->find_gameobject_by_name(name);
 }
-luabridge::LuaRef Game::Find_All_GameObjects_By_Name(const std::string& name)
+std::vector<std::weak_ptr<GameObject>> Game::Find_All_GameObjects_By_Name(const std::string& name)
 {
-	return current_scene->find_all_gameObjects_by_name(name);
+	return current_scene->find_all_gameobjects_by_name(name);
+}
+luabridge::LuaRef Game::Find_All_Lua_GameObjects_By_Name(const std::string& name)
+{
+	return current_scene->find_all_lua_gameObjects_by_name(name);
 }
 void Game::awake()
 {

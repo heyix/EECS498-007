@@ -97,7 +97,6 @@ public:
 private:
     b2Body* body = nullptr;
     b2BodyDef body_def;
-    b2PolygonShape shape;
     b2Fixture* default_phantom_fixture = nullptr;
     float width = 1.0f;
     float height = 1.0f;

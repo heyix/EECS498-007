@@ -411,6 +411,9 @@
     <ClCompile Include="src\DrawBodyComponent.cpp">
       <Filter>Source Files\FlatPhysics</Filter>
     </ClCompile>
+    <ClCompile Include="src\FlatShape.cpp">
+      <Filter>Source Files\FlatPhysics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThirdParty\lua\lapi.h">
@@ -753,6 +756,9 @@
       <Filter>Header Files\FlatPhysics</Filter>
     </ClInclude>
     <ClInclude Include="src\DrawBodyComponent.h">
+      <Filter>Header Files\FlatPhysics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatShape.h">
       <Filter>Header Files\FlatPhysics</Filter>
     </ClInclude>
   </ItemGroup>

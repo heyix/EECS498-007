@@ -35,7 +35,8 @@ public:
 	void unrecord_gameobject_by_name(GameObject* gameobject);
 	std::shared_ptr<GameObject>& get_gameobject_shared_ptr_by_pointer(GameObject* gameobject);
 	std::weak_ptr<GameObject> find_gameobject_by_name(const std::string& name);
-	luabridge::LuaRef find_all_gameObjects_by_name(const std::string& name);
+	std::vector<std::weak_ptr<GameObject>> find_all_gameobjects_by_name(const std::string& name);
+	luabridge::LuaRef find_all_lua_gameObjects_by_name(const std::string& name);
 private:
 	std::shared_ptr<GameObject> instantiate_actor(const rapidjson::Value& actor);
 	void instantiate_actor_recursive(const rapidjson::Value& actor_json, std::shared_ptr<GameObject> parent);

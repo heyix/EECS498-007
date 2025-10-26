@@ -95,7 +95,20 @@ std::weak_ptr<GameObject> Scene::find_gameobject_by_name(const std::string& name
 	return it->second.begin()->second;
 }
 
-luabridge::LuaRef Scene::find_all_gameObjects_by_name(const std::string& name)
+std::vector<std::weak_ptr<GameObject>> Scene::find_all_gameobjects_by_name(const std::string& name)
+{
+	std::vector<std::weak_ptr<GameObject>> result;
+	auto it = gameobjects_by_name.find(name);
+	if (it == gameobjects_by_name.end() || it->second.empty()) {
+		return result;
+	}
+	for (auto p : it->second) {
+		result.push_back(p.second);
+	}
+	return result;
+}
+
+luabridge::LuaRef Scene::find_all_lua_gameObjects_by_name(const std::string& name)
 {
 	luabridge::LuaRef result = luabridge::newTable(LuaDB::lua_state);
 	auto it = gameobjects_by_name.find(name);

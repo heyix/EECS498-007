@@ -31,6 +31,7 @@
     <ClCompile Include="src\DrawBodyComponent.cpp" />
     <ClCompile Include="src\EventBus.cpp" />
     <ClCompile Include="src\FlatMath.cpp" />
+    <ClCompile Include="src\FlatShape.cpp" />
     <ClCompile Include="src\FlatWorld.cpp" />
     <ClCompile Include="src\GameData.cpp" />
     <ClCompile Include="src\GameObjectDB.cpp" />
@@ -148,6 +149,7 @@
     <ClInclude Include="src\DrawBodyComponent.h" />
     <ClInclude Include="src\EventBus.h" />
     <ClInclude Include="src\FlatMath.h" />
+    <ClInclude Include="src\FlatShape.h" />
     <ClInclude Include="src\FlatWorld.h" />
     <ClInclude Include="src\GameData.h" />
     <ClInclude Include="src\GameObjectDB.h" />
