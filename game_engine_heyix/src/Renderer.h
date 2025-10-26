@@ -7,6 +7,7 @@
 #include  <deque>
 #include <algorithm>
 #include "glm/glm.hpp"
+#include "Vector2.h"
 #include <utility>
 
 class ImageDrawRequest {
@@ -83,7 +84,15 @@ public:
 	SDL_FRect rect;
 };
 
-
+class PolygonDrawRequest {
+public:
+	PolygonDrawRequest(const std::vector<Vector2>& vertices,
+		float r, float g, float b, float a)
+		: vertices(vertices), r(r), g(g), b(b), a(a) {}
+public:
+	std::vector<Vector2> vertices;
+	float r, g, b, a;
+};
 
 
 class Renderer {
@@ -100,6 +109,7 @@ public:
 	void draw_text(const std::string& font_name, const std::string& text_content, int font_size, const SDL_Color& font_color, float x, float y,float zoom_factor = 1.0f);
 	void draw_frect(float zoom_factor, SDL_FRect& rect);
 	void draw_pixel(float x, float y, float r, float g, float b, float a);
+	void draw_polygon(const std::vector<Vector2>& vertices, float r, float g, float b, float a);
 
 	template<typename T>
 	void draw_ui(T&& image_name, float x, float y)
@@ -127,6 +137,7 @@ public:
 	void Render_And_Clear_All_Pixel_Draw_Request();
 	void Render_And_Clear_All_Text_Requests();
 	void Render_And_Clear_All_FRect_Requests();
+	void Render_And_Clear_All_Polygon_Requests();
 private:
 	void render_and_clear_image_request_queue(std::vector<ImageDrawRequest>& request_queue);
 public:
@@ -142,4 +153,5 @@ private:
 	std::vector<ImageDrawRequest> pixels_request_queue;
 	std::deque<TextDrawRequest> text_draw_request_queue;
 	std::deque<FRectDrawRequest> frect_draw_request_queue;
+	std::deque<PolygonDrawRequest> polygon_draw_request_queue;
 };

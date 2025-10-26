@@ -17,4 +17,9 @@ namespace FlatPhysics {
 		return true;
 	}
 
+	bool Collision::IntersectPolygons(const std::vector<Vector2> verticesA, const std::vector<Vector2> verticesB)
+	{
+		return false;
+	}
+
 }

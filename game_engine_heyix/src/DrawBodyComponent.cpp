@@ -68,7 +68,6 @@ void DrawBodyComponent::DrawBody()
     const float y = body->GetPosition().GetY();
     const float rot = body->GetRotation();
 
-    // Color: gray for static, cyan for dynamic
     const float r = 255;
     const float g = 255;
     const float bl = 255;
@@ -76,27 +75,54 @@ void DrawBodyComponent::DrawBody()
 
     switch (body->shape_type)
     {
-    case FlatPhysics::ShapeType::Circle: {
-        auto& my_fixture = body->GetFixtures().front();
-        float radius = my_fixture->GetShape().AsCircle()->radius;
-        Engine::instance->renderer->draw_ex("circle", x, y, rot,
-            radius * 2.0f, radius * 2.0f,  
-            0.5f, 0.5f,                   
-            r, g, bl, a, 0);
-        break;
+        case FlatPhysics::ShapeType::Circle: {
+            auto& my_fixture = body->GetFixtures().front();
+            float radius = my_fixture->GetShape().AsCircle()->radius;
+            Engine::instance->renderer->draw_ex("circle", x, y, rot,
+                radius * 2.0f, radius * 2.0f,  
+                0.5f, 0.5f,                   
+                r, g, bl, a, 0);
+            break;
+        }
+
+        case FlatPhysics::ShapeType::Box: {
+            auto& my_fixture = body->GetFixtures().front();
+            float width = my_fixture->GetShape().AsBox()->width;
+            float height = my_fixture->GetShape().AsBox()->height;
+            Engine::instance->renderer->draw_ex("box" + std::to_string(holder_object->ID % 3 + 1), x, y, rot,
+                width, height,
+                0.5f, 0.5f,
+                r, g, bl, a, 0);
+            break;
+        }
     }
 
-    case FlatPhysics::ShapeType::Box: {
-        auto& my_fixture = body->GetFixtures().front();
-        float width = my_fixture->GetShape().AsBox()->width;
-        float height = my_fixture->GetShape().AsBox()->height;
-        Engine::instance->renderer->draw_ex("box" + std::to_string(holder_object->ID % 3 + 1), x, y, rot,
-            width, height,
-            0.5f, 0.5f,
-            r, g, bl, a, 0);
-        break;
+    {
+        const float cx = x + 1.0f;
+        const float cy = y + 0.0f;
+        const float s = 0.4f;
+
+        std::vector<Vector2> poly;
+        poly.emplace_back(cx - s, cy - s+0.2f);
+        poly.emplace_back(cx + s, cy - s);
+        poly.emplace_back(cx + s, cy + s);
+        poly.emplace_back(cx - s, cy + s);
+
+        Engine::instance->renderer->draw_polygon(poly, 0, 255, 0, 255);
+
+
+        const float dx = x;
+        const float dy = y - 1.0f;
+        const float s2 = 0.3f;
+
+        std::vector<Vector2> tri;
+        tri.emplace_back(dx - s2, dy + s2);
+        tri.emplace_back(dx + s2, dy + s2);
+        tri.emplace_back(dx + 0.0f, dy - s2);
+
+        Engine::instance->renderer->draw_polygon(tri, 255, 128, 0, 255);
     }
-    }
+
 }
 
 void DrawBodyComponent::MoveFirstBody()
