@@ -13,6 +13,9 @@ void DrawBodyComponent::On_Update()
 {
     Rotate();
     MoveFirstBody();
+
+
+
     auto transform = this->holder_object->Get_Transform().lock();
     if (holder_object->ID == 44) {
         auto bodies = Engine::instance->running_game->Find_All_GameObjects_By_Name("Body");
@@ -35,6 +38,10 @@ void DrawBodyComponent::On_Update()
             }
         }
     }
+
+
+
+
     DrawBody();
 
     //std::cout << transform->Get_World_Position().x() << " " << transform->Get_World_Position().y() << std::endl;
