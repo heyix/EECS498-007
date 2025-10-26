@@ -68,7 +68,7 @@ void DrawBodyComponent::DrawBody()
 
 void DrawBodyComponent::MoveFirstBody()
 {
-    if (holder_object->ID != 154)return;
+    if (holder_object->ID != 45)return;
     Vector2 dir(0.0f, 0.0f);
     if (Input::GetKey(SDL_SCANCODE_W)) dir += Vector2(0.0f, -1.0f);
     if (Input::GetKey(SDL_SCANCODE_S)) dir += Vector2(0.0f, 1.0f);
