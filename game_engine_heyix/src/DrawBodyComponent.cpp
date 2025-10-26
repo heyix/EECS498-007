@@ -7,17 +7,36 @@
 #include "BoxCollider.h"
 #include "CircleCollider.h"
 #include "Input.h"
+#include "Collision.h"
+#include "FlatShape.h"
 void DrawBodyComponent::On_Update()
 {
-    DrawBody();
+    Rotate();
     MoveFirstBody();
     auto transform = this->holder_object->Get_Transform().lock();
-    auto bodies = Engine::instance->running_game->Find_All_GameObjects_By_Name("body");
-    int i = 0;
-    //for (auto p : bodies) {
-    //    std::cout << p.lock()->name << i << std::endl;
-    //    i++;
-    //}
+    if (holder_object->ID == 44) {
+        auto bodies = Engine::instance->running_game->Find_All_GameObjects_By_Name("Body");
+        for (std::weak_ptr<GameObject> p : bodies) {
+            std::shared_ptr<GameObject> object = p.lock();
+            //std::cout << object->ID << std::endl;
+            if (object->ID == holder_object->ID)continue;
+            auto comp = std::dynamic_pointer_cast<DrawBodyComponent>(object->Get_Component("DrawBodyComponent").lock());
+            if (comp->body) {
+                Vector2 normal;
+                float depth;
+                if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle) {
+                    auto& my_fixture = body->GetFixtures().front();
+                    auto& other_fixture = comp->body->GetFixtures().front();
+                    if (FlatPhysics::Collision::IntersectCircles(body->GetPosition(), my_fixture->GetShape().AsCircle()->radius, comp->body->GetPosition(), other_fixture->GetShape().AsCircle()->radius, &normal, &depth)) {
+                        std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID << std::endl;
+                        comp->body->Move(normal * depth);
+                    }
+                }
+            }
+        }
+    }
+    DrawBody();
+
     //std::cout << transform->Get_World_Position().x() << " " << transform->Get_World_Position().y() << std::endl;
 }
 
@@ -40,7 +59,7 @@ void DrawBodyComponent::DrawBody()
 {
     const float x = body->GetPosition().GetX();
     const float y = body->GetPosition().GetY();
-    const float rot = 0;
+    const float rot = body->GetRotation();
 
     // Color: gray for static, cyan for dynamic
     const float r = 255;
@@ -50,25 +69,32 @@ void DrawBodyComponent::DrawBody()
 
     switch (body->shape_type)
     {
-    case FlatPhysics::ShapeType::Circle:
-        // scale_x/scale_y are final on-screen size; use diameter
+    case FlatPhysics::ShapeType::Circle: {
+        auto& my_fixture = body->GetFixtures().front();
+        float radius = my_fixture->GetShape().AsCircle()->radius;
         Engine::instance->renderer->draw_ex("circle", x, y, rot,
-            body->radius * 2.0f, body->radius * 2.0f,   // scale to diameter
-            0.5f, 0.5f,                         // pivot at center
+            radius * 2.0f, radius * 2.0f,  
+            0.5f, 0.5f,                   
             r, g, bl, a, 0);
         break;
-    case FlatPhysics::ShapeType::Box:
+    }
+
+    case FlatPhysics::ShapeType::Box: {
+        auto& my_fixture = body->GetFixtures().front();
+        float width = my_fixture->GetShape().AsBox()->width;
+        float height = my_fixture->GetShape().AsBox()->height;
         Engine::instance->renderer->draw_ex("box" + std::to_string(holder_object->ID % 3 + 1), x, y, rot,
-            body->width, body->height,                   // scale to size
+            width, height,
             0.5f, 0.5f,
             r, g, bl, a, 0);
         break;
+    }
     }
 }
 
 void DrawBodyComponent::MoveFirstBody()
 {
-    if (holder_object->ID != 45)return;
+    if (holder_object->ID != 44)return;
     Vector2 dir(0.0f, 0.0f);
     if (Input::GetKey(SDL_SCANCODE_W)) dir += Vector2(0.0f, -1.0f);
     if (Input::GetKey(SDL_SCANCODE_S)) dir += Vector2(0.0f, 1.0f);
@@ -80,4 +106,12 @@ void DrawBodyComponent::MoveFirstBody()
         const Vector2 delta = dir * 0.05;
         body->Move(delta);                        
     }
+}
+
+void DrawBodyComponent::Rotate()
+{
+    if (!body) return;
+
+    float rotation_speed = 1.0f; 
+    body->Rotate(rotation_speed);
 }

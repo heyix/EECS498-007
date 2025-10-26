@@ -31,7 +31,8 @@ namespace FlatPhysics {
 
         FlatBody* GetBody()        const { return body_; }
         const Shape& GetShape()       const { return *shape_; }
-        const Filter& GetFilter()      const { return filter_; }
+        ShapeType GetShapeType() { return shape_->GetType(); }
+        Filter& GetFilter()      { return filter_; }
         bool            GetIsTrigger()       const { return is_trigger_; }
         float           GetDensity()     const { return density_; }
         float           GetFriction()    const { return friction_; }

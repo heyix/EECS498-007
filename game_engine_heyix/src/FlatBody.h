@@ -38,14 +38,11 @@ namespace FlatPhysics {
 
         const bool  is_static;
 
-        const float radius;
-        const float width;
-        const float height;
-
         const ShapeType shape_type;
 
     public:
         const Vector2& GetPosition() const { return position; }
+        float GetRotation()const { return rotation; }
         const std::vector<std::unique_ptr<FlatFixture>>& GetFixtures()const { return fixtures_; }
         int GetFixtureCount()const { return fixtures_.size(); }
 
@@ -54,6 +51,7 @@ namespace FlatPhysics {
         void DestroyFixture(FlatFixture* fixture);
         void Move(Vector2 amount);
         void MoveTo(Vector2 position);
+        void Rotate(float amount);
 
     public:
         static bool CreateCircleBody(float radius, Vector2 position, float density, bool is_static,

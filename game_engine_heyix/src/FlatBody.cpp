@@ -43,9 +43,6 @@ FlatBody::FlatBody(
     restitution(FlatMath::Clamp(restitution_, 0.0f, 1.0f)),
     area(area_),
     is_static(is_static_),
-    radius(radius_),
-    width(width_),
-    height(height_),
     shape_type(shape_type_)
 {
     FixtureDef fd;
@@ -55,13 +52,13 @@ FlatBody::FlatBody(
     std::unique_ptr<Shape> shape;
     if (shape_type == ShapeType::Circle) {
         auto c = std::make_unique<CircleShape>();
-        c->radius = radius;
+        c->radius = radius_;
         shape = std::move(c);
     }
     else {
         auto b = std::make_unique<BoxShape>();
-        b->width = width;
-        b->height = height;
+        b->width = width_;
+        b->height = height_;
         shape = std::move(b);
     }
     fd.shape = shape.get();
@@ -92,6 +89,11 @@ void FlatBody::Move(Vector2 amount) {
 
 void FlatBody::MoveTo(Vector2 p) {
     this->position = p;
+}
+
+void FlatPhysics::FlatBody::Rotate(float amount)
+{
+    this->rotation += amount;
 }
 
 bool FlatBody::CreateCircleBody(float r, Vector2 pos, float density, bool is_static,

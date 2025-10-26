@@ -24,6 +24,7 @@
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\CircleCollider.cpp" />
     <ClCompile Include="src\ColliderBase.cpp" />
+    <ClCompile Include="src\Collision.cpp" />
     <ClCompile Include="src\Component.cpp" />
     <ClCompile Include="src\ComponentDB.cpp" />
     <ClCompile Include="src\ContactListener.cpp" />
@@ -33,6 +34,7 @@
     <ClCompile Include="src\FlatFixture.cpp" />
     <ClCompile Include="src\FlatMath.cpp" />
     <ClCompile Include="src\FlatShape.cpp" />
+    <ClCompile Include="src\FlatTransform.cpp" />
     <ClCompile Include="src\FlatWorld.cpp" />
     <ClCompile Include="src\GameData.cpp" />
     <ClCompile Include="src\GameObjectDB.cpp" />
@@ -142,6 +144,7 @@
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\CircleCollider.h" />
     <ClInclude Include="src\ColliderBase.h" />
+    <ClInclude Include="src\Collision.h" />
     <ClInclude Include="src\Component.h" />
     <ClInclude Include="src\ComponentDB.h" />
     <ClInclude Include="src\ComponentGroup.h" />
@@ -152,6 +155,7 @@
     <ClInclude Include="src\FlatFixture.h" />
     <ClInclude Include="src\FlatMath.h" />
     <ClInclude Include="src\FlatShape.h" />
+    <ClInclude Include="src\FlatTransform.h" />
     <ClInclude Include="src\FlatWorld.h" />
     <ClInclude Include="src\GameData.h" />
     <ClInclude Include="src\GameObjectDB.h" />

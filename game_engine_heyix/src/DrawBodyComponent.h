@@ -14,10 +14,11 @@ public:
     void On_Update()override;
     void On_Start()override;
 public:
-    FlatPhysics::ShapeType shape = FlatPhysics::ShapeType::Box;
+    FlatPhysics::ShapeType shape = FlatPhysics::ShapeType::Circle;
 private:
-    std::unique_ptr<FlatPhysics::FlatBody> body;
+    std::unique_ptr<FlatPhysics::FlatBody> body = nullptr;
 private:
     void DrawBody();
     void MoveFirstBody();
+    void Rotate();
 };
