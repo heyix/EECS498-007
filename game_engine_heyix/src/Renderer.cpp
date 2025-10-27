@@ -51,9 +51,15 @@ void Renderer::draw_pixel(float x, float y, float r, float g, float b, float a)
 {
 	pixels_request_queue.push_back({ x,y,r,g,b,a });
 }
-void Renderer::draw_polygon(const std::vector<Vector2>& vertices, float r, float g, float b, float a)
+void Renderer::draw_polygon(const std::vector<Vector2>& vertices,
+	float x, float y,
+	float r, float g, float b, float a)
 {
-	polygon_draw_request_queue.emplace_back(vertices, r, g, b, a);
+	polygon_draw_request_queue.emplace_back(vertices, x, y, r, g, b, a);
+}
+void Renderer::draw_polygon_world(const std::vector<Vector2>& worldVertices, float r, float g, float b, float a)
+{
+	draw_polygon(worldVertices, 0, 0, r, g, b, a);
 }
 void Renderer::Render_And_Clear_All_UI_Image_Requests()
 {
@@ -115,15 +121,16 @@ void Renderer::Render_And_Clear_All_Polygon_Requests()
 	if (polygon_draw_request_queue.empty())
 		return;
 
-	// Setup SDL renderer color blending
 	SDL_SetRenderDrawBlendMode(sdl_renderer, SDL_BLENDMODE_BLEND);
 
-	const int pixels_per_meter = 100;
-	glm::vec2 cam_pos = Engine::instance->running_game->Get_Camera_Position();
-	glm::ivec2 cam_dim = Engine::instance->running_game->Get_Camera_Dimension();
-	float zoom = Engine::instance->running_game->Get_Zoom_Factor();
+	const float ppm = 100.0f;
+	const glm::vec2 cam_pos = Engine::instance->running_game->Get_Camera_Position();
+	const glm::ivec2 cam_dim = Engine::instance->running_game->Get_Camera_Dimension();
+	const float zoom = Engine::instance->running_game->Get_Zoom_Factor();
 
-	// Process all queued polygons
+	const float ox = cam_dim.x * 0.5f * (1.0f / zoom);
+	const float oy = cam_dim.y * 0.5f * (1.0f / zoom);
+
 	while (!polygon_draw_request_queue.empty())
 	{
 		const auto& req = polygon_draw_request_queue.front();
@@ -136,28 +143,31 @@ void Renderer::Render_And_Clear_All_Polygon_Requests()
 			static_cast<Uint8>(req.a)
 		);
 
-		// Draw polygon edges
-		for (size_t i = 0; i < req.vertices.size(); ++i)
+		const auto& verts = req.vertices;
+		const size_t n = verts.size();
+		if (n >= 2)
 		{
-			const auto& v0 = req.vertices[i];
-			const auto& v1 = req.vertices[(i + 1) % req.vertices.size()];
+			for (size_t i = 0; i < n; ++i)
+			{
+				// local → world
+				const float v0wx = verts[i].x() + req.x;
+				const float v0wy = verts[i].y() + req.y;
+				const float v1wx = verts[(i + 1) % n].x() + req.x;
+				const float v1wy = verts[(i + 1) % n].y() + req.y;
 
-			glm::vec2 p0 = (glm::vec2(v0.x(), v0.y()) - cam_pos) * float(pixels_per_meter);
-			glm::vec2 p1 = (glm::vec2(v1.x(), v1.y()) - cam_pos) * float(pixels_per_meter);
+				// world → camera space
+				const float c0x = (v0wx - cam_pos.x) * ppm + ox;
+				const float c0y = (v0wy - cam_pos.y) * ppm + oy;
+				const float c1x = (v1wx - cam_pos.x) * ppm + ox;
+				const float c1y = (v1wy - cam_pos.y) * ppm + oy;
 
-			glm::vec2 offset(cam_dim.x * 0.5f * (1.0f / zoom),
-				cam_dim.y * 0.5f * (1.0f / zoom));
-
-			p0 += offset;
-			p1 += offset;
-
-			SDL_RenderDrawLineF(sdl_renderer, p0.x, p0.y, p1.x, p1.y);
+				SDL_RenderDrawLineF(sdl_renderer, c0x, c0y, c1x, c1y);
+			}
 		}
 
 		polygon_draw_request_queue.pop_front();
 	}
 
-	// Restore to normal draw color
 	SDL_SetRenderDrawColor(sdl_renderer, clear_color_r, clear_color_g, clear_color_b, clear_color_a);
 	SDL_SetRenderDrawBlendMode(sdl_renderer, SDL_BLENDMODE_NONE);
 }

@@ -20,6 +20,18 @@ namespace {
             return BoxArea(b.width, b.height);
         }
     }
+    static float polygon_signed_area(const std::vector<Vector2>& v) {
+        const size_t n = v.size();
+        if (n < 3) return 0.0f;
+        double s = 0.0;
+        for (size_t i = 0; i < n; ++i) {
+            const Vector2& a = v[i];
+            const Vector2& b = v[(i + 1) % n];
+            s += static_cast<double>(a.x()) * static_cast<double>(b.y())
+                - static_cast<double>(a.y()) * static_cast<double>(b.x());
+        }
+        return static_cast<float>(0.5 * s);
+    }
 }
 
 
@@ -33,6 +45,7 @@ FlatBody::FlatBody(
     float radius_,
     float width_,
     float height_,
+    const std::vector<Vector2>& vertices,
     ShapeType shape_type_)
     : position(pos),
     linear_velocity(Vector2::Zero()),
@@ -43,7 +56,8 @@ FlatBody::FlatBody(
     restitution(FlatMath::Clamp(restitution_, 0.0f, 1.0f)),
     area(area_),
     is_static(is_static_),
-    shape_type(shape_type_)
+    shape_type(shape_type_),
+    current_transform(FlatTransform(position,rotation))
 {
     FixtureDef fd;
     fd.density = density;
@@ -51,14 +65,15 @@ FlatBody::FlatBody(
 
     std::unique_ptr<Shape> shape;
     if (shape_type == ShapeType::Circle) {
-        auto c = std::make_unique<CircleShape>();
-        c->radius = radius_;
+        auto c = std::make_unique<CircleShape>(pos,radius_);
+        shape = std::move(c);
+    }
+    else if (shape_type == ShapeType::Polygon) {
+        auto c = std::make_unique<PolygonShape>(vertices);
         shape = std::move(c);
     }
     else {
-        auto b = std::make_unique<BoxShape>();
-        b->width = width_;
-        b->height = height_;
+        auto b = std::make_unique<BoxShape>(width_,height_);
         shape = std::move(b);
     }
     fd.shape = shape.get();
@@ -83,17 +98,29 @@ void FlatPhysics::FlatBody::DestroyFixture(FlatFixture* fixture)
     }
 }
 
+FlatTransform FlatPhysics::FlatBody::GetTransform()
+{
+    if (need_update_transform) {
+        current_transform = FlatTransform(position, rotation);
+        need_update_transform = false;
+    }
+    return current_transform;
+}
+
 void FlatBody::Move(Vector2 amount) {
     this->position += amount;
+    need_update_transform = true;
 }
 
 void FlatBody::MoveTo(Vector2 p) {
     this->position = p;
+    need_update_transform = true;
 }
 
 void FlatPhysics::FlatBody::Rotate(float amount)
 {
     this->rotation += amount;
+    need_update_transform = true;
 }
 
 bool FlatBody::CreateCircleBody(float r, Vector2 pos, float density, bool is_static,
@@ -131,7 +158,7 @@ bool FlatBody::CreateCircleBody(float r, Vector2 pos, float density, bool is_sta
 
     const float m = area * density;
     out_body.reset(new FlatBody(pos, density, m, restitution, area, is_static,
-        r, 0.0f, 0.0f, ShapeType::Circle));
+        r, 0.0f, 0.0f, {},ShapeType::Circle));
     return true;
 }
 
@@ -170,6 +197,55 @@ bool FlatBody::CreateBoxBody(float w, float h, Vector2 pos, float density, bool 
 
     const float m = area * density;
     out_body.reset(new FlatBody(pos, density, m, restitution, area, is_static,
-        0.0f, w, h, ShapeType::Box));
+        0.0f, w, h, {}, ShapeType::Box));
+    return true;
+}
+
+bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2> vertices, Vector2 position, float density, bool is_static, float restitution, std::unique_ptr<FlatBody>& out_body, std::string* error_message)
+{
+    out_body = nullptr;
+    if (error_message) *error_message = "";
+
+    if (vertices.size() < 3) {
+        if (error_message) *error_message = "Polygon needs at least 3 vertices.";
+        return false;
+    }
+
+    const float signedArea = polygon_signed_area(vertices);
+    const float area = std::abs(signedArea);
+
+    if (area < FlatWorld::MinBodySize) {
+        if (error_message) *error_message =
+            "Body polygon is too small, requested area is " + std::to_string(area) +
+            " and minimum allowed area is " + std::to_string(FlatWorld::MinBodySize);
+        return false;
+    }
+    if (area > FlatWorld::MaxBodySize) {
+        if (error_message) *error_message =
+            "Body polygon is too big, requested area is " + std::to_string(area) +
+            " and maximum allowed area is " + std::to_string(FlatWorld::MaxBodySize);
+        return false;
+    }
+    if (density < FlatWorld::MinDensity) {
+        if (error_message) *error_message =
+            "Body density is too small, requested density is " + std::to_string(density) +
+            " and minimum allowed density is " + std::to_string(FlatWorld::MinDensity);
+        return false;
+    }
+    if (density > FlatWorld::MaxDensity) {
+        if (error_message) *error_message =
+            "Body density is too big, requested density is " + std::to_string(density) +
+            " and maximum allowed density is " + std::to_string(FlatWorld::MaxDensity);
+        return false;
+    }
+
+    const float mass = area * density;
+
+    auto body = std::unique_ptr<FlatBody>(
+        new FlatBody(position, density, mass, restitution, area, is_static,
+            /*r*/0.0f, /*w*/0.0f, /*h*/0.0f, vertices,ShapeType::Polygon)
+    );
+
+    out_body = std::move(body);
     return true;
 }

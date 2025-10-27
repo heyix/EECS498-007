@@ -34,7 +34,12 @@ namespace FlatPhysics {
 
 	class CircleShape :public Shape {
 	public:
+		CircleShape() {}
+		CircleShape(float radius):radius(radius) {}
+		CircleShape(Vector2 center, float radius) :center(center), radius(radius) {}
+	public:
 		float radius = 1.0f;
+		Vector2 center{};
 		ShapeType GetType()const override { return ShapeType::Circle; }
 		std::unique_ptr<Shape> Clone() const override { return std::make_unique<CircleShape>(*this); }
 	};
@@ -46,7 +51,7 @@ namespace FlatPhysics {
 	class BoxShape :public Shape {
 	public:
 		BoxShape() { UpdateVertices(); }
-		BoxShape(float w, float h) : width(w), height(h) {
+		BoxShape(float w, float h) : width(w), height(h){
 			UpdateVertices();
 		}
 	public:
@@ -82,7 +87,7 @@ namespace FlatPhysics {
 	class PolygonShape : public Shape {
 	public:
 		PolygonShape() {}
-		PolygonShape(const std::vector<Vector2>& verts) :vertices(verts) {}
+		PolygonShape(const std::vector<Vector2>& verts) :vertices(verts){}
 	public:
 		std::vector<Vector2> vertices;
 

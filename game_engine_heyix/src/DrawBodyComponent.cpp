@@ -35,6 +35,17 @@ void DrawBodyComponent::On_Update()
                         comp->body->Move(normal * depth);
                     }
                 }
+                else if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon) {
+                    auto& my_fixture = body->GetFixtures().front();
+                    auto& other_fixture = comp->body->GetFixtures().front();
+                    auto my_vertices = my_fixture->GetShape().AsPolygon()->vertices;
+                    auto other_vertices = other_fixture->GetShape().AsPolygon()->vertices;
+                    auto my_transform = body->GetTransform();
+                    auto other_transform = comp->body->GetTransform();
+                    if (FlatPhysics::Collision::IntersectPolygons(FlatPhysics::FlatTransform::TransformVectors(my_vertices,my_transform), FlatPhysics::FlatTransform::TransformVectors(other_vertices, other_transform))) {
+                        std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID <<" Polygon" <<std::endl;
+                    }
+                }
             }
         }
     }
@@ -55,6 +66,16 @@ void DrawBodyComponent::On_Start()
 		std::string error_message;
 		FlatPhysics::FlatBody::CreateBoxBody(1, 1, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body, &error_message);
 	}
+    else if (shape == FlatPhysics::ShapeType::Polygon) {
+        std::unique_ptr<FlatPhysics::FlatBody> body;
+        const float s = 0.4f;
+        std::vector<Vector2> poly;
+        poly.emplace_back(-s, -s+0.2f);
+        poly.emplace_back(+s, -s);
+        poly.emplace_back(+s, +s);
+        poly.emplace_back(-s, +s);
+        FlatPhysics::FlatBody::CreatePolygonBody(poly, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body);
+    }
 	else {
 		std::unique_ptr<FlatPhysics::FlatBody> body;
 		FlatPhysics::FlatBody::CreateCircleBody(0.5f, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body);
@@ -95,11 +116,17 @@ void DrawBodyComponent::DrawBody()
                 r, g, bl, a, 0);
             break;
         }
+        case FlatPhysics::ShapeType::Polygon: {
+            auto& my_fixture = body->GetFixtures().front();
+            auto& vertices = my_fixture->GetShape().AsPolygon()->vertices;
+            Engine::instance->renderer->draw_polygon_world(FlatPhysics::FlatTransform::TransformVectors(vertices,body->GetTransform()),  0, 255, 0, 255);
+            break;
+        }
     }
 
-    {
-        const float cx = x + 1.0f;
-        const float cy = y + 0.0f;
+    /*{
+        const float cx = 1.0f;
+        const float cy = 0.0f;
         const float s = 0.4f;
 
         std::vector<Vector2> poly;
@@ -108,11 +135,11 @@ void DrawBodyComponent::DrawBody()
         poly.emplace_back(cx + s, cy + s);
         poly.emplace_back(cx - s, cy + s);
 
-        Engine::instance->renderer->draw_polygon(poly, 0, 255, 0, 255);
+        Engine::instance->renderer->draw_polygon(poly, x, y, 0, 255, 0, 255);
 
 
-        const float dx = x;
-        const float dy = y - 1.0f;
+        const float dx = 0.0f;
+        const float dy = - 1.0f;
         const float s2 = 0.3f;
 
         std::vector<Vector2> tri;
@@ -120,8 +147,8 @@ void DrawBodyComponent::DrawBody()
         tri.emplace_back(dx + s2, dy + s2);
         tri.emplace_back(dx + 0.0f, dy - s2);
 
-        Engine::instance->renderer->draw_polygon(tri, 255, 128, 0, 255);
-    }
+        Engine::instance->renderer->draw_polygon(tri, x, y, 255, 128, 0, 255);
+    }*/
 
 }
 
@@ -144,7 +171,12 @@ void DrawBodyComponent::MoveFirstBody()
 void DrawBodyComponent::Rotate()
 {
     if (!body) return;
-
-    float rotation_speed = 1.0f; 
-    body->Rotate(rotation_speed);
+    if (body->shape_type == FlatPhysics::ShapeType::Circle) {
+        float rotation_speed = 1.0f;
+        body->Rotate(rotation_speed);
+    }
+    else if (body->shape_type == FlatPhysics::ShapeType::Polygon) {
+        float rotation_speed = 0.04f;
+        body->Rotate(rotation_speed);
+    }
 }

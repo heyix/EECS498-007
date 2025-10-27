@@ -5,6 +5,9 @@ namespace FlatPhysics {
 	class Collision {
 	public:
 		static bool IntersectCircles(Vector2 centerA, float radiusA, Vector2 centerB, float radiusB, Vector2* normal = nullptr, float* depth = nullptr);
-		static bool IntersectPolygons(const std::vector<Vector2> verticesA, const std::vector<Vector2> verticesB);
+		static bool IntersectPolygons(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB);
+
+	private:
+		static std::pair<float,float> ProjectVertices(const std::vector<Vector2>& vertices, Vector2 axis);
 	};
 }

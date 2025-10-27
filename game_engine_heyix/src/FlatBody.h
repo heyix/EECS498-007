@@ -4,6 +4,8 @@
 #include <memory>
 #include "FlatShape.h"
 #include "FlatFixture.h"
+#include <vector>
+#include "FlatTransform.h"
 namespace FlatPhysics {
 
 
@@ -19,6 +21,7 @@ namespace FlatPhysics {
             float radius_,
             float width_,
             float height_,
+            const std::vector<Vector2>& vertices,
             ShapeType shape_type_
         );
 
@@ -27,6 +30,8 @@ namespace FlatPhysics {
         Vector2 linear_velocity;
         float   rotation;
         float   rotation_velocity;
+        FlatTransform current_transform{};
+        bool need_update_transform = false;
 
         std::vector<std::unique_ptr<FlatFixture>> fixtures_;
 
@@ -45,10 +50,11 @@ namespace FlatPhysics {
         float GetRotation()const { return rotation; }
         const std::vector<std::unique_ptr<FlatFixture>>& GetFixtures()const { return fixtures_; }
         int GetFixtureCount()const { return fixtures_.size(); }
-
-    public:
         FlatFixture* CreateFixture(const FixtureDef& def);
         void DestroyFixture(FlatFixture* fixture);
+        FlatTransform GetTransform();
+    public:
+
         void Move(Vector2 amount);
         void MoveTo(Vector2 position);
         void Rotate(float amount);
@@ -59,6 +65,9 @@ namespace FlatPhysics {
             std::string* error_message = nullptr);
 
         static bool CreateBoxBody(float width, float height, Vector2 position, float density, bool is_static,
+            float restitution, std::unique_ptr<FlatBody>& out_body,
+            std::string* error_message = nullptr);
+        static bool CreatePolygonBody(const std::vector<Vector2> vertices, Vector2 position, float density, bool is_static,
             float restitution, std::unique_ptr<FlatBody>& out_body,
             std::string* error_message = nullptr);
     };

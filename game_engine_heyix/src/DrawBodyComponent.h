@@ -14,7 +14,7 @@ public:
     void On_Update()override;
     void On_Start()override;
 public:
-    FlatPhysics::ShapeType shape = FlatPhysics::ShapeType::Circle;
+    FlatPhysics::ShapeType shape = FlatPhysics::ShapeType::Polygon;
 private:
     std::unique_ptr<FlatPhysics::FlatBody> body = nullptr;
 private:
