@@ -27,17 +27,15 @@ void DrawBodyComponent::On_Update()
             if (comp->body) {
                 Vector2 normal;
                 float depth;
+                auto& my_fixture = body->GetFixtures().front();
+                auto& other_fixture = comp->body->GetFixtures().front();
                 if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle) {
-                    auto& my_fixture = body->GetFixtures().front();
-                    auto& other_fixture = comp->body->GetFixtures().front();
                     if (FlatPhysics::Collision::IntersectCircles(body->GetPosition(), my_fixture->GetShape().AsCircle()->radius, comp->body->GetPosition(), other_fixture->GetShape().AsCircle()->radius, &normal, &depth)) {
                         std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID << std::endl;
                         comp->body->Move(normal * depth);
                     }
                 }
                 else if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon) {
-                    auto& my_fixture = body->GetFixtures().front();
-                    auto& other_fixture = comp->body->GetFixtures().front();
                     auto my_vertices = my_fixture->GetShape().AsPolygon()->vertices;
                     auto other_vertices = other_fixture->GetShape().AsPolygon()->vertices;
                     auto my_transform = body->GetTransform();
@@ -70,10 +68,11 @@ void DrawBodyComponent::On_Start()
         std::unique_ptr<FlatPhysics::FlatBody> body;
         const float s = 0.4f;
         std::vector<Vector2> poly;
-        poly.emplace_back(-s, -s+0.2f);
-        poly.emplace_back(+s, -s);
-        poly.emplace_back(+s, +s);
-        poly.emplace_back(-s, +s);
+        poly.emplace_back(-s, -s+0.2f);       // bottom-left
+        poly.emplace_back(+s, -s);       // bottom-right
+        poly.emplace_back(+s, +s);       // top-right
+        //poly.emplace_back(0.0f, +s * 0.3f); // inner dent (makes it concave)
+        poly.emplace_back(-s, +s);       // top-left
         FlatPhysics::FlatBody::CreatePolygonBody(poly, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body);
     }
 	else {
@@ -123,32 +122,6 @@ void DrawBodyComponent::DrawBody()
             break;
         }
     }
-
-    /*{
-        const float cx = 1.0f;
-        const float cy = 0.0f;
-        const float s = 0.4f;
-
-        std::vector<Vector2> poly;
-        poly.emplace_back(cx - s, cy - s+0.2f);
-        poly.emplace_back(cx + s, cy - s);
-        poly.emplace_back(cx + s, cy + s);
-        poly.emplace_back(cx - s, cy + s);
-
-        Engine::instance->renderer->draw_polygon(poly, x, y, 0, 255, 0, 255);
-
-
-        const float dx = 0.0f;
-        const float dy = - 1.0f;
-        const float s2 = 0.3f;
-
-        std::vector<Vector2> tri;
-        tri.emplace_back(dx - s2, dy + s2);
-        tri.emplace_back(dx + s2, dy + s2);
-        tri.emplace_back(dx + 0.0f, dy - s2);
-
-        Engine::instance->renderer->draw_polygon(tri, x, y, 255, 128, 0, 255);
-    }*/
 
 }
 

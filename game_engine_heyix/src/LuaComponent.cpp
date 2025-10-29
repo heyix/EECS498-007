@@ -20,6 +20,17 @@ void LuaComponent::On_Destroy()
 	if (on_destroy_func) {
 		LuaDB::Call_Cached_Lua_Function_With_Self(lua_component, on_destroy_func.get());
 	}
+	lua_component["actor"] = luabridge::LuaRef(LuaDB::lua_state);
+	lua_component["key"] = luabridge::LuaRef(LuaDB::lua_state);
+
+	on_start_func.reset();
+	on_update_func.reset();
+	on_destroy_func.reset();
+	on_late_update_func.reset();
+	on_collision_enter_func.reset();
+	on_collision_exit_func.reset();
+	on_trigger_enter_func.reset();
+	on_trigger_exit_func.reset();
 }
 
 void LuaComponent::On_LateUpdate()

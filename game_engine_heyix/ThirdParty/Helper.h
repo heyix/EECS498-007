@@ -137,7 +137,7 @@ public:
 		/* Present and then wait for the next frame to begin */
 		if (!_autograder_mode)
 			::SDL_RenderPresent(renderer); // The autograder doesn't need to render to window.
-		SDL_Delay();
+		//SDL_Delay();
 		frame_number++;
 	}
 

@@ -113,6 +113,7 @@ public:
 	void draw_pixel(float x, float y, float r, float g, float b, float a);
 	void draw_polygon(const std::vector<Vector2>& vertices, float x,float y, float r, float g, float b, float a);
 	void draw_polygon_world(const std::vector<Vector2>& worldVertices,float r, float g, float b, float a);
+	void clear_all_request_queues();
 
 	template<typename T>
 	void draw_ui(T&& image_name, float x, float y)
@@ -134,15 +135,15 @@ public:
 	{
 		scene_space_image_request_queue.emplace_back( std::forward<T>(image_name), x, y, rotation_degrees,scale_x, scale_y, pivot_x, pivot_y,  r,  g,  b,  a, sorting_order );
 	}
-public:
-	void Render_And_Clear_All_Scene_Space_Image_Requests();
-	void Render_And_Clear_All_UI_Image_Requests();
-	void Render_And_Clear_All_Pixel_Draw_Request();
-	void Render_And_Clear_All_Text_Requests();
-	void Render_And_Clear_All_FRect_Requests();
-	void Render_And_Clear_All_Polygon_Requests();
 private:
-	void render_and_clear_image_request_queue(std::vector<ImageDrawRequest>& request_queue);
+	void Render_All_Scene_Space_Image_Requests();
+	void Render_All_UI_Image_Requests();
+	void Render_All_Pixel_Draw_Request();
+	void Render_All_Text_Requests();
+	void Render_All_FRect_Requests();
+	void Render_All_Polygon_Requests();
+private:
+	void render_image_request_queue(std::vector<ImageDrawRequest>& request_queue);
 public:
 	SDL_Window* sdl_window;
 	SDL_Renderer* sdl_renderer;

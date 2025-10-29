@@ -21,7 +21,8 @@ void Game::game_loop()
 		EventBus::Process_Subscription();
 		PhysicsDB::Physics_Step();
 		sync_rigidbody_and_transform();
-		render(); 
+		//render(); 
+		Engine::instance->renderer->clear_all_request_queues();
 		Input::LateUpdate();
 	}
 }
@@ -329,5 +330,5 @@ void Game::load_current_scene(const std::shared_ptr<Scene>& new_scene)
 
 void Game::init_renderer()
 {
-	Engine::instance->renderer->init_renderer(game_data.game_config_data.game_title.c_str(), 150, 150, game_data.rendering_config_data.resolution.x, game_data.rendering_config_data.resolution.y, -1, 0, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+	Engine::instance->renderer->init_renderer(game_data.game_config_data.game_title.c_str(), 150, 150, game_data.rendering_config_data.resolution.x, game_data.rendering_config_data.resolution.y, -1, 0,  SDL_RENDERER_ACCELERATED);
 }

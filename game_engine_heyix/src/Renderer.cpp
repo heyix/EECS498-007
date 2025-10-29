@@ -16,12 +16,12 @@ void Renderer::clear_renderer()
 
 void Renderer::render_frame()
 {
-	Render_And_Clear_All_Scene_Space_Image_Requests();
-	Render_And_Clear_All_UI_Image_Requests();
-	Render_And_Clear_All_Text_Requests();
-	Render_And_Clear_All_Pixel_Draw_Request();
-	Render_And_Clear_All_FRect_Requests();
-	Render_And_Clear_All_Polygon_Requests();
+	Render_All_Scene_Space_Image_Requests();
+	Render_All_UI_Image_Requests();
+	Render_All_Text_Requests();
+	Render_All_Pixel_Draw_Request();
+	Render_All_FRect_Requests();
+	Render_All_Polygon_Requests();
 	SDL_RenderSetScale(sdl_renderer, 1, 1);
 
 	Helper::SDL_RenderPresent(sdl_renderer);
@@ -61,12 +61,21 @@ void Renderer::draw_polygon_world(const std::vector<Vector2>& worldVertices, flo
 {
 	draw_polygon(worldVertices, 0, 0, r, g, b, a);
 }
-void Renderer::Render_And_Clear_All_UI_Image_Requests()
+void Renderer::clear_all_request_queues()
+{
+	pixels_request_queue.clear();
+	text_draw_request_queue.clear();
+	frect_draw_request_queue.clear();
+	polygon_draw_request_queue.clear();
+	ui_image_request_queue.clear();
+	scene_space_image_request_queue.clear();
+}
+void Renderer::Render_All_UI_Image_Requests()
 {
 	SDL_RenderSetScale(sdl_renderer, 1,1);
-	render_and_clear_image_request_queue(ui_image_request_queue);
+	render_image_request_queue(ui_image_request_queue);
 }
-void Renderer::Render_And_Clear_All_Pixel_Draw_Request()
+void Renderer::Render_All_Pixel_Draw_Request()
 {
 	for (auto& image_request : pixels_request_queue) {
 		SDL_Color color{ static_cast<Uint8>(image_request.r),static_cast<Uint8>(image_request.g),static_cast<Uint8>(image_request.b),static_cast<Uint8>(image_request.a) };
@@ -77,17 +86,16 @@ void Renderer::Render_And_Clear_All_Pixel_Draw_Request()
 	}
 	pixels_request_queue.clear();
 }
-void Renderer::Render_And_Clear_All_Scene_Space_Image_Requests()
+void Renderer::Render_All_Scene_Space_Image_Requests()
 {
 	float zoom_factor = Engine::instance->running_game->Get_Zoom_Factor();
 	SDL_RenderSetScale(sdl_renderer, zoom_factor, zoom_factor);
-	render_and_clear_image_request_queue(scene_space_image_request_queue);
+	render_image_request_queue(scene_space_image_request_queue);
 }
 
-void Renderer::Render_And_Clear_All_Text_Requests()
+void Renderer::Render_All_Text_Requests()
 {
-	while (!text_draw_request_queue.empty()) {
-		auto& text_request = text_draw_request_queue.front();
+	for (auto& text_request : text_draw_request_queue) {
 		//if (text_request.zoom_factor != last_zoom_factor) {
 		//	SDL_RenderSetScale(sdl_renderer, text_request.zoom_factor, text_request.zoom_factor);
 		//	last_zoom_factor = text_request.zoom_factor;
@@ -97,14 +105,12 @@ void Renderer::Render_And_Clear_All_Text_Requests()
 		Helper::SDL_QueryTexture(texture, &width, &height);
 		SDL_FRect dst_rect = { text_request.x,text_request.y,width,height };
 		Helper::SDL_RenderCopy(sdl_renderer, texture, nullptr, &dst_rect);
-		text_draw_request_queue.pop_front();
 	}
 }
 
-void Renderer::Render_And_Clear_All_FRect_Requests()
+void Renderer::Render_All_FRect_Requests()
 {
-	while (!frect_draw_request_queue.empty()) {
-		auto& frect_request = frect_draw_request_queue.front();
+	for (auto& frect_request :frect_draw_request_queue) {
 		//if (frect_request.zoom_factor != last_zoom_factor) {
 		//	SDL_RenderSetScale(sdl_renderer, frect_request.zoom_factor, frect_request.zoom_factor);
 		//	last_zoom_factor = frect_request.zoom_factor;
@@ -112,11 +118,10 @@ void Renderer::Render_And_Clear_All_FRect_Requests()
 		SDL_SetRenderDrawColor(sdl_renderer, 255, 0, 0, 255);
 		SDL_RenderDrawRectF(sdl_renderer, &frect_request.rect);
 		SDL_SetRenderDrawColor(sdl_renderer, clear_color_r, clear_color_g, clear_color_b, 255);
-		frect_draw_request_queue.pop_front();
 	}
 }
 
-void Renderer::Render_And_Clear_All_Polygon_Requests()
+void Renderer::Render_All_Polygon_Requests()
 {
 	if (polygon_draw_request_queue.empty())
 		return;
@@ -131,10 +136,8 @@ void Renderer::Render_And_Clear_All_Polygon_Requests()
 	const float ox = cam_dim.x * 0.5f * (1.0f / zoom);
 	const float oy = cam_dim.y * 0.5f * (1.0f / zoom);
 
-	while (!polygon_draw_request_queue.empty())
+	for (auto & req:polygon_draw_request_queue)
 	{
-		const auto& req = polygon_draw_request_queue.front();
-
 		SDL_SetRenderDrawColor(
 			sdl_renderer,
 			static_cast<Uint8>(req.r),
@@ -165,14 +168,13 @@ void Renderer::Render_And_Clear_All_Polygon_Requests()
 			}
 		}
 
-		polygon_draw_request_queue.pop_front();
 	}
 
 	SDL_SetRenderDrawColor(sdl_renderer, clear_color_r, clear_color_g, clear_color_b, clear_color_a);
 	SDL_SetRenderDrawBlendMode(sdl_renderer, SDL_BLENDMODE_NONE);
 }
 
-void Renderer::render_and_clear_image_request_queue(std::vector<ImageDrawRequest>& request_queue)
+void Renderer::render_image_request_queue(std::vector<ImageDrawRequest>& request_queue)
 {
 	std::stable_sort(request_queue.begin(), request_queue.end(), ImageDrawRequestComparator());
 	for (auto& image_request : request_queue) {

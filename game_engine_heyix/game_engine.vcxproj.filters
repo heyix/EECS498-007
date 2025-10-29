@@ -444,9 +444,6 @@
     <ClCompile Include="src\PhysicsDB.cpp">
       <Filter>Source Files\Engine\DB</Filter>
     </ClCompile>
-    <ClCompile Include="src\TextDB.cpp">
-      <Filter>Source Files\Engine\DB</Filter>
-    </ClCompile>
     <ClCompile Include="src\Camera.cpp">
       <Filter>Source Files\Engine\GameObject</Filter>
     </ClCompile>
@@ -464,6 +461,9 @@
     </ClCompile>
     <ClCompile Include="src\Vector2.cpp">
       <Filter>Source Files\Engine\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TextDB.cpp">
+      <Filter>Source Files\Engine\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -788,9 +788,6 @@
     <ClInclude Include="src\AudioDB.h">
       <Filter>Header Files\Engine\DB</Filter>
     </ClInclude>
-    <ClInclude Include="src\ImageDB.h">
-      <Filter>Header Files\Engine\DB</Filter>
-    </ClInclude>
     <ClInclude Include="src\LuaDB.h">
       <Filter>Header Files\Engine\DB</Filter>
     </ClInclude>
@@ -820,6 +817,9 @@
     </ClInclude>
     <ClInclude Include="src\EngineUtils.h">
       <Filter>Header Files\Engine\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ImageDB.h">
+      <Filter>Header Files\Engine\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
