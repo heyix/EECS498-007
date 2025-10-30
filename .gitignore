@@ -812,3 +812,6 @@ xcuserdata/
 *.out
 *.app
 sdl_user_input.txt
+
+!game_engine_heyix/resources/images/
+!game_engine_heyix/resources/images/**
