@@ -1,0 +1,25 @@
+{
+    "name": "Enemy2",
+    "components": {
+        "1": {
+            "type": "Enemy"
+        },
+        "3": {
+            "type": "ConstantMovement",
+            "x_vel": 0
+        },
+        "4": {
+            "type": "SpriteRenderer",
+            "sprite": "enemy1"
+        },
+        "2":{
+            "type":"Transform",
+            "x":50,
+            "y":50
+        },
+        "6":{
+            "type":"BoxCollider",
+            "is_trigger":true
+        }
+    }
+}

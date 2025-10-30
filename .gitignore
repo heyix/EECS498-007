@@ -340,7 +340,6 @@ IDE/MonoDevelop/MonoDevelop.MonoGame/templates/Common/MonoGame.Framework.dll.con
 *.wav
 
 build
-**/resources
 **/frames
 user_input.txt
 recorded_user_input.txt

@@ -1,0 +1,29 @@
+{
+    "name": "Projectile",
+    "components": {
+        "1": {
+            "type": "Projectile"
+        },
+        "2": {
+            "type": "Transform"
+        },
+        "3": {
+            "type": "ConstantMovement",
+            "x_vel": 15
+        },
+        "4": {
+            "type": "SpriteRenderer",
+            "sprite": "projectile"
+        },
+        "5":{
+            "type":"Rigidbody",
+            "gravity_scale":0
+        },
+        "6":{
+            "type":"BoxCollider",
+            "is_trigger":true,
+            "trigger_width":50,
+            "trigger_height":50
+        }
+    }
+}
