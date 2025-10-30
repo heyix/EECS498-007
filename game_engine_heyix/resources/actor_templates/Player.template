@@ -1,0 +1,25 @@
+{
+	"name": "player",
+	"components": {
+		"1" : {
+			"type": "Rigidbody",
+			"density": 0.5
+		},
+		"2": {
+			"type": "KeyboardControls"
+		},
+		"3": {
+			"type": "SpriteRenderer",
+			"sprite": "circle"
+		},
+		"4" : {
+			"type": "CircleCollider",
+			"radius": 0.45
+		},
+		"5" : {
+			"type": "CircleCollider",
+			"is_trigger" : true,
+			"trigger_radius": 0.55
+		}
+	}
+}

@@ -1,0 +1,17 @@
+{
+	"name": "Body",
+	"components": {
+		"2": {
+			"type": "Rigidbody",
+			"body_type": "kinematic"
+		},
+		"4": {
+			"type": "DrawBodyComponent"
+		},
+		"5":{
+			"type":"Transform",
+			"x" : 3,
+			"y" : 19
+		}
+	}
+}
