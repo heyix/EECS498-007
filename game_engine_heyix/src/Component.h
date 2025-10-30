@@ -18,7 +18,7 @@ public:
 	bool has_on_lateupdate = false;
 	bool has_on_collision_enter = false;
 	bool has_on_collision_exit = false;
-	bool has_on_trigger_enter = false;
+	bool has_on_trigger_enter = false; 
 	bool has_on_trigger_exit = false;
 	luabridge::LuaRef lua_component;
 	std::vector<ComponentGroup> component_groups;
