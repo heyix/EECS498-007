@@ -23,6 +23,9 @@ void GameObject::Record_Component_Lifecycle_Functions(Component* component)
 	if (component->has_on_update) {
 		components_required_on_update[key] = component;
 	}
+	if (component->has_on_fixed_update) {
+		components_required_on_fixed_update[key] = component;
+	}
 	if (component->has_on_lateupdate) {
 		components_required_on_lateupdate[key] = component;
 	}
@@ -48,6 +51,7 @@ void GameObject::Unrecord_Component_Lifecycle_Functions(Component* component)
 	std::string& key = component->key;
 	components_required_on_start.erase(key);
 	components_required_on_update.erase(key);
+	components_required_on_fixed_update.erase(key);
 	components_required_on_lateupdate.erase(key);
 	components_required_on_collision_enter.erase(key);
 	components_required_on_collision_exit.erase(key);
@@ -109,6 +113,21 @@ void GameObject::On_Update()
 		if (!component->pending_removing) {
 			try {
 				component->On_Update();
+			}
+			catch (const luabridge::LuaException& e) {
+				EngineUtils::Report_Error(this->name, e);
+			}
+		}
+	}
+}
+
+void GameObject::On_Fixed_Update()
+{
+	for (auto& p : components_required_on_fixed_update) {
+		Component* component = p.second;
+		if (!component->pending_removing) {
+			try {
+				component->On_Fixed_Update();
 			}
 			catch (const luabridge::LuaException& e) {
 				EngineUtils::Report_Error(this->name, e);

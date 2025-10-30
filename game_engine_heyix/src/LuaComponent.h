@@ -10,6 +10,7 @@ public:
 	std::shared_ptr<luabridge::LuaRef> on_collision_exit_func = nullptr;
 	std::shared_ptr<luabridge::LuaRef> on_trigger_enter_func = nullptr;
 	std::shared_ptr<luabridge::LuaRef> on_trigger_exit_func = nullptr;
+	std::shared_ptr<luabridge::LuaRef> on_fixed_update_func = nullptr;
 public:
 	LuaComponent(GameObject& holder, const std::string& key, const std::string& template_name, const luabridge::LuaRef& lua_ref)
 		:Component(holder,key,template_name,lua_ref)
@@ -25,6 +26,10 @@ public:
 		on_update_func = std::make_shared<luabridge::LuaRef>(lua_component["OnUpdate"]);
 		if (!on_update_func->isFunction())on_update_func = nullptr;
 		else has_on_update = true;
+
+		on_fixed_update_func = std::make_shared<luabridge::LuaRef>(lua_component["OnFixedUpdate"]);
+		if (!on_fixed_update_func->isFunction())on_fixed_update_func = nullptr;
+		else has_on_fixed_update = true;
 
 		on_destroy_func = std::make_shared<luabridge::LuaRef>(lua_component["OnDestroy"]);
 		if (!on_destroy_func->isFunction())on_destroy_func = nullptr;
@@ -52,6 +57,7 @@ public:
 	}
 	virtual void On_Start() override;
 	virtual void On_Update() override;
+	virtual void On_Fixed_Update() override;
 	virtual void On_Destroy() override;
 	virtual void On_LateUpdate() override;
 	virtual void On_Collision_Enter(const Collision& collision)override;

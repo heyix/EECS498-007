@@ -13,6 +13,7 @@ public:
 	bool pending_removing = false;
 	bool has_on_start = false;
 	bool has_on_update = false;
+	bool has_on_fixed_update = false;
 	bool has_on_destroy = false;
 	bool has_on_lateupdate = false;
 	bool has_on_collision_enter = false;
@@ -28,6 +29,7 @@ public:
 	}
 	virtual void On_Start() {}
 	virtual void On_Update() {}
+	virtual void On_Fixed_Update() {}
 	virtual void On_Destroy() {}
 	virtual void On_LateUpdate() {}
 	virtual void On_Collision_Enter(const Collision& collision) {}

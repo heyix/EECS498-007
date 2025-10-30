@@ -145,11 +145,11 @@ void DrawBodyComponent::Rotate()
 {
     if (!body) return;
     if (body->shape_type == FlatPhysics::ShapeType::Circle) {
-        float rotation_speed = 1.0f;
+        float rotation_speed = 1.0f * Engine::instance->running_game->Delta_Time();
         body->Rotate(rotation_speed);
     }
     else if (body->shape_type == FlatPhysics::ShapeType::Polygon) {
-        float rotation_speed = 0.04f;
+        float rotation_speed = 1.0f * Engine::instance->running_game->Delta_Time();
         body->Rotate(rotation_speed);
     }
 }

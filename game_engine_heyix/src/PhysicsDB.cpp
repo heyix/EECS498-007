@@ -3,6 +3,7 @@
 #include "LuaDB.h"
 #include "RigidBody.h"
 #include <algorithm>
+#include "Engine.h"
 void PhysicsDB::Init_PhysicsDB()
 {
 	
@@ -13,7 +14,7 @@ void PhysicsDB::Physics_Step()
 	if (!physics_world) {
 		return;
 	}
-	physics_world->Step(1.0f / 60.0f, 8, 3);
+	physics_world->Step(Engine::instance->running_game->Fixed_Delta_Time(), 8, 3);
 }
 
 void PhysicsDB::Rigidbody_Instantiated()

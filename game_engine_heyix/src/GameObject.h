@@ -23,6 +23,7 @@ public:
 private:
 	std::map<std::string, Component*> components_required_on_start;
 	std::map<std::string, Component*> components_required_on_update;
+	std::map<std::string, Component*> components_required_on_fixed_update;
 	std::map<std::string, Component*> components_required_on_destroy;
 	std::map<std::string, Component*> components_required_on_lateupdate;
 	std::map<std::string, Component*> components_required_on_collision_enter;
@@ -56,6 +57,7 @@ public:
 public:
 	~GameObject();
 	void On_Update();
+	void On_Fixed_Update();
 	void On_Start();
 	void On_Destroy();
 	void On_LateUpdate();

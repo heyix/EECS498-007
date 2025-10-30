@@ -58,6 +58,7 @@
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\TemplateDB.cpp" />
     <ClCompile Include="src\TextDB.cpp" />
+    <ClCompile Include="src\Time.cpp" />
     <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\Vector2.cpp" />
     <ClCompile Include="ThirdParty\box2d\collision\b2_broad_phase.cpp" />
@@ -178,6 +179,7 @@
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\TemplateDB.h" />
     <ClInclude Include="src\TextDB.h" />
+    <ClInclude Include="src\Time.h" />
     <ClInclude Include="src\Transform.h" />
     <ClInclude Include="src\Vector2.h" />
     <ClInclude Include="ThirdParty\box2d\b2_api.h" />

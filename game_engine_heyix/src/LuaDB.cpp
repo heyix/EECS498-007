@@ -19,6 +19,7 @@
 #include "Transform.h"
 #include "BoxCollider.h"
 #include "CircleCollider.h"
+#include "Time.h"
 void LuaDB::CppDebugLog(const std::string& message)
 {
 	std::cout << message << '\n';
@@ -125,6 +126,19 @@ void LuaDB::Init_Lua_Camera()
 		.addFunction("SetZoom", Camera::Lua_Set_Zoom)
 		.addFunction("GetZoom", Camera::Lua_Get_Zoom)
 		.addFunction("GetCameraDimension",Camera::Lua_Get_Camera_Dimension)
+		.endNamespace();
+}
+
+void LuaDB::Init_Lua_Time()
+{
+	luabridge::getGlobalNamespace(lua_state)
+		.beginNamespace("Time")
+		.addFunction("DeltaTime", Time::Lua_Delta_Time)
+		.addFunction("UnscaledDeltaTime", Time::Lua_Unscaled_Delta_Time)
+		.addFunction("CurrentTime", Time::Lua_Current_Time)
+		.addFunction("CurrentUnscaledTime", Time::Lua_Current_Unscaled_Time)
+		.addFunction("GetTimeScale", Time::Lua_Get_Time_Scale)
+		.addFunction("SetTimeScale", Time::Lua_Set_Time_Scale)
 		.endNamespace();
 }
 
@@ -330,6 +344,7 @@ void LuaDB::Init_LuaDB()
 	Init_Lua_Audio();
 	Init_Lua_Image();
 	Init_Lua_Camera();
+	Init_Lua_Time();
 	Init_Lua_Scene();
 	Init_Lua_Vector2();
 	Init_Lua_Component();

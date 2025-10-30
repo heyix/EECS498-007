@@ -15,6 +15,7 @@ private:
 	static void Init_Lua_Audio();
 	static void Init_Lua_Image();
 	static void Init_Lua_Camera();
+	static void Init_Lua_Time();
 	static void Init_Lua_Scene();
 	static void Init_Lua_Vector2();
 	static void Init_Lua_RigidBody();

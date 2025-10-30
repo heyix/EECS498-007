@@ -9,19 +9,25 @@
 #include "EventBus.h"
 #include "RigidBody.h"
 #include "Transform.h"
+#include  "Time.h"
 void Game::game_loop()
 {
 	Input::Init();
 	awake();
 	start();
+	last_ticks = SDL_GetPerformanceCounter();
 	while (is_running) {
+		update_time();
+		while (time->Try_Run_Fixed_Step()) {
+			PhysicsDB::Physics_Step();
+			fixed_update();
+			sync_rigidbody_and_transform();
+		}
 		process_input();
 		Engine::instance->renderer->clear_renderer();
 		update();
 		EventBus::Process_Subscription();
-		PhysicsDB::Physics_Step();
-		sync_rigidbody_and_transform();
-		//render(); 
+		render(); 
 		Engine::instance->renderer->clear_all_request_queues();
 		Input::LateUpdate();
 	}
@@ -87,6 +93,12 @@ void Game::update()
 
 	check_game_status(); */
 }
+void Game::fixed_update()
+{
+	for (auto& p : current_scene->validated_gameobjects) {
+		p.second->On_Fixed_Update();
+	}
+}
 void Game::render()
 {
 	Engine::instance->renderer->render_frame();
@@ -105,6 +117,15 @@ void Game::process_input()
 	}
 }
 
+
+Game::Game()
+{
+	instance = this;
+}
+
+Game::~Game()
+{
+}
 
 void Game::Lua_Quit()
 {
@@ -228,6 +249,34 @@ void Game::Set_Camera_Position(float x, float y)
 {
 	camera->Set_Position(x, y);
 }
+float Game::Fixed_Delta_Time()
+{
+	return time->Fixed_Delta_Time();
+}
+float Game::Delta_Time()
+{
+	return time->Delta_Time();
+}
+float Game::Unscaled_Delta_Time()
+{
+	return time->Unscaled_Delta_Time();
+}
+float Game::Current_Time()
+{
+	return time->Current_Time();
+}
+float Game::Current_Unscaled_Time()
+{
+	return time->Current_Unscaled_Time();
+}
+float Game::Get_Time_Scale()
+{
+	return time->Get_Time_Scale();
+}
+void Game::Set_Time_Scale(float new_scale)
+{
+	time->Set_Time_Scale(new_scale);
+}
 void Game::Load_Scene(const std::string& scene_name)
 {
 	pending_change_scene = true;
@@ -278,7 +327,12 @@ void Game::start()
 
 void Game::init_camera()
 {
-	camera = std::make_shared<Camera>();
+	camera = std::make_unique<Camera>();
+}
+
+void Game::init_time()
+{
+	time = std::make_unique<Time>();
 }
 
 void Game::init_game_data()
@@ -290,6 +344,7 @@ void Game::after_init_game_data()
 {
 	init_renderer();
 	init_camera();
+	init_time();
 	camera->Set_Camera_Dimension(game_data.rendering_config_data.resolution.x, game_data.rendering_config_data.resolution.y);
 	current_scene_name = game_data.game_config_data.initial_scene_name;
 }
@@ -308,6 +363,15 @@ void Game::sync_rigidbody_and_transform()
 			}
 		}
 	}
+}
+
+void Game::update_time()
+{
+	Uint64 now = SDL_GetPerformanceCounter();
+	Uint64 freq = SDL_GetPerformanceFrequency();
+	float raw_dt = static_cast<float>((now - last_ticks) / static_cast<double>(freq));
+	last_ticks = now;
+	time->Begin_New_Frame(raw_dt);
 }
 
 

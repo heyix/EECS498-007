@@ -15,6 +15,13 @@ void LuaComponent::On_Update()
 	}
 }
 
+void LuaComponent::On_Fixed_Update()
+{
+	if (Get_Enabled() && on_fixed_update_func) {
+		LuaDB::Call_Cached_Lua_Function_With_Self(lua_component, on_fixed_update_func.get());
+	}
+}
+
 void LuaComponent::On_Destroy()
 {
 	if (on_destroy_func) {
