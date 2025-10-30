@@ -137,7 +137,7 @@ void DrawBodyComponent::MoveFirstBody()
     if (len > 0.0f) {
         dir = dir * (1.0f / len);               
         const Vector2 delta = dir * 0.05;
-        body->Move(delta);                        
+        body->Move(delta * Engine::instance->running_game->Delta_Time() *50);                        
     }
 }
 

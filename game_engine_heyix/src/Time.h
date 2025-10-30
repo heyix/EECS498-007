@@ -13,6 +13,12 @@ private:
 	float fixed_time = 0;
 
 	double accumulator = 0.0f;
+
+	float fps = 0.0f;
+	float fps_update_interval = 0.5f;
+	float fps_accum_time = 0.0f;
+	int fps_frame_count = 0;
+	bool count_fps = false;
 public:
 	void Begin_New_Frame(float raw_frame_dt_seconds);
 	bool Try_Run_Fixed_Step();
@@ -23,7 +29,9 @@ public:
 	float Current_Unscaled_Time() { return unscaled_time; }
 	float Get_Time_Scale() { return time_scale; }
 	void Set_Time_Scale(float new_scale) { time_scale = new_scale; }
-
+	float FPS() { if (count_fps)return fps; else return 0; }
+	void Enable_FPS_Count();
+	void Disable_FPS_Count() { count_fps = false; }
 public:
 	static float Lua_Delta_Time();
 	static float Lua_Unscaled_Delta_Time();

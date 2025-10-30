@@ -8,6 +8,18 @@ void Time::Begin_New_Frame(float raw_frame_dt_seconds)
 	time += delta_time;
 
 	accumulator += unscaled_delta_time;
+
+	if (count_fps) {
+		fps_frame_count++;
+		fps_accum_time += raw_frame_dt_seconds;
+
+		if (fps_accum_time >= fps_update_interval)
+		{
+			fps = fps_frame_count / fps_accum_time;
+			fps_frame_count = 0;
+			fps_accum_time = 0.0f;
+		}
+	}
 }
 
 bool Time::Try_Run_Fixed_Step()
@@ -20,6 +32,14 @@ bool Time::Try_Run_Fixed_Step()
 	fixed_time += fixed_delta_time * time_scale;
 
 	return true;
+}
+
+void Time::Enable_FPS_Count()
+{
+	count_fps = true;
+	fps = 0.0f;
+	fps_accum_time = 0.0f;
+	fps_frame_count = 0;
 }
 
 float Time::Lua_Delta_Time()
