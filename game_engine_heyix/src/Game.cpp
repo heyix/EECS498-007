@@ -16,6 +16,7 @@ void Game::game_loop()
 	awake();
 	start();
 	last_ticks = SDL_GetPerformanceCounter();
+	//time->Enable_FPS_Count();
 	while (is_running) {
 		update_time();
 		while (time->Try_Run_Fixed_Step()) {
