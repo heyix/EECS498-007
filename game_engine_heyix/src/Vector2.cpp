@@ -6,6 +6,16 @@ float Vector2::Normalize()
 	return result;
 }
 
+Vector2 Vector2::NormalizedVector()
+{
+	b2Vec2 v = vector2;
+	float len = v.Normalize();
+	if (len == 0.0f) {
+		return Vector2::Zero();
+	}
+	return Vector2(v);
+}
+
 float Vector2::Length()
 {
 	return vector2.Length();

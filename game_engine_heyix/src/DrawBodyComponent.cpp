@@ -36,12 +36,15 @@ void DrawBodyComponent::On_Update()
                     }
                 }
                 else if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon) {
+                    Vector2 normal;
+                    float depth;
                     auto my_vertices = my_fixture->GetShape().AsPolygon()->vertices;
                     auto other_vertices = other_fixture->GetShape().AsPolygon()->vertices;
                     auto my_transform = body->GetTransform();
                     auto other_transform = comp->body->GetTransform();
-                    if (FlatPhysics::Collision::IntersectPolygons(FlatPhysics::FlatTransform::TransformVectors(my_vertices,my_transform), FlatPhysics::FlatTransform::TransformVectors(other_vertices, other_transform))) {
+                    if (FlatPhysics::Collision::IntersectPolygons(FlatPhysics::FlatTransform::TransformVectors(my_vertices,my_transform), FlatPhysics::FlatTransform::TransformVectors(other_vertices, other_transform),&normal,&depth)) {
                         std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID <<" Polygon" <<std::endl;
+                        comp->body->Move(normal * depth);
                     }
                 }
             }

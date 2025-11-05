@@ -60,6 +60,7 @@ public:
 	float GetY() const { return vector2.y; }
 	void SetY(float y) { vector2.y = y; }
 	float Normalize();
+	Vector2 NormalizedVector();
 	float Length();
 	static float Distance(const Vector2& a, const Vector2& b);
 	static float Dot(const Vector2& a, const Vector2& b);
