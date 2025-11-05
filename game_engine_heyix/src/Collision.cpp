@@ -139,18 +139,21 @@ namespace FlatPhysics {
 
 	std::pair<float, float> Collision::ProjectCircle(Vector2 center, float radius, Vector2 axis)
 	{
-		Vector2& direction = axis;
-		Vector2 direction_and_radius = direction * radius;
+		//Vector2& direction = axis;
+		//Vector2 direction_and_radius = direction * radius;
 
-		Vector2 p1 = center + direction_and_radius;
-		Vector2 p2 = center - direction_and_radius;
+		//Vector2 p1 = center + direction_and_radius;
+		//Vector2 p2 = center - direction_and_radius;
 
-		float min = Vector2::Dot(p1, axis);
-		float max = Vector2::Dot(p2, axis);
-		if (min > max) {
-			std::swap(min, max);
-		}
-		return { min,max };
+		//float min = Vector2::Dot(p1, axis);
+		//float max = Vector2::Dot(p2, axis);
+		//if (min > max) {
+		//	std::swap(min, max);
+		//}
+		//return { min,max };
+		axis.Normalize();
+		float c = Vector2::Dot(center, axis);
+		return { c - radius, c + radius };
 	}
 	int Collision::FindClosestPointFromCircleToPolygon(Vector2 center, const std::vector<Vector2>& vertices)
 	{
