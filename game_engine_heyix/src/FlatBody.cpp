@@ -123,6 +123,12 @@ void FlatPhysics::FlatBody::Rotate(float amount)
     need_update_transform = true;
 }
 
+void FlatPhysics::FlatBody::Step(float time)
+{
+    Move(linear_velocity * time);
+    Rotate(rotation_velocity * time);
+}
+
 bool FlatBody::CreateCircleBody(float r, Vector2 pos, float density, bool is_static,
     float restitution, std::unique_ptr<FlatBody>& out_body,
     std::string* error_message)

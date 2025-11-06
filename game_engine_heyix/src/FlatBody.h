@@ -58,6 +58,7 @@ namespace FlatPhysics {
         void Move(Vector2 amount);
         void MoveTo(Vector2 position);
         void Rotate(float amount);
+        void Step(float time);
 
     public:
         static bool CreateCircleBody(float radius, Vector2 position, float density, bool is_static,
