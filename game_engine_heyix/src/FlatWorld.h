@@ -33,7 +33,7 @@ namespace FlatPhysics {
 		void CollisionDetectionStep();
 		bool DetectCollision(FlatFixture* fa, FlatFixture* fb, Vector2* normal = nullptr, float* depth = nullptr);
 		bool ShouldCollide(FlatBody* a, FlatBody* b, FlatFixture* fixture_a, FlatFixture* fixture_b);
-		void ResolveCollision(FlatBody* bodyA, FlatBody* bodyB, Vector2 normal, float depth);
+		void ResolveCollision(FlatBody* bodyA, FlatBody* bodyB, const Vector2& normal, float depth);
 	private:
 		Vector2 gravity;
 		std::vector<FlatBody*> bodies;

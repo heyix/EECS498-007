@@ -146,7 +146,7 @@ namespace FlatPhysics {
 		}
 		return true;
 	}
-	void FlatWorld::ResolveCollision(FlatBody* bodyA, FlatBody* bodyB, Vector2 normal, float depth)
+	void FlatWorld::ResolveCollision(FlatBody* bodyA, FlatBody* bodyB, const Vector2& normal, float depth)
 	{
 		Vector2 relative_velocity = bodyB->GetLinearVelocity() - bodyA->GetLinearVelocity();
 		if (Vector2::Dot(relative_velocity, normal) > 0) {
