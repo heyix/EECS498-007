@@ -48,8 +48,10 @@ namespace FlatPhysics {
 			const std::vector<std::unique_ptr<FlatFixture>>& fixturesA = bodyA->GetFixtures();
 			for (int j = i + 1; j < bodies.size(); j++) {
 				FlatBody* bodyB = bodies[j];
+				if (bodyA->is_static && bodyB->is_static) {
+					continue;
+				}
 				const std::vector<std::unique_ptr<FlatFixture>>& fixturesB = bodyB->GetFixtures();
-
 				for (const std::unique_ptr<FlatFixture>& pa : fixturesA) {
 					for (const std::unique_ptr<FlatFixture>& pb : fixturesB) {
 						FlatFixture* fa = pa.get();
@@ -60,10 +62,18 @@ namespace FlatPhysics {
 						Vector2 normal;
 						float depth;
 						if (DetectCollision(fa, fb, &normal, &depth)) {
-							bodyA->Move(-normal * (depth / 2.0f));
-							bodyB->Move(normal * (depth / 2.0f));
+							if (!bodyA->is_static && !bodyB->is_static) {
+								bodyA->Move(-normal * (depth * 0.5f));
+								bodyB->Move(normal * (depth * 0.5f));
+							}
+							else if (!bodyA->is_static && bodyB->is_static) {
+								bodyA->Move(-normal * depth);
+							}
+							else if (bodyA->is_static && !bodyB->is_static) {
+								bodyB->Move(normal * depth);
+							}
 							ResolveCollision(bodyA, bodyB, normal, depth);
-							contacts.push_back({ fa,fb,normal,depth });
+							//contacts.push_back({ fa,fb,normal,depth });
 						}
 					}
 				}
@@ -138,15 +148,20 @@ namespace FlatPhysics {
 	}
 	void FlatWorld::ResolveCollision(FlatBody* bodyA, FlatBody* bodyB, Vector2 normal, float depth)
 	{
-		float e = std::min(bodyA->restitution, bodyB->restitution);
 		Vector2 relative_velocity = bodyB->GetLinearVelocity() - bodyA->GetLinearVelocity();
+		if (Vector2::Dot(relative_velocity, normal) > 0) {
+			return;
+		}
+		float e = std::min(bodyA->restitution, bodyB->restitution);
 		float j = -(1 + e) * Vector2::Dot(relative_velocity, normal);
-		j /= (1 / bodyA->mass + 1 / bodyB->mass);
+		j /= (bodyA->inverse_mass + bodyB->inverse_mass);
+
+		Vector2 impulse = j * normal;
 		Vector2 velocity_a = bodyA->GetLinearVelocity();
-		velocity_a -= j / bodyA->mass * normal;
+		velocity_a -= impulse * bodyA->inverse_mass;
 		bodyA->SetLinearVelocity(velocity_a);
 		Vector2 velocity_b = bodyB->GetLinearVelocity();
-		velocity_b += j / bodyB->mass * normal;
+		velocity_b += impulse * bodyB->inverse_mass;
 		bodyB->SetLinearVelocity(velocity_b);
 	}
 }

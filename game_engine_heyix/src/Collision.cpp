@@ -3,7 +3,7 @@
 #include <limits>
 #include <algorithm>
 namespace FlatPhysics {
-	bool FlatPhysics::Collision::IntersectCircles(Vector2 centerA, float radiusA, Vector2 centerB, float radiusB, Vector2* normal, float* depth)
+	bool FlatPhysics::Collision::IntersectCircles(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, Vector2* normal, float* depth)
 	{
 		float distance = Vector2::Distance(centerA, centerB);
 		float radii = radiusA + radiusB;
@@ -84,7 +84,7 @@ namespace FlatPhysics {
 		return true;
 	}
 
-	bool Collision::IntersectCirclePolygon(Vector2 center, float radius, const std::vector<Vector2>& vertices, Vector2* normal, float* depth)
+	bool Collision::IntersectCirclePolygon(const Vector2& center, float radius, const std::vector<Vector2>& vertices, Vector2* normal, float* depth)
 	{
 		float min_depth = std::numeric_limits<float>::max();
 		Vector2 result_normal = Vector2::Zero();
@@ -137,7 +137,7 @@ namespace FlatPhysics {
 		return true;
 	}
 
-	std::pair<float, float> Collision::ProjectCircle(Vector2 center, float radius, Vector2 axis)
+	std::pair<float, float> Collision::ProjectCircle(const Vector2& center, float radius, const Vector2& axis)
 	{
 		//Vector2& direction = axis;
 		//Vector2 direction_and_radius = direction * radius;
@@ -151,11 +151,11 @@ namespace FlatPhysics {
 		//	std::swap(min, max);
 		//}
 		//return { min,max };
-		axis.Normalize();
-		float c = Vector2::Dot(center, axis);
+		Vector2 normalized_axis = axis.NormalizedVector();
+		float c = Vector2::Dot(center, normalized_axis);
 		return { c - radius, c + radius };
 	}
-	int Collision::FindClosestPointFromCircleToPolygon(Vector2 center, const std::vector<Vector2>& vertices)
+	int Collision::FindClosestPointFromCircleToPolygon(const Vector2& center, const std::vector<Vector2>& vertices)
 	{
 		int result = -1;
 		float min_distance = std::numeric_limits<float>::max();
@@ -170,7 +170,7 @@ namespace FlatPhysics {
 	}
 
 	//return {min,max}
-	std::pair<float, float> Collision::ProjectVertices(const std::vector<Vector2>& vertices, Vector2 axis)
+	std::pair<float, float> Collision::ProjectVertices(const std::vector<Vector2>& vertices, const Vector2& axis)
 	{
 #pragma warning(push)
 #pragma warning(disable : 26498)  // disable constexpr recommendation

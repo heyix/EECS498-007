@@ -100,7 +100,6 @@ void DrawBodyComponent::On_Start()
         shape = FlatPhysics::ShapeType::Circle;
     }
 	if (shape == FlatPhysics::ShapeType::Polygon) {
-        std::unique_ptr<FlatPhysics::FlatBody> body;
         const float s = 0.4f;
         std::vector<Vector2> poly;
         poly.emplace_back(-s, -s+0.2f);       // bottom-left
@@ -111,7 +110,6 @@ void DrawBodyComponent::On_Start()
         FlatPhysics::FlatBody::CreatePolygonBody(poly, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body);
     }
 	else {
-		std::unique_ptr<FlatPhysics::FlatBody> body;
 		FlatPhysics::FlatBody::CreateCircleBody(0.5f, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body);
 	}
     PhysicsDB::flat_world->AddBody(body.get());

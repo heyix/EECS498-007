@@ -54,12 +54,12 @@ FlatBody::FlatBody(
     is_static(is_static_),
     shape_type(shape_type_),
     force(Vector2::Zero()),
-    current_transform(FlatTransform(position, rotation_rad))
+    inverse_mass(is_static_ ?0 : 1/ mass_),
+    current_transform(FlatTransform(pos, rotation_rad))
 {
     FixtureDef fd;
     fd.density = density;
     fd.restitution = restitution;
-
     std::unique_ptr<Shape> shape;
     if (shape_type == ShapeType::Circle) {
         auto c = std::make_unique<CircleShape>(Vector2::Zero(), radius_);
@@ -100,12 +100,12 @@ FlatTransform FlatPhysics::FlatBody::GetTransform()
     return current_transform;
 }
 
-void FlatBody::Move(Vector2 amount) {
+void FlatBody::Move(const Vector2& amount) {
     this->position += amount;
     need_update_transform = true;
 }
 
-void FlatBody::MoveTo(Vector2 p) {
+void FlatBody::MoveTo(const Vector2& p) {
     this->position = p;
     need_update_transform = true;
 }
@@ -126,12 +126,12 @@ void FlatPhysics::FlatBody::Step(float time)
     force = Vector2::Zero();
 }
 
-void FlatPhysics::FlatBody::AddForce(Vector2 amount)
+void FlatPhysics::FlatBody::AddForce(const Vector2& amount)
 {
     force += amount;
 }
 
-bool FlatBody::CreateCircleBody(float r, Vector2 pos, float density, bool is_static,
+bool FlatBody::CreateCircleBody(float r, const Vector2& pos, float density, bool is_static,
     float restitution, std::unique_ptr<FlatBody>& out_body,
     std::string* error_message)
 {
@@ -171,7 +171,7 @@ bool FlatBody::CreateCircleBody(float r, Vector2 pos, float density, bool is_sta
 }
 
 
-bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2> vertices, Vector2 position, float density, bool is_static, float restitution, std::unique_ptr<FlatBody>& out_body, std::string* error_message)
+bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2> vertices, const Vector2& position, float density, bool is_static, float restitution, std::unique_ptr<FlatBody>& out_body, std::string* error_message)
 {
     out_body = nullptr;
     if (error_message) *error_message = "";

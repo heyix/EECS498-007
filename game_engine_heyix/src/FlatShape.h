@@ -31,7 +31,7 @@ namespace FlatPhysics {
 	public:
 		CircleShape() {}
 		CircleShape(float radius):radius(radius) {}
-		CircleShape(Vector2 center, float radius) :center(center), radius(radius) {}
+		CircleShape(const Vector2& center, float radius) :center(center), radius(radius) {}
 	public:
 		float radius = 1.0f;
 		Vector2 center{};

@@ -6,7 +6,7 @@ float Vector2::Normalize()
 	return result;
 }
 
-Vector2 Vector2::NormalizedVector()
+Vector2 Vector2::NormalizedVector()const
 {
 	b2Vec2 v = vector2;
 	float len = v.Normalize();
