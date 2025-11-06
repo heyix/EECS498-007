@@ -65,9 +65,6 @@ namespace FlatPhysics {
             float restitution, std::unique_ptr<FlatBody>& out_body,
             std::string* error_message = nullptr);
 
-        static bool CreateBoxBody(float width, float height, Vector2 position, float density, bool is_static,
-            float restitution, std::unique_ptr<FlatBody>& out_body,
-            std::string* error_message = nullptr);
         static bool CreatePolygonBody(const std::vector<Vector2> vertices, Vector2 position, float density, bool is_static,
             float restitution, std::unique_ptr<FlatBody>& out_body,
             std::string* error_message = nullptr);

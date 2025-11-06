@@ -42,7 +42,7 @@ namespace FlatPhysics {
 	}
 	void FlatWorld::CollisionDetectionStep()
 	{
-		for (int i = 0; i < bodies.size()-1; i++) {
+		for (int i = 0; i < (int)bodies.size()-1; i++) {
 			FlatBody* bodyA = bodies[i];
 			const std::vector<std::unique_ptr<FlatFixture>>& fixturesA = bodyA->GetFixtures();
 			for (int j = i + 1; j < bodies.size(); j++) {
@@ -59,6 +59,8 @@ namespace FlatPhysics {
 						Vector2 normal;
 						float depth;
 						if (DetectCollision(fa, fb, &normal, &depth)) {
+							bodyA->Move(-normal * (depth / 2.0f));
+							bodyB->Move(normal * (depth / 2.0f));
 							contacts.push_back({ fa,fb,normal,depth });
 						}
 					}
@@ -71,30 +73,25 @@ namespace FlatPhysics {
         auto bodyA = fa->GetBody();
         auto bodyB = fb->GetBody();
 
-        const auto& xfA = bodyA->GetTransform();
-        const auto& xfB = bodyB->GetTransform();
+        const auto& transformA = bodyA->GetTransform();
+        const auto& transformB = bodyB->GetTransform();
 
         switch (fa->GetShapeType()) {
         case ShapeType::Circle: {
             auto* ca = fa->GetShape().AsCircle();
-            Vector2 cA = FlatTransform::TransformVector(ca->center, xfA);
+            Vector2 cA = FlatTransform::TransformVector(ca->center, transformA);
             float rA = ca->radius;
 
             switch (fb->GetShapeType()) {
             case ShapeType::Circle: {
                 auto* cb = fb->GetShape().AsCircle();
-                Vector2 cB = FlatTransform::TransformVector(cb->center, xfB);
+                Vector2 cB = FlatTransform::TransformVector(cb->center, transformB);
                 float rB = cb->radius;
                 return Collision::IntersectCircles(cA, rA, cB, rB, normal, depth);
             }
             case ShapeType::Polygon: {
                 const auto& vertsB_local = fb->GetShape().AsPolygon()->vertices;
-                auto vertsB = FlatTransform::TransformVectors(vertsB_local, xfB);
-                return Collision::IntersectCirclePolygon(cA, rA, vertsB, normal, depth);
-            }
-            case ShapeType::Box: {
-                const auto polyB = fb->GetShape().AsBox()->vertices;
-                auto vertsB = FlatTransform::TransformVectors(polyB, xfB);
+                auto vertsB = FlatTransform::TransformVectors(vertsB_local, transformB);
                 return Collision::IntersectCirclePolygon(cA, rA, vertsB, normal, depth);
             }
             default: break;
@@ -104,57 +101,26 @@ namespace FlatPhysics {
 
         case ShapeType::Polygon: {
             const auto& vertsA_local = fa->GetShape().AsPolygon()->vertices;
-            auto vertsA = FlatTransform::TransformVectors(vertsA_local, xfA);
+            auto vertsA = FlatTransform::TransformVectors(vertsA_local, transformA);
 
             switch (fb->GetShapeType()) {
             case ShapeType::Polygon: {
                 const auto& vertsB_local = fb->GetShape().AsPolygon()->vertices;
-                auto vertsB = FlatTransform::TransformVectors(vertsB_local, xfB);
+                auto vertsB = FlatTransform::TransformVectors(vertsB_local, transformB);
                 return Collision::IntersectPolygons(vertsA, vertsB, normal, depth);
             }
             case ShapeType::Circle: {
                 auto* cb = fb->GetShape().AsCircle();
-                Vector2 cB = FlatTransform::TransformVector(cb->center, xfB);
-                float rB = cb->radius;
-                // Note: your IntersectCirclePolygon expects (circle, polygon)
-                bool hit = Collision::IntersectCirclePolygon(cB, rB, vertsA, normal, depth);
-                if (hit && normal) *normal = -*normal; // flip: we passed (B circle, A poly)
-                return hit;
-            }
-            case ShapeType::Box: {
-                const auto polyB = fb->GetShape().AsBox()->vertices;
-                auto vertsB = FlatTransform::TransformVectors(polyB, xfB);
-                return Collision::IntersectPolygons(vertsA, vertsB, normal, depth);
-            }
-            default: break;
-            }
-            break;
-        }
-
-        case ShapeType::Box: {
-            const auto vertsA_local = fa->GetShape().AsBox()->vertices;
-            auto vertsA = FlatTransform::TransformVectors(vertsA_local, xfA);
-
-            if (fb->GetShapeType() == ShapeType::Circle) {
-                auto* cb = fb->GetShape().AsCircle();
-                Vector2 cB = FlatTransform::TransformVector(cb->center, xfB);
+                Vector2 cB = FlatTransform::TransformVector(cb->center, transformB);
                 float rB = cb->radius;
                 bool hit = Collision::IntersectCirclePolygon(cB, rB, vertsA, normal, depth);
                 if (hit && normal) *normal = -*normal;
                 return hit;
             }
-            else {
-                std::vector<Vector2> vertsB;
-                if (fb->GetShapeType() == ShapeType::Box) {
-                    vertsB = FlatTransform::TransformVectors(fb->GetShape().AsBox()->vertices, xfB);
-                }
-                else {
-                    vertsB = FlatTransform::TransformVectors(fb->GetShape().AsPolygon()->vertices, xfB);
-                }
-                return Collision::IntersectPolygons(vertsA, vertsB, normal, depth);
+            default: break;
             }
+            break;
         }
-
         default: break;
         }
 

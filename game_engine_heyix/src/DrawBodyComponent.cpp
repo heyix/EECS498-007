@@ -10,6 +10,7 @@
 #include "Collision.h"
 #include "FlatShape.h"
 #include "FlatMath.h"
+#include "PhysicsDB.h"
 void DrawBodyComponent::On_Update()
 {
     Rotate();
@@ -17,64 +18,64 @@ void DrawBodyComponent::On_Update()
 
 
 
-    auto transform = this->holder_object->Get_Transform().lock();
-    if (holder_object->ID == 44) {
-        auto bodies = Engine::instance->running_game->Find_All_GameObjects_By_Name("Body");
-        for (std::weak_ptr<GameObject> p : bodies) {
-            std::shared_ptr<GameObject> object = p.lock();
-            //std::cout << object->ID << std::endl;
-            if (object->ID == holder_object->ID)continue;
-            auto comp = std::dynamic_pointer_cast<DrawBodyComponent>(object->Get_Component("DrawBodyComponent").lock());
-            if (comp->body) {
-                Vector2 normal;
-                float depth;
-                auto& my_fixture = body->GetFixtures().front();
-                auto& other_fixture = comp->body->GetFixtures().front();
-                if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle) {
-                    if (FlatPhysics::Collision::IntersectCircles(body->GetPosition(), my_fixture->GetShape().AsCircle()->radius, comp->body->GetPosition(), other_fixture->GetShape().AsCircle()->radius, &normal, &depth)) {
-                        std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID << std::endl;
-                        comp->body->Move(normal * depth);
-                    }
-                }
-                else if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon) {
-                    Vector2 normal;
-                    float depth;
-                    auto my_vertices = my_fixture->GetShape().AsPolygon()->vertices;
-                    auto other_vertices = other_fixture->GetShape().AsPolygon()->vertices;
-                    auto my_transform = body->GetTransform();
-                    auto other_transform = comp->body->GetTransform();
-                    if (FlatPhysics::Collision::IntersectPolygons(FlatPhysics::FlatTransform::TransformVectors(my_vertices,my_transform), FlatPhysics::FlatTransform::TransformVectors(other_vertices, other_transform),&normal,&depth)) {
-                        std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID <<" Polygon" <<std::endl;
-                        comp->body->Move(normal * depth);
-                    }
-                }
-                else if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle) {
-                    Vector2 normal;
-                    float depth;
-                    auto my_vertices = my_fixture->GetShape().AsPolygon()->vertices;
-                    auto circle = comp->body->GetFixtures().front()->GetShape().AsCircle();
-                    auto my_transform = body->GetTransform();
-                    auto other_transform = comp->body->GetTransform();
-                    if (FlatPhysics::Collision::IntersectCirclePolygon(FlatPhysics::FlatTransform::TransformVector(circle->center,other_transform),circle->radius, FlatPhysics::FlatTransform::TransformVectors(my_vertices, my_transform), &normal, &depth)) {
-                        std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID << " Circle" << std::endl;
-                        comp->body->Move(-normal * depth);
-                    }
-                }
-                else if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon) {
-                    Vector2 normal;
-                    float depth;
-                    auto other_vertices = other_fixture->GetShape().AsPolygon()->vertices;
-                    auto circle = my_fixture->GetShape().AsCircle();
-                    auto my_transfrom = body->GetTransform();
-                    auto other_transform = comp->body->GetTransform();
-                    if (FlatPhysics::Collision::IntersectCirclePolygon(FlatPhysics::FlatTransform::TransformVector(circle->center,my_transfrom), circle->radius, FlatPhysics::FlatTransform::TransformVectors(other_vertices, other_transform), &normal, &depth)) {
-                        std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID << " Circle" << std::endl;
-                        comp->body->Move(normal * depth);
-                    }
-                }
-            }
-        }
-    }
+    //auto transform = this->holder_object->Get_Transform().lock();
+    //if (holder_object->ID == 44) {
+    //    auto bodies = Engine::instance->running_game->Find_All_GameObjects_By_Name("Body");
+    //    for (std::weak_ptr<GameObject> p : bodies) {
+    //        std::shared_ptr<GameObject> object = p.lock();
+    //        //std::cout << object->ID << std::endl;
+    //        if (object->ID == holder_object->ID)continue;
+    //        auto comp = std::dynamic_pointer_cast<DrawBodyComponent>(object->Get_Component("DrawBodyComponent").lock());
+    //        if (comp->body) {
+    //            Vector2 normal;
+    //            float depth;
+    //            auto& my_fixture = body->GetFixtures().front();
+    //            auto& other_fixture = comp->body->GetFixtures().front();
+    //            if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle) {
+    //                if (FlatPhysics::Collision::IntersectCircles(body->GetPosition(), my_fixture->GetShape().AsCircle()->radius, comp->body->GetPosition(), other_fixture->GetShape().AsCircle()->radius, &normal, &depth)) {
+    //                    std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID << std::endl;
+    //                    comp->body->Move(normal * depth);
+    //                }
+    //            }
+    //            else if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon) {
+    //                Vector2 normal;
+    //                float depth;
+    //                auto my_vertices = my_fixture->GetShape().AsPolygon()->vertices;
+    //                auto other_vertices = other_fixture->GetShape().AsPolygon()->vertices;
+    //                auto my_transform = body->GetTransform();
+    //                auto other_transform = comp->body->GetTransform();
+    //                if (FlatPhysics::Collision::IntersectPolygons(FlatPhysics::FlatTransform::TransformVectors(my_vertices,my_transform), FlatPhysics::FlatTransform::TransformVectors(other_vertices, other_transform),&normal,&depth)) {
+    //                    std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID <<" Polygon" <<std::endl;
+    //                    comp->body->Move(normal * depth);
+    //                }
+    //            }
+    //            else if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle) {
+    //                Vector2 normal;
+    //                float depth;
+    //                auto my_vertices = my_fixture->GetShape().AsPolygon()->vertices;
+    //                auto circle = comp->body->GetFixtures().front()->GetShape().AsCircle();
+    //                auto my_transform = body->GetTransform();
+    //                auto other_transform = comp->body->GetTransform();
+    //                if (FlatPhysics::Collision::IntersectCirclePolygon(FlatPhysics::FlatTransform::TransformVector(circle->center,other_transform),circle->radius, FlatPhysics::FlatTransform::TransformVectors(my_vertices, my_transform), &normal, &depth)) {
+    //                    std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID << " Circle" << std::endl;
+    //                    comp->body->Move(-normal * depth);
+    //                }
+    //            }
+    //            else if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon) {
+    //                Vector2 normal;
+    //                float depth;
+    //                auto other_vertices = other_fixture->GetShape().AsPolygon()->vertices;
+    //                auto circle = my_fixture->GetShape().AsCircle();
+    //                auto my_transfrom = body->GetTransform();
+    //                auto other_transform = comp->body->GetTransform();
+    //                if (FlatPhysics::Collision::IntersectCirclePolygon(FlatPhysics::FlatTransform::TransformVector(circle->center,my_transfrom), circle->radius, FlatPhysics::FlatTransform::TransformVectors(other_vertices, other_transform), &normal, &depth)) {
+    //                    std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID << " Circle" << std::endl;
+    //                    comp->body->Move(normal * depth);
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
 
 
      
@@ -88,17 +89,13 @@ void DrawBodyComponent::On_Start()
 {
 	auto transform = this->holder_object->Get_Transform().lock();
     if (holder_object->ID == 44) {
+        
         shape = FlatPhysics::ShapeType::Polygon;
     }
     else {
         shape = FlatPhysics::ShapeType::Circle;
     }
-	if (shape == FlatPhysics::ShapeType::Box) {
-		std::unique_ptr<FlatPhysics::FlatBody> body;
-		std::string error_message;
-		FlatPhysics::FlatBody::CreateBoxBody(1, 1, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body, &error_message);
-	}
-    else if (shape == FlatPhysics::ShapeType::Polygon) {
+	if (shape == FlatPhysics::ShapeType::Polygon) {
         std::unique_ptr<FlatPhysics::FlatBody> body;
         const float s = 0.4f;
         std::vector<Vector2> poly;
@@ -113,6 +110,7 @@ void DrawBodyComponent::On_Start()
 		std::unique_ptr<FlatPhysics::FlatBody> body;
 		FlatPhysics::FlatBody::CreateCircleBody(0.5f, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body);
 	}
+    PhysicsDB::flat_world->AddBody(body.get());
 }
 
 
@@ -135,17 +133,6 @@ void DrawBodyComponent::DrawBody()
             Engine::instance->renderer->draw_ex("circle", x, y, FlatPhysics::FlatMath::RadToDeg(rot),
                 radius * 2.0f, radius * 2.0f,  
                 0.5f, 0.5f,                   
-                r, g, bl, a, 0);
-            break;
-        }
-
-        case FlatPhysics::ShapeType::Box: {
-            auto& my_fixture = body->GetFixtures().front();
-            float width = my_fixture->GetShape().AsBox()->width;
-            float height = my_fixture->GetShape().AsBox()->height;
-            Engine::instance->renderer->draw_ex("box" + std::to_string(holder_object->ID % 3 + 1), x, y, rot,
-                width, height,
-                0.5f, 0.5f,
                 r, g, bl, a, 0);
             break;
         }
@@ -183,7 +170,7 @@ void DrawBodyComponent::Rotate()
         body->Rotate(FlatPhysics::FlatMath::DegToRad(rotation_speed_degree));
     }
     else if (body->shape_type == FlatPhysics::ShapeType::Polygon) {
-        float rotation_speed = 1.0f * Engine::instance->running_game->Delta_Time();
-        body->Rotate(rotation_speed);
+        float rotation_speed = 360 * Engine::instance->running_game->Delta_Time();
+        body->Rotate(FlatPhysics::FlatMath::DegToRad(rotation_speed));
     }
 }

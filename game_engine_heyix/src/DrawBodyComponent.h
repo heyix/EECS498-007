@@ -2,6 +2,7 @@
 #include "CppComponent.h"
 #include "LuaDB.h"
 #include "FlatBody.h"
+#include "FlatWorld.h"
 class DrawBodyComponent : public CppComponent{
 public:
     DrawBodyComponent(GameObject& holder, const std::string& key, const std::string& template_name)
@@ -17,6 +18,7 @@ public:
     FlatPhysics::ShapeType shape = FlatPhysics::ShapeType::Polygon;
 private:
     std::unique_ptr<FlatPhysics::FlatBody> body = nullptr;
+
 private:
     void DrawBody();
     void MoveFirstBody();

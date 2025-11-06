@@ -7,17 +7,14 @@ namespace FlatPhysics {
 		{
 			return (value < min) ? min : (value > max ? max : value);
 		}
-		template<typename T>
-		constexpr static T RadToDeg(T radians)
+		static float RadToDeg(float radians)
 		{
-			return radians * static_cast<T>(180.0 / M_PI);
+			return radians * (180.0 / M_PI);
 		}
 
-		// Degrees → Radians
-		template<typename T>
-		constexpr static T DegToRad(T degrees)
+		static float DegToRad(float degrees)
 		{
-			return degrees * static_cast<T>(M_PI / 180.0);
+			return degrees * (M_PI / 180.0);
 		}
 	};
 }

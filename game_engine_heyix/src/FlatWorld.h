@@ -23,6 +23,8 @@ namespace FlatPhysics {
 		const static inline float MinDensity = 0.5f;
 		const static inline float MaxDensity = 21.4f;
 	public:
+		int GetBodyCount() { return bodies.size(); }
+	public:
 		void AddBody(FlatBody* body);
 		bool RemoveBody(FlatBody* body);
 		FlatBody* GetBody(int index);

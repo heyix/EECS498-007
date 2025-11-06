@@ -1,4 +1,5 @@
 #include "FlatShape.h"
+#include "FlatTransform.h"
 namespace FlatPhysics {
 	CircleShape* Shape::AsCircle()
 	{
@@ -12,18 +13,6 @@ namespace FlatPhysics {
 			? static_cast<const CircleShape*>(this)
 			: nullptr;
 	}
-	BoxShape* Shape::AsBox()
-	{
-		return (GetType() == ShapeType::Box)
-			? static_cast<BoxShape*>(this)
-			: nullptr;
-	}
-	const BoxShape* Shape::AsBox() const
-	{
-		return (GetType() == ShapeType::Box)
-			? static_cast<const BoxShape*>(this)
-			: nullptr;
-	}
 	PolygonShape* Shape::AsPolygon()
 	{
 		return (GetType() == ShapeType::Polygon)
@@ -35,6 +24,17 @@ namespace FlatPhysics {
 		return (GetType() == ShapeType::Polygon)
 			? static_cast<const PolygonShape*>(this)
 			: nullptr;
+	}
+	void PolygonShape::SetAsBox(float width, float height, Vector2 center, float angle)
+	{
+		std::vector<Vector2> local = {
+			Vector2(-width / 2, -height / 2),
+			Vector2(width / 2, -height / 2),
+			Vector2(width / 2,  height / 2),
+			Vector2(-width / 2,  height / 2)
+		};
+		FlatTransform transform = FlatTransform(center, angle);
+		vertices = FlatTransform::TransformVectors(local, transform);
 	}
 }
 

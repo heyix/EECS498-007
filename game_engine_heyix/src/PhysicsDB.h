@@ -5,6 +5,7 @@
 #include "Vector2.h"
 #include "lua/lua.hpp"
 #include "LuaBridge/LuaBridge.h"
+#include "FlatWorld.h"
 class HitResult {
 public:
 	GameObject* actor;
@@ -29,4 +30,6 @@ public:
 	static luabridge::LuaRef Lua_Raycast_All(const Vector2& pos, const Vector2& dir, float dist);
 public:
 	static inline std::unique_ptr<ContactListener> contact_listener = nullptr;
+public:
+	static inline std::unique_ptr<FlatPhysics::FlatWorld> flat_world = nullptr;
 };

@@ -15,6 +15,9 @@ void PhysicsDB::Physics_Step()
 		return;
 	}
 	physics_world->Step(Engine::instance->running_game->Fixed_Delta_Time(), 8, 3);
+	if (flat_world) {
+		flat_world->Step(Engine::instance->running_game->Fixed_Delta_Time());
+	}
 }
 
 void PhysicsDB::Rigidbody_Instantiated()
@@ -41,6 +44,8 @@ void PhysicsDB::Init_Physics_World()
 	physics_world = std::make_unique<b2World>(gravity);
 	contact_listener = std::make_unique<ContactListener>();
 	physics_world->SetContactListener(contact_listener.get());
+
+	flat_world = std::make_unique<FlatPhysics::FlatWorld>();
 }
 
 luabridge::LuaRef PhysicsDB::Lua_Raycast(const Vector2& pos, const Vector2& dir, float dist)

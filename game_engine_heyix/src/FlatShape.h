@@ -4,11 +4,10 @@
 
 namespace FlatPhysics {
 	enum class ShapeType {
-		Circle,Box,Polygon
+		Circle,Polygon
 	};
 
 	class CircleShape;
-	class BoxShape;
 	class PolygonShape;
 	class Shape {
 	public:
@@ -18,10 +17,6 @@ namespace FlatPhysics {
 		CircleShape* AsCircle(); 
 
 		const CircleShape* AsCircle() const;
-
-		BoxShape* AsBox();
-
-		const BoxShape* AsBox() const; 
 
 		PolygonShape* AsPolygon();
 
@@ -48,42 +43,6 @@ namespace FlatPhysics {
 
 
 
-	class BoxShape :public Shape {
-	public:
-		BoxShape() { UpdateVertices(); }
-		BoxShape(float w, float h) : width(w), height(h){
-			UpdateVertices();
-		}
-	public:
-		ShapeType GetType()const override { return ShapeType::Box; }
-		std::unique_ptr<Shape> Clone() const override { return std::make_unique<BoxShape>(*this); }
-
-		void SetSize(float w, float h) {
-			width = w;
-			height = h;
-			UpdateVertices();
-		}
-	private:
-		void UpdateVertices() {
-			float hx = width * 0.5f;
-			float hy = height * 0.5f;
-			vertices = {
-				{-hx, -hy},
-				{+hx, -hy},
-				{+hx, +hy},
-				{-hx, +hy}
-			};
-		}
-	public:
-		float width = 1.0f;
-		float height = 1.0f;
-		std::vector<Vector2> vertices;
-	};
-
-
-
-
-
 	class PolygonShape : public Shape {
 	public:
 		PolygonShape() {}
@@ -99,5 +58,7 @@ namespace FlatPhysics {
 		void SetVertices(const std::vector<Vector2>& verts) {
 			vertices = verts;
 		}
+		void SetAsBox(float width, float height, Vector2 center = Vector2::Zero(), float angle = 0.0f);
+
 	};
 }
