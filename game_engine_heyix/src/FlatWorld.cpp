@@ -1,6 +1,7 @@
 #include "FlatWorld.h"
 #include "FlatFixture.h"
 #include "Collision.h"
+#include <algorithm>
 namespace FlatPhysics {
 	void FlatWorld::AddBody(FlatBody* body)
 	{
@@ -61,6 +62,7 @@ namespace FlatPhysics {
 						if (DetectCollision(fa, fb, &normal, &depth)) {
 							bodyA->Move(-normal * (depth / 2.0f));
 							bodyB->Move(normal * (depth / 2.0f));
+							ResolveCollision(bodyA, bodyB, normal, depth);
 							contacts.push_back({ fa,fb,normal,depth });
 						}
 					}
@@ -133,5 +135,18 @@ namespace FlatPhysics {
 			return false;
 		}
 		return true;
+	}
+	void FlatWorld::ResolveCollision(FlatBody* bodyA, FlatBody* bodyB, Vector2 normal, float depth)
+	{
+		float e = std::min(bodyA->restitution, bodyB->restitution);
+		Vector2 relative_velocity = bodyB->GetLinearVelocity() - bodyA->GetLinearVelocity();
+		float j = -(1 + e) * Vector2::Dot(relative_velocity, normal);
+		j /= (1 / bodyA->mass + 1 / bodyB->mass);
+		Vector2 velocity_a = bodyA->GetLinearVelocity();
+		velocity_a -= j / bodyA->mass * normal;
+		bodyA->SetLinearVelocity(velocity_a);
+		Vector2 velocity_b = bodyB->GetLinearVelocity();
+		velocity_b += j / bodyB->mass * normal;
+		bodyB->SetLinearVelocity(velocity_b);
 	}
 }

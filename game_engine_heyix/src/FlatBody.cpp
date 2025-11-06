@@ -53,6 +53,7 @@ FlatBody::FlatBody(
     area(area_),
     is_static(is_static_),
     shape_type(shape_type_),
+    force(Vector2::Zero()),
     current_transform(FlatTransform(position, rotation_rad))
 {
     FixtureDef fd;
@@ -66,7 +67,6 @@ FlatBody::FlatBody(
     }
     else if (shape_type == ShapeType::Polygon) {
         auto c = std::make_unique<PolygonShape>(vertices);
-        c->SetAsBox(1, 1);
         shape = std::move(c);
     }
     fd.shape = shape.get();
@@ -118,8 +118,17 @@ void FlatPhysics::FlatBody::Rotate(float amount)
 
 void FlatPhysics::FlatBody::Step(float time)
 {
+    Vector2 acceleration = force / mass;
+    linear_velocity += acceleration * time;
     Move(linear_velocity * time);
     Rotate(rotation_velocity * time);
+
+    force = Vector2::Zero();
+}
+
+void FlatPhysics::FlatBody::AddForce(Vector2 amount)
+{
+    force += amount;
 }
 
 bool FlatBody::CreateCircleBody(float r, Vector2 pos, float density, bool is_static,

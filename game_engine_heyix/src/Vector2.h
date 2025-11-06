@@ -31,6 +31,10 @@ public:
 	Vector2 operator*(float scalar) const {
 		return Vector2(vector2.x * scalar, vector2.y * scalar);
 	}
+
+	Vector2 operator/(float scalar) const {
+		return Vector2(vector2.x / scalar, vector2.y / scalar);
+	}
 	Vector2& operator+=(const Vector2& other) {
 		vector2.x += other.vector2.x;
 		vector2.y += other.vector2.y;
@@ -46,6 +50,11 @@ public:
 	Vector2& operator*=(float s) {
 		vector2.x *= s;
 		vector2.y *= s;
+		return *this;
+	}
+	Vector2& operator/=(float scalar) {
+		vector2.x /= scalar;
+		vector2.y /= scalar;
 		return *this;
 	}
 
@@ -84,6 +93,9 @@ inline std::ostream& operator<<(std::ostream& os, const Vector2& v)
 {
 	os << "(" << v.x() << ", " << v.y() << ")";
 	return os;
+}
+inline Vector2 operator*(float scalar, const Vector2& vec) {
+	return vec * scalar;
 }
 namespace std {
 	template<>

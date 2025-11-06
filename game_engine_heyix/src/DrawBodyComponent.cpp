@@ -14,8 +14,12 @@
 void DrawBodyComponent::On_Update()
 {
     Rotate();
-    MoveFirstBody();
-
+    Vector2 dir(0.0f, 0.0f);
+    if (Input::GetKey(SDL_SCANCODE_W)) dir += Vector2(0.0f, -1.0f);
+    if (Input::GetKey(SDL_SCANCODE_S)) dir += Vector2(0.0f, 1.0f);
+    if (Input::GetKey(SDL_SCANCODE_A)) dir += Vector2(-1.0f, 0.0f);
+    if (Input::GetKey(SDL_SCANCODE_D)) dir += Vector2(1.0f, 0.0f);
+    move_dir = dir;
 
 
     //auto transform = this->holder_object->Get_Transform().lock();
@@ -113,6 +117,11 @@ void DrawBodyComponent::On_Start()
     PhysicsDB::flat_world->AddBody(body.get());
 }
 
+void DrawBodyComponent::On_Fixed_Update()
+{
+    MoveFirstBody();
+}
+
 
 void DrawBodyComponent::DrawBody()
 {
@@ -149,16 +158,13 @@ void DrawBodyComponent::DrawBody()
 void DrawBodyComponent::MoveFirstBody()
 {
     if (holder_object->ID != 44)return;
-    Vector2 dir(0.0f, 0.0f);
-    if (Input::GetKey(SDL_SCANCODE_W)) dir += Vector2(0.0f, -1.0f);
-    if (Input::GetKey(SDL_SCANCODE_S)) dir += Vector2(0.0f, 1.0f);
-    if (Input::GetKey(SDL_SCANCODE_A)) dir += Vector2(-1.0f, 0.0f);
-    if (Input::GetKey(SDL_SCANCODE_D)) dir += Vector2(1.0f, 0.0f);
-    float len = dir.Length();
+
+    float len = move_dir.Length();
     if (len > 0.0f) {
-        dir = dir * (1.0f / len);               
-        const Vector2 delta = dir * 0.05;
-        body->Move(delta * Engine::instance->running_game->Delta_Time() *50);                        
+        move_dir = move_dir * (1.0f / len);               
+        const Vector2 delta = move_dir * 2.5;
+        //body->Move(delta * Engine::instance->running_game->Delta_Time()); 
+        body->AddForce(delta);
     }
 }
 

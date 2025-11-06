@@ -30,6 +30,7 @@ namespace FlatPhysics {
         Vector2 linear_velocity;
         float   rotation_rad;
         float   rotation_velocity;
+        Vector2 force;
         FlatTransform current_transform{};
         bool need_update_transform = false;
 
@@ -53,12 +54,15 @@ namespace FlatPhysics {
         FlatFixture* CreateFixture(const FixtureDef& def);
         void DestroyFixture(FlatFixture* fixture);
         FlatTransform GetTransform();
+        Vector2 GetLinearVelocity() { return linear_velocity; }
+        void SetLinearVelocity(Vector2 velocity) { linear_velocity = velocity; }
     public:
 
         void Move(Vector2 amount);
         void MoveTo(Vector2 position);
         void Rotate(float amount);
         void Step(float time);
+        void AddForce(Vector2 amount);
 
     public:
         static bool CreateCircleBody(float radius, Vector2 position, float density, bool is_static,
