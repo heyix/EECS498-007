@@ -49,7 +49,7 @@ FlatBody::FlatBody(
     ShapeType shape_type_)
     : position(pos),
     linear_velocity(Vector2::Zero()),
-    rotation(0.0f),
+    rotation_rad(0.0f),
     rotation_velocity(0.0f),
     density(density_),
     mass(mass_),
@@ -57,7 +57,7 @@ FlatBody::FlatBody(
     area(area_),
     is_static(is_static_),
     shape_type(shape_type_),
-    current_transform(FlatTransform(position,rotation))
+    current_transform(FlatTransform(position, rotation_rad))
 {
     FixtureDef fd;
     fd.density = density;
@@ -65,7 +65,7 @@ FlatBody::FlatBody(
 
     std::unique_ptr<Shape> shape;
     if (shape_type == ShapeType::Circle) {
-        auto c = std::make_unique<CircleShape>(pos,radius_);
+        auto c = std::make_unique<CircleShape>(Vector2::Zero(), radius_);
         shape = std::move(c);
     }
     else if (shape_type == ShapeType::Polygon) {
@@ -101,7 +101,7 @@ void FlatPhysics::FlatBody::DestroyFixture(FlatFixture* fixture)
 FlatTransform FlatPhysics::FlatBody::GetTransform()
 {
     if (need_update_transform) {
-        current_transform = FlatTransform(position, rotation);
+        current_transform = FlatTransform(position, rotation_rad);
         need_update_transform = false;
     }
     return current_transform;
@@ -119,7 +119,7 @@ void FlatBody::MoveTo(Vector2 p) {
 
 void FlatPhysics::FlatBody::Rotate(float amount)
 {
-    this->rotation += amount;
+    this->rotation_rad += amount;
     need_update_transform = true;
 }
 

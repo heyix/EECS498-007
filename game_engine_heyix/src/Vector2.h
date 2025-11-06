@@ -2,6 +2,7 @@
 #include "box2d/box2d.h"
 #include <cmath>
 #include <functional>
+#include <iostream>
 
 class Vector2 {
 private:
@@ -65,6 +66,8 @@ public:
 	static float Distance(const Vector2& a, const Vector2& b);
 	static float Dot(const Vector2& a, const Vector2& b);
 	static float Cross(const Vector2& a, const Vector2& b);
+
+
 public:
 	static Vector2 Zero() { return Vector2(0.0f, 0.0f); }
 public:
@@ -77,7 +80,11 @@ public:
 	static float Lua_Dot(const Vector2& a, const Vector2& b) { return Dot(a, b); }
 
 };
-
+inline std::ostream& operator<<(std::ostream& os, const Vector2& v)
+{
+	os << "(" << v.x() << ", " << v.y() << ")";
+	return os;
+}
 namespace std {
 	template<>
 	struct hash<Vector2> {

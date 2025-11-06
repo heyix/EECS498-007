@@ -9,6 +9,7 @@
 #include "Input.h"
 #include "Collision.h"
 #include "FlatShape.h"
+#include "FlatMath.h"
 void DrawBodyComponent::On_Update()
 {
     Rotate();
@@ -47,6 +48,30 @@ void DrawBodyComponent::On_Update()
                         comp->body->Move(normal * depth);
                     }
                 }
+                else if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle) {
+                    Vector2 normal;
+                    float depth;
+                    auto my_vertices = my_fixture->GetShape().AsPolygon()->vertices;
+                    auto circle = comp->body->GetFixtures().front()->GetShape().AsCircle();
+                    auto my_transform = body->GetTransform();
+                    auto other_transform = comp->body->GetTransform();
+                    if (FlatPhysics::Collision::IntersectCirclePolygon(FlatPhysics::FlatTransform::TransformVector(circle->center,other_transform),circle->radius, FlatPhysics::FlatTransform::TransformVectors(my_vertices, my_transform), &normal, &depth)) {
+                        std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID << " Circle" << std::endl;
+                        comp->body->Move(-normal * depth);
+                    }
+                }
+                else if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon) {
+                    Vector2 normal;
+                    float depth;
+                    auto other_vertices = other_fixture->GetShape().AsPolygon()->vertices;
+                    auto circle = my_fixture->GetShape().AsCircle();
+                    auto my_transfrom = body->GetTransform();
+                    auto other_transform = comp->body->GetTransform();
+                    if (FlatPhysics::Collision::IntersectCirclePolygon(FlatPhysics::FlatTransform::TransformVector(circle->center,my_transfrom), circle->radius, FlatPhysics::FlatTransform::TransformVectors(other_vertices, other_transform), &normal, &depth)) {
+                        std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID << " Circle" << std::endl;
+                        comp->body->Move(normal * depth);
+                    }
+                }
             }
         }
     }
@@ -62,6 +87,12 @@ void DrawBodyComponent::On_Update()
 void DrawBodyComponent::On_Start()
 {
 	auto transform = this->holder_object->Get_Transform().lock();
+    if (holder_object->ID == 44) {
+        shape = FlatPhysics::ShapeType::Polygon;
+    }
+    else {
+        shape = FlatPhysics::ShapeType::Circle;
+    }
 	if (shape == FlatPhysics::ShapeType::Box) {
 		std::unique_ptr<FlatPhysics::FlatBody> body;
 		std::string error_message;
@@ -101,7 +132,7 @@ void DrawBodyComponent::DrawBody()
         case FlatPhysics::ShapeType::Circle: {
             auto& my_fixture = body->GetFixtures().front();
             float radius = my_fixture->GetShape().AsCircle()->radius;
-            Engine::instance->renderer->draw_ex("circle", x, y, rot,
+            Engine::instance->renderer->draw_ex("circle", x, y, FlatPhysics::FlatMath::RadToDeg(rot),
                 radius * 2.0f, radius * 2.0f,  
                 0.5f, 0.5f,                   
                 r, g, bl, a, 0);
@@ -148,8 +179,8 @@ void DrawBodyComponent::Rotate()
 {
     if (!body) return;
     if (body->shape_type == FlatPhysics::ShapeType::Circle) {
-        float rotation_speed = 1.0f * Engine::instance->running_game->Delta_Time();
-        body->Rotate(rotation_speed);
+        float rotation_speed_degree = 360.0f * Engine::instance->running_game->Delta_Time();
+        body->Rotate(FlatPhysics::FlatMath::DegToRad(rotation_speed_degree));
     }
     else if (body->shape_type == FlatPhysics::ShapeType::Polygon) {
         float rotation_speed = 1.0f * Engine::instance->running_game->Delta_Time();

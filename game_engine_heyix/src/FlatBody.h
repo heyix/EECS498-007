@@ -28,7 +28,7 @@ namespace FlatPhysics {
     private:
         Vector2 position;
         Vector2 linear_velocity;
-        float   rotation;
+        float   rotation_rad;
         float   rotation_velocity;
         FlatTransform current_transform{};
         bool need_update_transform = false;
@@ -47,7 +47,7 @@ namespace FlatPhysics {
 
     public:
         const Vector2& GetPosition() const { return position; }
-        float GetRotation()const { return rotation; }
+        float GetRotation()const { return rotation_rad; }
         const std::vector<std::unique_ptr<FlatFixture>>& GetFixtures()const { return fixtures_; }
         int GetFixtureCount()const { return fixtures_.size(); }
         FlatFixture* CreateFixture(const FixtureDef& def);
