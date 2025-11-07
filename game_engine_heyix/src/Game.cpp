@@ -12,30 +12,30 @@
 #include  "Time.h"
 void Game::game_loop()
 {
+	bool display_fps = false;
+	bool display_physics_time = true;
+
 	Input::Init();
 	awake();
 	start();
 	last_ticks = SDL_GetPerformanceCounter();
-	time->Enable_FPS_Count();
+	if(display_fps)time->Enable_FPS_Count();
 	while (is_running) {
 		update_time();
 		while (time->Try_Run_Fixed_Step()) {
-			bool display_time = false;
 			std::chrono::steady_clock::time_point step_start;
-			if (display_time) {
-				step_start = std::chrono::steady_clock::now();
-			}
+			if (display_physics_time) step_start = std::chrono::steady_clock::now();
 
 			PhysicsDB::Physics_Step();
 			fixed_update();
 			sync_rigidbody_and_transform();
 
-			if (display_time) {
+			if (display_physics_time) {
 				const double physics_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - step_start).count();
 				std::cout << physics_ms << " ms" << std::endl;
 			}
 		}
-		std::cout << time->FPS()<<std::endl;
+		if(display_fps)std::cout << time->FPS()<<std::endl;
 		process_input();
 		Engine::instance->renderer->clear_renderer();
 		update();
