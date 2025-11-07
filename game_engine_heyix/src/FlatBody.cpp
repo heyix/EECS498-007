@@ -175,7 +175,7 @@ bool FlatBody::CreateCircleBody(float r, const Vector2& pos, float density, bool
 }
 
 
-bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2> vertices, const Vector2& position, float density, bool is_static, float restitution, std::unique_ptr<FlatBody>& out_body)
+bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2>& vertices, const Vector2& position, float density, bool is_static, float restitution, std::unique_ptr<FlatBody>& out_body)
 {
     out_body = nullptr;
 

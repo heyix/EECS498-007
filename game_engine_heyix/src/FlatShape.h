@@ -48,9 +48,9 @@ namespace FlatPhysics {
 		PolygonShape() {}
 		PolygonShape(const std::vector<Vector2>& verts) { SetVertices(verts); }
 	public:
-		std::vector<Vector2> vertices;
 
 		ShapeType GetType() const override { return ShapeType::Polygon; }
+
 		std::unique_ptr<Shape> Clone() const override {
 			return std::make_unique<PolygonShape>(*this);
 		}
@@ -58,7 +58,11 @@ namespace FlatPhysics {
 		void SetVertices(const std::vector<Vector2>& verts) {
 			vertices = verts;
 		}
-		void SetAsBox(float width, float height, Vector2 center = Vector2::Zero(), float angle = 0.0f);
+
+		void SetAsBox(float width, float height, const Vector2& center = Vector2::Zero(), float angle = 0.0f);
+
+	public:
+		std::vector<Vector2> vertices;
 
 	};
 }

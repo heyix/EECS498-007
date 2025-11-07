@@ -3,7 +3,7 @@
 namespace FlatPhysics {
 	class FlatAABB {
 	public:
-		FlatAABB(const Vector2& min, const Vector2 max)
+		FlatAABB(const Vector2& min, const Vector2& max)
 			:min(min), max(max)
 		{
 		}

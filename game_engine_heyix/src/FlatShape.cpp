@@ -25,7 +25,7 @@ namespace FlatPhysics {
 			? static_cast<const PolygonShape*>(this)
 			: nullptr;
 	}
-	void PolygonShape::SetAsBox(float width, float height, Vector2 center, float angle)
+	void PolygonShape::SetAsBox(float width, float height, const Vector2& center, float angle)
 	{
 		std::vector<Vector2> local = {
 			Vector2(-width / 2, -height / 2),

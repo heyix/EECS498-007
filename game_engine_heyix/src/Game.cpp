@@ -13,7 +13,7 @@
 void Game::game_loop()
 {
 	bool display_fps = false;
-	bool display_physics_time = true;
+	bool display_physics_time = false;
 
 	Input::Init();
 	awake();
