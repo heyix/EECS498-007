@@ -72,6 +72,10 @@ public:
 	float Normalize();
 	Vector2 NormalizedVector()const;
 	float Length();
+	float LengthSquared();
+
+public:
+	static float DistanceSquared(const Vector2& a, const Vector2& b);
 	static float Distance(const Vector2& a, const Vector2& b);
 	static float Dot(const Vector2& a, const Vector2& b);
 	static float Cross(const Vector2& a, const Vector2& b);

@@ -21,6 +21,16 @@ float Vector2::Length()
 	return vector2.Length();
 }
 
+float Vector2::LengthSquared()
+{
+	return vector2.LengthSquared();
+}
+
+float Vector2::DistanceSquared(const Vector2& a, const Vector2& b)
+{
+	return b2DistanceSquared(a.vector2, b.vector2);
+}
+
 float Vector2::Distance(const Vector2& a, const Vector2& b)
 {
 	return b2Distance(a.vector2, b.vector2);

@@ -31,6 +31,7 @@ namespace FlatPhysics {
 
 	public:
 		static Vector2 FindContactPoint(const Vector2& centerA, float radiusA, const Vector2& centerB);
+		static Vector2 FindContactPoint(const Vector2& circle_center, float circle_radius, const std::vector<Vector2>& vertices);
 		static ContactPoints FindContactPoints(const FlatFixture* fa, const FlatFixture* fb);
 
 
@@ -39,5 +40,6 @@ namespace FlatPhysics {
 		static std::pair<float, float> ProjectCircle(const Vector2& center, float radius, const Vector2& axis);
 		static Vector2 FindPolygonCentroid(const std::vector<Vector2>& vertices);
 		static int FindClosestPointFromCircleToPolygon(const Vector2& center, const std::vector<Vector2>& vertices);
+		static float PointSegmentDistanceSquared(const Vector2& point, const Vector2& line_a, const Vector2& line_b,Vector2* contact);
 	};
 }

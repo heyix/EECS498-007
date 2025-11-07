@@ -216,6 +216,23 @@ namespace FlatPhysics {
 		return result;
 	}
 
+	Vector2 Collision::FindContactPoint(const Vector2& circle_center, float circle_radius, const std::vector<Vector2>& vertices)
+	{
+		float min_distance = std::numeric_limits<float>::max();
+		Vector2 result;
+		for (int i = 0; i < vertices.size(); i++) {
+			const Vector2& va = vertices[i];
+			const Vector2& vb = vertices[(i + 1) % vertices.size()];
+			Vector2 contact_point;
+			float distance_squared = PointSegmentDistanceSquared(circle_center, va, vb, &contact_point);
+			if (distance_squared < min_distance) {
+				min_distance = distance_squared;
+				result = contact_point;
+			}
+		}
+		return result;
+	}
+
 	ContactPoints Collision::FindContactPoints(const FlatFixture* fa, const FlatFixture* fb)
 	{
 		switch (fa->GetShapeType()) {
@@ -230,7 +247,9 @@ namespace FlatPhysics {
 				return result;
 			}
 			case ShapeType::Polygon: {
-				
+				const PolygonShape* polygonB = fb->GetShape().AsPolygon();
+				ContactPoints result = ContactPoints(FindContactPoint(centerA, circleA->radius, FlatTransform::TransformVectors(polygonB->vertices, fb->GetBody()->GetTransform())));
+				return result;
 			}
 			default: break;
 			}
@@ -238,13 +257,16 @@ namespace FlatPhysics {
 		}
 
 		case ShapeType::Polygon: {
-
+			const PolygonShape* polygonA = fa->GetShape().AsPolygon();
 			switch (fb->GetShapeType()) {
 			case ShapeType::Polygon: {
-				
+				break;
 			}
 			case ShapeType::Circle: {
-
+				const CircleShape* circleB = fb->GetShape().AsCircle();
+				Vector2 centerB = FlatTransform::TransformVector(circleB->center, fb->GetBody()->GetTransform());
+				ContactPoints result = ContactPoints(FindContactPoint(centerB, circleB->radius, FlatTransform::TransformVectors(polygonA->vertices, fa->GetBody()->GetTransform())));
+				return result;
 			}
 			default: break;
 			}
@@ -285,6 +307,31 @@ namespace FlatPhysics {
 			}
 		}
 		return result;
+	}
+
+	float Collision::PointSegmentDistanceSquared(const Vector2& point, const Vector2& line_a, const Vector2& line_b, Vector2* contact)
+	{
+		Vector2 ab = line_b - line_a;
+		Vector2 ap = point - line_a;
+
+		float proj = Vector2::Dot(ap, ab);
+		float ab_length_square = ab.LengthSquared();
+		if (ab_length_square <= std::numeric_limits<float>::epsilon()) {
+			*contact = line_a;
+			return Vector2::DistanceSquared(point, line_a);
+		}
+		float d = proj / ab_length_square;
+
+		if (d < 0) {
+			*contact = line_a;
+		}
+		else if (d > 1) {
+			*contact = line_b;
+		}
+		else {
+			*contact = line_a + ab * d;
+		}
+		return Vector2::DistanceSquared(point, *contact);
 	}
 
 	//return {min,max}
