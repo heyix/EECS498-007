@@ -31,4 +31,5 @@ private:
     void DrawBody();
     void MoveFirstBody();
     void Rotate();
+    void DrawAABB();
 };

@@ -2,6 +2,8 @@
 #include "FlatFixture.h"
 #include "Collision.h"
 #include <algorithm>
+#include "Renderer.h"
+#include "Engine.h"
 namespace FlatPhysics {
 	void FlatWorld::AddBody(FlatBody* body)
 	{
@@ -43,6 +45,7 @@ namespace FlatPhysics {
 	}
 	void FlatWorld::CollisionDetectionStep()
 	{
+		contacts.clear();
 		for (int i = 0; i < (int)bodies.size()-1; i++) {
 			FlatBody* bodyA = bodies[i];
 			const std::vector<std::unique_ptr<FlatFixture>>& fixturesA = bodyA->GetFixtures();
@@ -56,12 +59,12 @@ namespace FlatPhysics {
 					for (const std::unique_ptr<FlatFixture>& pb : fixturesB) {
 						FlatFixture* fa = pa.get();
 						FlatFixture* fb = pb.get();
-						if (!ShouldCollide(bodyA, bodyB, fa, fb)) {
+						if (!ShouldCollide(fa, fb)) {
 							continue;
 						}
 						Vector2 normal;
 						float depth;
-						if (DetectCollision(fa, fb, &normal, &depth)) {
+						if (Collision::DetectCollision(fa, fb, &normal, &depth)) {
 							if (!bodyA->is_static && !bodyB->is_static) {
 								bodyA->Move(-normal * (depth * 0.5f));
 								bodyB->Move(normal * (depth * 0.5f));
@@ -72,82 +75,38 @@ namespace FlatPhysics {
 							else if (bodyA->is_static && !bodyB->is_static) {
 								bodyB->Move(normal * depth);
 							}
-							ResolveCollision(bodyA, bodyB, normal, depth);
-							//contacts.push_back({ fa,fb,normal,depth });
+							ContactPoints contact_points = Collision::FindContactPoints(fa, fb);
+							FlatManifold contact{ fa,fb,normal,depth,contact_points };
+							contacts.push_back(contact);
+
 						}
 					}
 				}
 			}
 		}
+		for (FlatManifold& manifold : contacts) {
+			ResolveCollision(manifold);
+		}
 	}
-	bool FlatWorld::DetectCollision(FlatFixture* fa, FlatFixture* fb, Vector2* normal, float* depth)
+	bool FlatWorld::ShouldCollide(FlatFixture* fixture_a, FlatFixture* fixture_b)
 	{
-        auto bodyA = fa->GetBody();
-        auto bodyB = fb->GetBody();
-
-        const auto& transformA = bodyA->GetTransform();
-        const auto& transformB = bodyB->GetTransform();
-
-        switch (fa->GetShapeType()) {
-        case ShapeType::Circle: {
-            auto* ca = fa->GetShape().AsCircle();
-            Vector2 cA = FlatTransform::TransformVector(ca->center, transformA);
-            float rA = ca->radius;
-
-            switch (fb->GetShapeType()) {
-            case ShapeType::Circle: {
-                auto* cb = fb->GetShape().AsCircle();
-                Vector2 cB = FlatTransform::TransformVector(cb->center, transformB);
-                float rB = cb->radius;
-                return Collision::IntersectCircles(cA, rA, cB, rB, normal, depth);
-            }
-            case ShapeType::Polygon: {
-                const auto& vertsB_local = fb->GetShape().AsPolygon()->vertices;
-                auto vertsB = FlatTransform::TransformVectors(vertsB_local, transformB);
-                return Collision::IntersectCirclePolygon(cA, rA, vertsB, normal, depth);
-            }
-            default: break;
-            }
-            break;
-        }
-
-        case ShapeType::Polygon: {
-            const auto& vertsA_local = fa->GetShape().AsPolygon()->vertices;
-            auto vertsA = FlatTransform::TransformVectors(vertsA_local, transformA);
-
-            switch (fb->GetShapeType()) {
-            case ShapeType::Polygon: {
-                const auto& vertsB_local = fb->GetShape().AsPolygon()->vertices;
-                auto vertsB = FlatTransform::TransformVectors(vertsB_local, transformB);
-                return Collision::IntersectPolygons(vertsA, vertsB, normal, depth);
-            }
-            case ShapeType::Circle: {
-                auto* cb = fb->GetShape().AsCircle();
-                Vector2 cB = FlatTransform::TransformVector(cb->center, transformB);
-                float rB = cb->radius;
-                bool hit = Collision::IntersectCirclePolygon(cB, rB, vertsA, normal, depth);
-                if (hit && normal) *normal = -*normal;
-                return hit;
-            }
-            default: break;
-            }
-            break;
-        }
-        default: break;
-        }
-
-        return false;
-
-	}
-	bool FlatWorld::ShouldCollide(FlatBody* a, FlatBody* b, FlatFixture* fixture_a, FlatFixture* fixture_b)
-	{
+		FlatBody* a = fixture_a->GetBody();
+		FlatBody* b = fixture_b->GetBody();
 		if (a == b) {
+			return false;
+		}
+		if (!FlatAABB::IntersectAABB(fixture_a->GetAABB(), fixture_b->GetAABB())) {
 			return false;
 		}
 		return true;
 	}
-	void FlatWorld::ResolveCollision(FlatBody* bodyA, FlatBody* bodyB, const Vector2& normal, float depth)
+	void FlatWorld::ResolveCollision(const FlatManifold& manifold)
 	{
+		FlatBody* bodyA = manifold.fixtureA->GetBody();
+		FlatBody* bodyB = manifold.fixtureB->GetBody();
+		float depth = manifold.depth;
+		const Vector2& normal = manifold.normal;
+
 		Vector2 relative_velocity = bodyB->GetLinearVelocity() - bodyA->GetLinearVelocity();
 		if (Vector2::Dot(relative_velocity, normal) > 0) {
 			return;
@@ -163,5 +122,30 @@ namespace FlatPhysics {
 		Vector2 velocity_b = bodyB->GetLinearVelocity();
 		velocity_b += impulse * bodyB->inverse_mass;
 		bodyB->SetLinearVelocity(velocity_b);
+	}
+	void FlatWorld::DrawContactPoints()
+	{
+		for (FlatManifold manifold : contacts) {
+			ContactPoints& contact_points = manifold.contact_points;
+			if (contact_points.points_num > 0) {
+				constexpr float kMarkerHalfSize = 0.1f;
+				const std::vector<Vector2> markerVerts = {
+					{ -kMarkerHalfSize, -kMarkerHalfSize },
+					{  kMarkerHalfSize, -kMarkerHalfSize },
+					{  kMarkerHalfSize,  kMarkerHalfSize },
+					{ -kMarkerHalfSize,  kMarkerHalfSize }
+				};
+
+				auto queueMarker = [&](const Vector2& p) {
+					Engine::instance->renderer->draw_polygon(markerVerts, p, 255, 0, 0, 255, false);
+					};
+
+				queueMarker(contact_points.point1);
+				if (contact_points.points_num > 1) {
+					queueMarker(contact_points.point2);
+				}
+			}
+		}
+		
 	}
 }

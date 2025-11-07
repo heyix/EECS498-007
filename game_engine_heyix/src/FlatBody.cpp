@@ -100,6 +100,7 @@ FlatTransform FlatPhysics::FlatBody::GetTransform()
     return current_transform;
 }
 
+
 void FlatBody::Move(const Vector2& amount) {
     if (is_static) return;
     MoveTo(this->position + amount);
@@ -120,6 +121,7 @@ void FlatPhysics::FlatBody::Rotate(float amount)
 
 void FlatPhysics::FlatBody::Step(float time, const Vector2& gravity)
 {
+    if (is_static)return;
     //Vector2 acceleration = force / mass;
     //linear_velocity += acceleration * time;
     SetLinearVelocity(linear_velocity + gravity * time);

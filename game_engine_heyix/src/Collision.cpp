@@ -2,6 +2,8 @@
 #include <iostream>
 #include <limits>
 #include <algorithm>
+#include "FlatTransform.h"
+#include "FlatBody.h"
 namespace FlatPhysics {
 	bool FlatPhysics::Collision::IntersectCircles(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, Vector2* normal, float* depth)
 	{
@@ -22,8 +24,8 @@ namespace FlatPhysics {
 
 	bool Collision::IntersectPolygons(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB, Vector2* normal, float* depth)
 	{
-		Vector2 centerA = FindPolygonArithmeticMean(verticesA);
-		Vector2 centerB = FindPolygonArithmeticMean(verticesB);
+		Vector2 centerA = FindPolygonCentroid(verticesA);
+		Vector2 centerB = FindPolygonCentroid(verticesB);
 		return IntersectPolygons(verticesA, centerA, verticesB, centerB, normal, depth);
 	}
 
@@ -91,7 +93,7 @@ namespace FlatPhysics {
 
 	bool Collision::IntersectCirclePolygon(const Vector2& center, float radius, const std::vector<Vector2>& vertices, Vector2* normal, float* depth)
 	{
-		Vector2 polygon_center = FindPolygonArithmeticMean(vertices);
+		Vector2 polygon_center = FindPolygonCentroid(vertices);
 		return IntersectCirclePolygon(center, radius, vertices, polygon_center, normal, depth);
 	}
 
@@ -145,6 +147,112 @@ namespace FlatPhysics {
 		if (normal) *normal = result_normal;
 		if (depth)  *depth = min_depth;
 		return true;
+	}
+
+	bool Collision::DetectCollision(const FlatFixture* fa, const FlatFixture* fb, Vector2* normal, float* depth)
+	{
+		auto bodyA = fa->GetBody();
+		auto bodyB = fb->GetBody();
+
+		const auto& transformA = bodyA->GetTransform();
+		const auto& transformB = bodyB->GetTransform();
+
+		switch (fa->GetShapeType()) {
+		case ShapeType::Circle: {
+			auto* ca = fa->GetShape().AsCircle();
+			Vector2 cA = FlatTransform::TransformVector(ca->center, transformA);
+			float rA = ca->radius;
+
+			switch (fb->GetShapeType()) {
+			case ShapeType::Circle: {
+				auto* cb = fb->GetShape().AsCircle();
+				Vector2 cB = FlatTransform::TransformVector(cb->center, transformB);
+				float rB = cb->radius;
+				return Collision::IntersectCircles(cA, rA, cB, rB, normal, depth);
+			}
+			case ShapeType::Polygon: {
+				const auto& vertsB_local = fb->GetShape().AsPolygon()->vertices;
+				auto vertsB = FlatTransform::TransformVectors(vertsB_local, transformB);
+				return Collision::IntersectCirclePolygon(cA, rA, vertsB, normal, depth);
+			}
+			default: break;
+			}
+			break;
+		}
+
+		case ShapeType::Polygon: {
+			const auto& vertsA_local = fa->GetShape().AsPolygon()->vertices;
+			auto vertsA = FlatTransform::TransformVectors(vertsA_local, transformA);
+
+			switch (fb->GetShapeType()) {
+			case ShapeType::Polygon: {
+				const auto& vertsB_local = fb->GetShape().AsPolygon()->vertices;
+				auto vertsB = FlatTransform::TransformVectors(vertsB_local, transformB);
+				return Collision::IntersectPolygons(vertsA, vertsB, normal, depth);
+			}
+			case ShapeType::Circle: {
+				auto* cb = fb->GetShape().AsCircle();
+				Vector2 cB = FlatTransform::TransformVector(cb->center, transformB);
+				float rB = cb->radius;
+				bool hit = Collision::IntersectCirclePolygon(cB, rB, vertsA, normal, depth);
+				if (hit && normal) *normal = -*normal;
+				return hit;
+			}
+			default: break;
+			}
+			break;
+		}
+		default: break;
+		}
+
+		return false;
+	}
+
+	Vector2 Collision::FindContactPoint(const Vector2& centerA, float radiusA, const Vector2& centerB)
+	{
+		Vector2 direction = centerB - centerA;
+		direction.Normalize();
+		Vector2 result = centerA + direction * radiusA;
+		return result;
+	}
+
+	ContactPoints Collision::FindContactPoints(const FlatFixture* fa, const FlatFixture* fb)
+	{
+		switch (fa->GetShapeType()) {
+		case ShapeType::Circle: {
+			const CircleShape* circleA = fa->GetShape().AsCircle();
+			Vector2 centerA = FlatTransform::TransformVector(circleA->center, fa->GetBody()->GetTransform());
+			switch (fb->GetShapeType()) {
+			case ShapeType::Circle: {
+				const CircleShape* circleB = fb->GetShape().AsCircle();
+				Vector2 centerB = FlatTransform::TransformVector(circleB->center, fb->GetBody()->GetTransform());
+				ContactPoints result = ContactPoints(FindContactPoint(centerA, circleA->radius, centerB));
+				return result;
+			}
+			case ShapeType::Polygon: {
+				
+			}
+			default: break;
+			}
+			break;
+		}
+
+		case ShapeType::Polygon: {
+
+			switch (fb->GetShapeType()) {
+			case ShapeType::Polygon: {
+				
+			}
+			case ShapeType::Circle: {
+
+			}
+			default: break;
+			}
+			break;
+		}
+		default: break;
+		}
+		return {};
 	}
 
 	std::pair<float, float> Collision::ProjectCircle(const Vector2& center, float radius, const Vector2& axis)
@@ -203,15 +311,23 @@ namespace FlatPhysics {
 
 
 
-	Vector2 Collision::FindPolygonArithmeticMean(const std::vector<Vector2>& vertices)
+	Vector2 Collision::FindPolygonCentroid(const std::vector<Vector2>& vertices)
 	{
-		float sumX = 0;
-		float sumY = 0;
-		for (int i = 0; i < vertices.size(); i++) {
-			sumX += vertices[i].x();
-			sumY += vertices[i].y();
+		const size_t n = vertices.size();
+		if (n < 3) {
+			return n > 0 ? vertices[0] : Vector2::Zero();
 		}
-		return { sumX / vertices.size(),sumY / vertices.size() };
+
+		float area2 = 0.0f;         
+		Vector2 centroid = Vector2::Zero();
+
+		for (size_t i = 0, j = n - 1; i < n; j = i++) {
+			float cross = vertices[j].x() * vertices[i].y() - vertices[i].x() * vertices[j].y();
+			area2 += cross;
+			centroid += (vertices[j] + vertices[i]) * cross;
+		}
+
+		return centroid / (3.0f * area2);
 	}
 
 

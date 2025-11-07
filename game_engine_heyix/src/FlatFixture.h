@@ -1,6 +1,7 @@
 #pragma once
 #include "FlatShape.h"
 #include <memory>
+#include "FlatAABB.h"
 namespace FlatPhysics {
 	struct Filter {
 		uint16_t category_bits = 0x0001; 
@@ -17,6 +18,11 @@ namespace FlatPhysics {
         void* user_data = nullptr;
 	};
 	class FlatBody;
+
+
+
+
+
     class FlatFixture {
     public:
         FlatFixture(FlatBody* body, const FixtureDef& def)
@@ -31,8 +37,9 @@ namespace FlatPhysics {
 
         FlatBody* GetBody()        const { return body_; }
         const Shape& GetShape()       const { return *shape_; }
-        ShapeType GetShapeType() { return shape_->GetType(); }
+        ShapeType GetShapeType() const{ return shape_->GetType(); }
         Filter& GetFilter()      { return filter_; }
+        FlatAABB GetAABB();
         bool            GetIsTrigger()       const { return is_trigger_; }
         float           GetDensity()     const { return density_; }
         float           GetFriction()    const { return friction_; }

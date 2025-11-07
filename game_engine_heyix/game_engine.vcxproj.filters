@@ -468,6 +468,12 @@
     <ClCompile Include="src\Time.cpp">
       <Filter>Source Files\Engine\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="src\FlatAABB.cpp">
+      <Filter>Source Files\FlatPhysics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FlatManifold.cpp">
+      <Filter>Source Files\FlatPhysics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThirdParty\lua\lapi.h">
@@ -826,6 +832,12 @@
     </ClInclude>
     <ClInclude Include="src\Time.h">
       <Filter>Header Files\Engine\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatAABB.h">
+      <Filter>Header Files\FlatPhysics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatManifold.h">
+      <Filter>Header Files\FlatPhysics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

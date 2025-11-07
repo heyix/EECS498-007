@@ -3,14 +3,8 @@
 #include "FlatBody.h"
 #include <vector>
 #include <unordered_map>
+#include "FlatManifold.h"
 namespace FlatPhysics {
-	class ContactHit {
-	public:
-		FlatFixture* fixtureA = nullptr;
-		FlatFixture* fixtureB = nullptr;
-		Vector2 normal = Vector2::Zero();
-		float depth = 0.0f;
-	};
 	class FlatWorld {
 	public:
 		FlatWorld() 
@@ -29,15 +23,17 @@ namespace FlatPhysics {
 		bool RemoveBody(FlatBody* body);
 		FlatBody* GetBody(int index);
 		void Step(float time);
+	public:
+		void DrawContactPoints();
+
 	private:
 		void CollisionDetectionStep();
-		bool DetectCollision(FlatFixture* fa, FlatFixture* fb, Vector2* normal = nullptr, float* depth = nullptr);
-		bool ShouldCollide(FlatBody* a, FlatBody* b, FlatFixture* fixture_a, FlatFixture* fixture_b);
-		void ResolveCollision(FlatBody* bodyA, FlatBody* bodyB, const Vector2& normal, float depth);
+		bool ShouldCollide(FlatFixture* fixture_a, FlatFixture* fixture_b);
+		void ResolveCollision(const FlatManifold& manifold);
 	private:
 		Vector2 gravity;
 		std::vector<FlatBody*> bodies;
 		std::unordered_map<FlatBody*, int> index_map;
-		std::vector<ContactHit> contacts;
+		std::vector<FlatManifold> contacts;
 	};
 }

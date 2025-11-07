@@ -12,6 +12,7 @@
 #include "FlatMath.h"
 #include "PhysicsDB.h"
 #include "FlatFixture.h"
+#include "FlatWorld.h"
 void DrawBodyComponent::On_Update()
 {
     Rotate();
@@ -85,7 +86,8 @@ void DrawBodyComponent::On_Update()
      
 
     DrawBody();
-
+    DrawAABB();
+    PhysicsDB::flat_world->DrawContactPoints();
     //std::cout << transform->Get_World_Position().x() << " " << transform->Get_World_Position().y() << std::endl;
 }
 
@@ -226,5 +228,19 @@ void DrawBodyComponent::Rotate()
     else if (body->shape_type == FlatPhysics::ShapeType::Polygon) {
         float rotation_speed = 360 * Engine::instance->running_game->Delta_Time();
         body->Rotate(FlatPhysics::FlatMath::DegToRad(rotation_speed));
+    }
+}
+
+void DrawBodyComponent::DrawAABB()
+{
+    for (const auto& fixture : body->GetFixtures()) {
+        FlatPhysics::FlatAABB aabb = fixture->GetAABB();
+        std::vector<Vector2> corners{
+            {aabb.min.x(), aabb.min.y()},
+            {aabb.max.x(), aabb.min.y()},
+            {aabb.max.x(), aabb.max.y()},
+            {aabb.min.x(), aabb.max.y()}
+        };
+        Engine::instance->renderer->draw_polygon_world(corners, 0, 128, 0, 128, false);
     }
 }

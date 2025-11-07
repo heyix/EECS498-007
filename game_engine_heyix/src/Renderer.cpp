@@ -53,13 +53,13 @@ void Renderer::draw_pixel(float x, float y, float r, float g, float b, float a)
 }
 void Renderer::draw_polygon(const std::vector<Vector2>& vertices,
 	const Vector2& position,
-	float r, float g, float b, float a)
+	float r, float g, float b, float a, bool fill_color)
 {
-	polygon_draw_request_queue.emplace_back(vertices, position, r, g, b, a);
+	polygon_draw_request_queue.emplace_back(vertices, position, r, g, b, a, fill_color);
 }
-void Renderer::draw_polygon_world(const std::vector<Vector2>& worldVertices, float r, float g, float b, float a)
+void Renderer::draw_polygon_world(const std::vector<Vector2>& worldVertices, float r, float g, float b, float a, bool fill_color)
 {
-	draw_polygon(worldVertices, { 0,0 }, r, g, b, a);
+	draw_polygon(worldVertices, { 0,0 }, r, g, b, a, fill_color);
 }
 void Renderer::clear_all_request_queues()
 {
@@ -215,8 +215,10 @@ void Renderer::Render_All_Polygon_Requests()
 		}
 
 		// 1) Fill interior
-		if (n >= 3) {
-			FillPolygonEvenOdd(sdl_renderer, screenPts);
+		if (req.fill_color) {
+			if (n >= 3) {
+				FillPolygonEvenOdd(sdl_renderer, screenPts);
+			}
 		}
 
 		// 2) Draw outline

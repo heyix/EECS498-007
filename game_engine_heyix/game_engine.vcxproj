@@ -31,7 +31,9 @@
     <ClCompile Include="src\CppComponent.cpp" />
     <ClCompile Include="src\DrawBodyComponent.cpp" />
     <ClCompile Include="src\EventBus.cpp" />
+    <ClCompile Include="src\FlatAABB.cpp" />
     <ClCompile Include="src\FlatFixture.cpp" />
+    <ClCompile Include="src\FlatManifold.cpp" />
     <ClCompile Include="src\FlatMath.cpp" />
     <ClCompile Include="src\FlatShape.cpp" />
     <ClCompile Include="src\FlatTransform.cpp" />
@@ -153,7 +155,9 @@
     <ClInclude Include="src\CppComponent.h" />
     <ClInclude Include="src\DrawBodyComponent.h" />
     <ClInclude Include="src\EventBus.h" />
+    <ClInclude Include="src\FlatAABB.h" />
     <ClInclude Include="src\FlatFixture.h" />
+    <ClInclude Include="src\FlatManifold.h" />
     <ClInclude Include="src\FlatMath.h" />
     <ClInclude Include="src\FlatShape.h" />
     <ClInclude Include="src\FlatTransform.h" />
