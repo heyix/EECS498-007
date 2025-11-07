@@ -65,7 +65,7 @@ GameManager = {
 		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-		{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 	},
 	OnStart = function(self)
 		-- Spawn stage
@@ -88,20 +88,23 @@ GameManager = {
 					new_box_rb.y = tile_pos.y
 
 
-				elseif tile_code == 3 then
-					local new_box = Actor.Instantiate("BouncyBox")
-					local new_box_rb = new_box:GetComponent("Rigidbody")
-					new_box_rb.x = tile_pos.x
-					new_box_rb.y = tile_pos.y
+				-- elseif tile_code == 3 then
+				-- 	local new_box = Actor.Instantiate("BouncyBox")
+				-- 	local new_box_rb = new_box:GetComponent("Rigidbody")
+				-- 	new_box_rb.x = tile_pos.x
+				-- 	new_box_rb.y = tile_pos.y
 				
-				elseif tile_code == 4 then
-					local new_box = Actor.Instantiate("VictoryBox")
-					local new_box_rb = new_box:GetComponent("Rigidbody")
-					new_box_rb.x = tile_pos.x
-					new_box_rb.y = tile_pos.y
+				-- elseif tile_code == 4 then
+				-- 	local new_box = Actor.Instantiate("VictoryBox")
+				-- 	local new_box_rb = new_box:GetComponent("Rigidbody")
+				-- 	new_box_rb.x = tile_pos.x
+				-- 	new_box_rb.y = tile_pos.y
 				end
 			end
 		end
+		
+		local new_body = Actor.Instantiate("Ground")
+		Debug.Log("Spawned body with ID: " .. tostring(new_body:GetID()))
 	end,
 	spawn = function(self)
 		if Input.GetMouseButtonDown(1) then
@@ -111,10 +114,8 @@ GameManager = {
 			local cam_dim = Camera.GetCameraDimension()
 			local x = Camera.GetPositionX()
 			local y = Camera.GetPositionY()
-
 			local world_x = (mouse_pos.x - cam_dim.x * 0.5 * (1.0 / zoom)) / pixels_per_meter + x
 			local world_y = (mouse_pos.y - cam_dim.y * 0.5 * (1.0 / zoom)) / pixels_per_meter + y
-
 			local new_body = Actor.Instantiate("Body")
 			local new_body_rb = new_body:GetComponent("Rigidbody")
 			new_body_rb.x = world_x

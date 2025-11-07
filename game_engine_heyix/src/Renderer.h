@@ -87,13 +87,13 @@ public:
 class PolygonDrawRequest {
 public:
 	PolygonDrawRequest(const std::vector<Vector2>& vertices,
-		float x, float y,
+		const Vector2& position,
 		float r, float g, float b, float a)
-		: vertices(vertices), x(x), y(y), r(r), g(g), b(b), a(a) {}
+		: vertices(vertices), position(position), r(r), g(g), b(b), a(a) {}
 
 public:
 	std::vector<Vector2> vertices;
-	float x, y;
+	Vector2 position;
 	float r, g, b, a;
 };
 
@@ -111,7 +111,7 @@ public:
 	void draw_text(const std::string& font_name, const std::string& text_content, int font_size, const SDL_Color& font_color, float x, float y,float zoom_factor = 1.0f);
 	void draw_frect(float zoom_factor, SDL_FRect& rect);
 	void draw_pixel(float x, float y, float r, float g, float b, float a);
-	void draw_polygon(const std::vector<Vector2>& vertices, float x,float y, float r, float g, float b, float a);
+	void draw_polygon(const std::vector<Vector2>& vertices, const Vector2& position, float r, float g, float b, float a);
 	void draw_polygon_world(const std::vector<Vector2>& worldVertices,float r, float g, float b, float a);
 	void clear_all_request_queues();
 

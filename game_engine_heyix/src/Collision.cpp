@@ -22,6 +22,13 @@ namespace FlatPhysics {
 
 	bool Collision::IntersectPolygons(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB, Vector2* normal, float* depth)
 	{
+		Vector2 centerA = FindPolygonArithmeticMean(verticesA);
+		Vector2 centerB = FindPolygonArithmeticMean(verticesB);
+		return IntersectPolygons(verticesA, centerA, verticesB, centerB, normal, depth);
+	}
+
+	bool Collision::IntersectPolygons(const std::vector<Vector2>& verticesA, const Vector2& centerA, const std::vector<Vector2>& verticesB, const Vector2& centerB, Vector2* normal, float* depth)
+	{
 		float min_depth = std::numeric_limits<float>::max();
 		Vector2 result_normal = Vector2::Zero();
 		for (int i = 0; i < verticesA.size(); i++) {
@@ -66,11 +73,9 @@ namespace FlatPhysics {
 			float axis_depth = std::min(projB.second - projA.first, projA.second - projB.first);
 			if (axis_depth < min_depth) {
 				min_depth = axis_depth;
-				result_normal = axis; 
+				result_normal = axis;
 			}
 		}
-		Vector2 centerA = FindPolygonArithmeticMean(verticesA);
-		Vector2 centerB = FindPolygonArithmeticMean(verticesB);
 		Vector2 direction = centerB - centerA;
 		if (Vector2::Dot(direction, result_normal) < 0) {
 			result_normal = -result_normal;
@@ -85,6 +90,12 @@ namespace FlatPhysics {
 	}
 
 	bool Collision::IntersectCirclePolygon(const Vector2& center, float radius, const std::vector<Vector2>& vertices, Vector2* normal, float* depth)
+	{
+		Vector2 polygon_center = FindPolygonArithmeticMean(vertices);
+		return IntersectCirclePolygon(center, radius, vertices, polygon_center, normal, depth);
+	}
+
+	bool Collision::IntersectCirclePolygon(const Vector2& center, float radius, const std::vector<Vector2>& vertices, const Vector2& polygon_center, Vector2* normal, float* depth)
 	{
 		float min_depth = std::numeric_limits<float>::max();
 		Vector2 result_normal = Vector2::Zero();
@@ -114,7 +125,7 @@ namespace FlatPhysics {
 		Vector2 closest = vertices[closest_index];
 		Vector2 axis = closest - center;
 		float axis_len = axis.Normalize();
-		if (axis_len > 1e-8f) {     
+		if (axis_len > 1e-8f) {
 			auto projA = ProjectVertices(vertices, axis);
 			auto projB = ProjectCircle(center, radius, axis);
 			if (projA.first >= projB.second || projB.first >= projA.second) return false;
@@ -126,14 +137,13 @@ namespace FlatPhysics {
 			}
 		}
 
-		if (min_depth == std::numeric_limits<float>::max()) return false; 
+		if (min_depth == std::numeric_limits<float>::max()) return false;
 
-		Vector2 polygon_center = FindPolygonArithmeticMean(vertices);
 		Vector2 direction = polygon_center - center;
 		if (Vector2::Dot(direction, result_normal) < 0) result_normal = -result_normal;
 
-		if (normal) *normal = result_normal; 
-		if (depth)  *depth = min_depth; 
+		if (normal) *normal = result_normal;
+		if (depth)  *depth = min_depth;
 		return true;
 	}
 

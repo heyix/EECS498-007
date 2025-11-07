@@ -16,11 +16,16 @@ public:
     void On_Update()override;
     void On_Start()override;
     void On_Fixed_Update()override;
+    void Add_Int_Property(const std::string& key, int new_property) override;
+    void Add_Float_Property(const std::string& key, float new_property) override;
 public:
     FlatPhysics::ShapeType shape = FlatPhysics::ShapeType::Polygon;
 private:
     std::unique_ptr<FlatPhysics::FlatBody> body = nullptr;
     Vector2 move_dir{ 0,0 };
+    float width = 1.0f;
+    float height = 1.0f;
+    float radius = 1.0f;
 private:
     void DrawBody();
     void MoveFirstBody();

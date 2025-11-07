@@ -52,14 +52,14 @@ void Renderer::draw_pixel(float x, float y, float r, float g, float b, float a)
 	pixels_request_queue.push_back({ x,y,r,g,b,a });
 }
 void Renderer::draw_polygon(const std::vector<Vector2>& vertices,
-	float x, float y,
+	const Vector2& position,
 	float r, float g, float b, float a)
 {
-	polygon_draw_request_queue.emplace_back(vertices, x, y, r, g, b, a);
+	polygon_draw_request_queue.emplace_back(vertices, position, r, g, b, a);
 }
 void Renderer::draw_polygon_world(const std::vector<Vector2>& worldVertices, float r, float g, float b, float a)
 {
-	draw_polygon(worldVertices, 0, 0, r, g, b, a);
+	draw_polygon(worldVertices, { 0,0 }, r, g, b, a);
 }
 void Renderer::clear_all_request_queues()
 {
@@ -153,10 +153,10 @@ void Renderer::Render_All_Polygon_Requests()
 			for (size_t i = 0; i < n; ++i)
 			{
 				// local → world
-				const float v0wx = verts[i].x() + req.x;
-				const float v0wy = verts[i].y() + req.y;
-				const float v1wx = verts[(i + 1) % n].x() + req.x;
-				const float v1wy = verts[(i + 1) % n].y() + req.y;
+				const float v0wx = verts[i].x() + req.position.x();
+				const float v0wy = verts[i].y() + req.position.y();
+				const float v1wx = verts[(i + 1) % n].x() + req.position.x();
+				const float v1wy = verts[(i + 1) % n].y() + req.position.y();
 
 				// world → camera space
 				const float c0x = (v0wx - cam_pos.x) * ppm + ox;

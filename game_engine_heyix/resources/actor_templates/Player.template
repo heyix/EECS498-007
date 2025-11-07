@@ -3,6 +3,7 @@
 	"components": {
 		"1" : {
 			"type": "Rigidbody",
+			"body_type":"kinematic",
 			"density": 0.5
 		},
 		"2": {
@@ -10,16 +11,14 @@
 		},
 		"3": {
 			"type": "SpriteRenderer",
-			"sprite": "circle"
+			"sprite": "box1"
 		},
 		"4" : {
-			"type": "CircleCollider",
-			"radius": 0.45
+			"type": "BoxCollider"
 		},
 		"5" : {
-			"type": "CircleCollider",
-			"is_trigger" : true,
-			"trigger_radius": 0.55
+			"type": "BoxCollider",
+			"is_trigger" : true
 		}
 	}
 }

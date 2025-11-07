@@ -36,7 +36,7 @@ namespace FlatPhysics {
 	void FlatWorld::Step(float time)
 	{
 		for (int i = 0; i < bodies.size(); i++) {
-			bodies[i]->Step(time);
+			bodies[i]->Step(time, gravity);
 		}
 		CollisionDetectionStep();
 

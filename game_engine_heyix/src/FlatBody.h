@@ -56,22 +56,20 @@ namespace FlatPhysics {
         void DestroyFixture(FlatFixture* fixture);
         FlatTransform GetTransform();
         Vector2 GetLinearVelocity() { return linear_velocity; }
-        void SetLinearVelocity(const Vector2& velocity) { linear_velocity = velocity; }
     public:
 
         void Move(const Vector2& amount);
         void MoveTo(const Vector2& position);
         void Rotate(float amount);
-        void Step(float time);
+        void Step(float time, const Vector2& gravity);
         void AddForce(const Vector2& amount);
+        void SetLinearVelocity(const Vector2& velocity) { if (is_static) return; linear_velocity = velocity; }
 
     public:
         static bool CreateCircleBody(float radius, const Vector2& position, float density, bool is_static,
-            float restitution, std::unique_ptr<FlatBody>& out_body,
-            std::string* error_message = nullptr);
+            float restitution, std::unique_ptr<FlatBody>& out_body);
 
         static bool CreatePolygonBody(const std::vector<Vector2> vertices, const Vector2& position, float density, bool is_static,
-            float restitution, std::unique_ptr<FlatBody>& out_body,
-            std::string* error_message = nullptr);
+            float restitution, std::unique_ptr<FlatBody>& out_body);
     };
 }

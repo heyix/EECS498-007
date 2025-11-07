@@ -1,0 +1,19 @@
+{
+	"name": "Ground",
+	"components": {
+		"2": {
+			"type": "Rigidbody",
+			"body_type": "static"
+		},
+		"4": {
+			"type": "DrawBodyComponent",
+			"width": 20,
+			"height": 2
+		},
+		"5":{
+			"type":"Transform",
+			"x" : 20,
+			"y" : 40
+		}
+	}
+}

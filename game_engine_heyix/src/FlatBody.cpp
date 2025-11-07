@@ -101,25 +101,28 @@ FlatTransform FlatPhysics::FlatBody::GetTransform()
 }
 
 void FlatBody::Move(const Vector2& amount) {
-    this->position += amount;
-    need_update_transform = true;
+    if (is_static) return;
+    MoveTo(this->position + amount);
 }
 
 void FlatBody::MoveTo(const Vector2& p) {
+    if (is_static)return;
     this->position = p;
     need_update_transform = true;
 }
 
 void FlatPhysics::FlatBody::Rotate(float amount)
 {
+    if (is_static)return;
     this->rotation_rad += amount;
     need_update_transform = true;
 }
 
-void FlatPhysics::FlatBody::Step(float time)
+void FlatPhysics::FlatBody::Step(float time, const Vector2& gravity)
 {
-    Vector2 acceleration = force / mass;
-    linear_velocity += acceleration * time;
+    //Vector2 acceleration = force / mass;
+    //linear_velocity += acceleration * time;
+    SetLinearVelocity(linear_velocity + gravity * time);
     Move(linear_velocity * time);
     Rotate(rotation_velocity * time);
 
@@ -128,37 +131,36 @@ void FlatPhysics::FlatBody::Step(float time)
 
 void FlatPhysics::FlatBody::AddForce(const Vector2& amount)
 {
+    if (is_static) return;
     force += amount;
 }
 
 bool FlatBody::CreateCircleBody(float r, const Vector2& pos, float density, bool is_static,
-    float restitution, std::unique_ptr<FlatBody>& out_body,
-    std::string* error_message)
+    float restitution, std::unique_ptr<FlatBody>& out_body)
 {
     const float area = CircleArea(r);
     out_body = nullptr;
-    if (error_message) *error_message = "";
 
     if (area < FlatWorld::MinBodySize) {
-        if (error_message) *error_message =
+        std::cout<<
             "Body circle is too small, where requested area is " + std::to_string(area) +
             " and minimum allowed area is " + std::to_string(FlatWorld::MinBodySize);
         return false;
     }
     if (area > FlatWorld::MaxBodySize) {
-        if (error_message) *error_message =
+        std::cout <<
             "Body circle is too big, where requested area is " + std::to_string(area) +
             " and maximum allowed area is " + std::to_string(FlatWorld::MaxBodySize);
         return false;
     }
     if (density < FlatWorld::MinDensity) {
-        if (error_message) *error_message =
+        std::cout <<
             "Body density is too small, where requested density is " + std::to_string(density) +
             " and minimum allowed density is " + std::to_string(FlatWorld::MinDensity);
         return false;
     }
     if (density > FlatWorld::MaxDensity) {
-        if (error_message) *error_message =
+        std::cout <<
             "Body density is too big, where requested density is " + std::to_string(density) +
             " and maximum allowed density is " + std::to_string(FlatWorld::MaxDensity);
         return false;
@@ -171,13 +173,12 @@ bool FlatBody::CreateCircleBody(float r, const Vector2& pos, float density, bool
 }
 
 
-bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2> vertices, const Vector2& position, float density, bool is_static, float restitution, std::unique_ptr<FlatBody>& out_body, std::string* error_message)
+bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2> vertices, const Vector2& position, float density, bool is_static, float restitution, std::unique_ptr<FlatBody>& out_body)
 {
     out_body = nullptr;
-    if (error_message) *error_message = "";
 
     if (vertices.size() < 3) {
-        if (error_message) *error_message = "Polygon needs at least 3 vertices.";
+        std::cout << "Polygon needs at least 3 vertices.";
         return false;
     }
 
@@ -185,25 +186,25 @@ bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2> vertice
     const float area = std::abs(signedArea);
 
     if (area < FlatWorld::MinBodySize) {
-        if (error_message) *error_message =
+        std::cout <<
             "Body polygon is too small, requested area is " + std::to_string(area) +
             " and minimum allowed area is " + std::to_string(FlatWorld::MinBodySize);
         return false;
     }
     if (area > FlatWorld::MaxBodySize) {
-        if (error_message) *error_message =
+        std::cout <<
             "Body polygon is too big, requested area is " + std::to_string(area) +
             " and maximum allowed area is " + std::to_string(FlatWorld::MaxBodySize);
         return false;
     }
     if (density < FlatWorld::MinDensity) {
-        if (error_message) *error_message =
+        std::cout <<
             "Body density is too small, requested density is " + std::to_string(density) +
             " and minimum allowed density is " + std::to_string(FlatWorld::MinDensity);
         return false;
     }
     if (density > FlatWorld::MaxDensity) {
-        if (error_message) *error_message =
+        std::cout <<
             "Body density is too big, requested density is " + std::to_string(density) +
             " and maximum allowed density is " + std::to_string(FlatWorld::MaxDensity);
         return false;

@@ -11,6 +11,7 @@
 #include "FlatShape.h"
 #include "FlatMath.h"
 #include "PhysicsDB.h"
+#include "FlatFixture.h"
 void DrawBodyComponent::On_Update()
 {
     Rotate();
@@ -20,7 +21,6 @@ void DrawBodyComponent::On_Update()
     if (Input::GetKey(SDL_SCANCODE_A)) dir += Vector2(-1.0f, 0.0f);
     if (Input::GetKey(SDL_SCANCODE_D)) dir += Vector2(1.0f, 0.0f);
     move_dir = dir;
-
 
     //auto transform = this->holder_object->Get_Transform().lock();
     //if (holder_object->ID == 44) {
@@ -92,14 +92,18 @@ void DrawBodyComponent::On_Update()
 void DrawBodyComponent::On_Start()
 {
 	auto transform = this->holder_object->Get_Transform().lock();
-    if (holder_object->ID == 44) {
-        
+    if (holder_object->ID == 4 || holder_object->ID == 5) {
         shape = FlatPhysics::ShapeType::Polygon;
     }
     else {
         shape = FlatPhysics::ShapeType::Circle;
     }
-	if (shape == FlatPhysics::ShapeType::Polygon) {
+    if (holder_object->ID == 4) {
+        std::unique_ptr<FlatPhysics::PolygonShape> shape = std::make_unique<FlatPhysics::PolygonShape>();
+        shape->SetAsBox(width, height);
+        FlatPhysics::FlatBody::CreatePolygonBody(shape->vertices, transform->Get_World_Position(), 2.0f, true, 0.5f, this->body);
+    }
+	else if (shape == FlatPhysics::ShapeType::Polygon) {
         const float s = 0.4f;
         std::vector<Vector2> poly;
         poly.emplace_back(-s, -s+0.2f);       // bottom-left
@@ -118,6 +122,38 @@ void DrawBodyComponent::On_Start()
 void DrawBodyComponent::On_Fixed_Update()
 {
     MoveFirstBody();
+}
+
+void DrawBodyComponent::Add_Int_Property(const std::string& key, int new_property)
+{
+    if (key == "width") {
+        width = new_property;
+    }
+    else if (key == "height") {
+        height = new_property;
+    }
+    else if (key == "radius") {
+        radius = new_property;
+    }
+    else {
+        std::cout << "undefined property: " << key << std::endl;
+    }
+}
+
+void DrawBodyComponent::Add_Float_Property(const std::string& key, float new_property)
+{
+    if (key == "width") {
+        width = new_property;
+    }
+    else if (key == "height") {
+        height = new_property;
+    }
+    else if (key == "radius") {
+        radius = new_property;
+    }
+    else {
+        std::cout << "undefined property: " << key << std::endl;
+    }
 }
 
 
@@ -155,8 +191,7 @@ void DrawBodyComponent::DrawBody()
 
 void DrawBodyComponent::MoveFirstBody()
 {
-    if (holder_object->ID != 44)return;
-
+    if (holder_object->ID != 5)return;
     float len = move_dir.Length();
     if (len > 0.0f) {
         move_dir = move_dir * (1.0f / len);               
