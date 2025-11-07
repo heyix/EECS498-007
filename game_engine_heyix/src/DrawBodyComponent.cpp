@@ -87,7 +87,7 @@ void DrawBodyComponent::On_Update()
 
     DrawBody();
     DrawAABB();
-    PhysicsDB::flat_world->DrawContactPoints();
+    if(holder_object->ID == 4)PhysicsDB::flat_world->DrawContactPoints();
     //std::cout << transform->Get_World_Position().x() << " " << transform->Get_World_Position().y() << std::endl;
 }
 

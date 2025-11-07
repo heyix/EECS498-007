@@ -125,11 +125,11 @@ namespace FlatPhysics {
 	}
 	void FlatWorld::DrawContactPoints()
 	{
-		for (FlatManifold manifold : contacts) {
+		for (FlatManifold& manifold : contacts) {
 			ContactPoints& contact_points = manifold.contact_points;
 			if (contact_points.points_num > 0) {
 				constexpr float kMarkerHalfSize = 0.1f;
-				const std::vector<Vector2> markerVerts = {
+				static const std::vector<Vector2> markerVerts = {
 					{ -kMarkerHalfSize, -kMarkerHalfSize },
 					{  kMarkerHalfSize, -kMarkerHalfSize },
 					{  kMarkerHalfSize,  kMarkerHalfSize },
