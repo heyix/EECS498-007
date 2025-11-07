@@ -92,7 +92,7 @@ void DrawBodyComponent::On_Update()
 void DrawBodyComponent::On_Start()
 {
 	auto transform = this->holder_object->Get_Transform().lock();
-    if (holder_object->ID == 4) {
+    if (holder_object->ID == 4 || holder_object->ID == 5 || holder_object->ID == 6) {
         std::unique_ptr<FlatPhysics::PolygonShape> shape = std::make_unique<FlatPhysics::PolygonShape>();
         shape->SetAsBox(width, height);
         FlatPhysics::FlatBody::CreatePolygonBody(shape->vertices, transform->Get_World_Position(), 2.0f, true, 0.5f, this->body);
@@ -206,7 +206,7 @@ void DrawBodyComponent::DrawBody()
 
 void DrawBodyComponent::MoveFirstBody()
 {
-    if (holder_object->ID != 5)return;
+    if (holder_object->ID != 7)return;
     float len = move_dir.Length();
     if (len > 0.0f) {
         move_dir = move_dir * (1.0f / len);               

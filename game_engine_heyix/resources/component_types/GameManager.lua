@@ -105,6 +105,41 @@ GameManager = {
 		
 		local new_body = Actor.Instantiate("Ground")
 		Debug.Log("Spawned body with ID: " .. tostring(new_body:GetID()))
+
+
+
+
+		
+		local GROUND_WIDTH  = 40
+		local GROUND_HEIGHT = 2
+
+		local WALL_WIDTH    = 2     -- fixed wall thickness
+		local WALL_HEIGHT   = 40    -- fixed wall height
+
+		-- === FETCH GROUND WORLD POSITION ===
+		local ground_tf = new_body:GetComponent("Transform")
+		local gx = ground_tf:GetWorldPosition().x
+		local gy = ground_tf:GetWorldPosition().y
+
+		-- === HALF-SIZES FOR POSITIONING ===
+		local half_ground_w = GROUND_WIDTH * 0.5
+		local half_wall_w   = WALL_WIDTH   * 0.5
+
+		-- === FINAL WALL POSITIONS ===
+		local left_wall_x  = gx - half_ground_w - half_wall_w
+		local right_wall_x = gx + half_ground_w + half_wall_w
+		local wall_y = gy  -- same vertical center
+
+		-- === INSTANTIATE WALLS ===
+		local left_wall = Actor.Instantiate("Wall")
+		local right_wall = Actor.Instantiate("Wall")
+
+		-- Set transform for walls
+		left_wall:GetComponent("Transform"):SetWorldPosition(Vector2(left_wall_x, wall_y))
+		right_wall:GetComponent("Transform"):SetWorldPosition(Vector2(right_wall_x, wall_y))
+
+		Debug.Log("Left wall ID:  " .. tostring(left_wall:GetID()))
+		Debug.Log("Right wall ID: " .. tostring(right_wall:GetID()))
 	end,
 	spawn = function(self)
 		if Input.GetMouseButtonDown(1) then

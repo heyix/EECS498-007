@@ -1,5 +1,5 @@
 {
-	"name": "Ground",
+	"name": "Wall",
 	"components": {
 		"2": {
 			"type": "Rigidbody",
@@ -7,13 +7,8 @@
 		},
 		"4": {
 			"type": "DrawBodyComponent",
-			"width": 40,
-			"height": 2
-		},
-		"5":{
-			"type":"Transform",
-			"x" : 20,
-			"y" : 40
+			"width": 2,
+			"height": 40
 		}
 	}
 }
