@@ -92,12 +92,6 @@ void DrawBodyComponent::On_Update()
 void DrawBodyComponent::On_Start()
 {
 	auto transform = this->holder_object->Get_Transform().lock();
-    if (holder_object->ID == 4 || holder_object->ID == 5) {
-        shape = FlatPhysics::ShapeType::Polygon;
-    }
-    else {
-        shape = FlatPhysics::ShapeType::Circle;
-    }
     if (holder_object->ID == 4) {
         std::unique_ptr<FlatPhysics::PolygonShape> shape = std::make_unique<FlatPhysics::PolygonShape>();
         shape->SetAsBox(width, height);
@@ -150,6 +144,24 @@ void DrawBodyComponent::Add_Float_Property(const std::string& key, float new_pro
     }
     else if (key == "radius") {
         radius = new_property;
+    }
+    else {
+        std::cout << "undefined property: " << key << std::endl;
+    }
+}
+
+void DrawBodyComponent::Add_String_Property(const std::string& key, const std::string& new_property)
+{
+    if (key == "shape") {
+        if (new_property == "circle") {
+            shape = FlatPhysics::ShapeType::Circle;
+        }
+        else if (new_property == "polygon") {
+            shape = FlatPhysics::ShapeType::Polygon;
+        }
+        else {
+            std::cout << "unknown shape: " << new_property << std::endl;
+        }
     }
     else {
         std::cout << "undefined property: " << key << std::endl;

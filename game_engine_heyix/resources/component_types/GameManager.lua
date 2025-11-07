@@ -122,6 +122,21 @@ GameManager = {
 			new_body_rb.y = world_y
 			Debug.Log("Spawned body with ID: " .. tostring(new_body:GetID()))
 		end
+		if Input.GetMouseButtonDown(3) then
+			local mouse_pos = Input.GetMousePosition()
+			local pixels_per_meter = 100.0
+			local zoom = Camera.GetZoom()
+			local cam_dim = Camera.GetCameraDimension()
+			local x = Camera.GetPositionX()
+			local y = Camera.GetPositionY()
+			local world_x = (mouse_pos.x - cam_dim.x * 0.5 * (1.0 / zoom)) / pixels_per_meter + x
+			local world_y = (mouse_pos.y - cam_dim.y * 0.5 * (1.0 / zoom)) / pixels_per_meter + y
+			local new_body = Actor.Instantiate("Body2")
+			local new_body_rb = new_body:GetComponent("Rigidbody")
+			new_body_rb.x = world_x
+			new_body_rb.y = world_y
+			Debug.Log("Spawned body with ID: " .. tostring(new_body:GetID()))
+		end
 	end,
 	OnUpdate = function(self)
 		self:spawn()

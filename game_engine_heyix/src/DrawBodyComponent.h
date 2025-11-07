@@ -18,6 +18,7 @@ public:
     void On_Fixed_Update()override;
     void Add_Int_Property(const std::string& key, int new_property) override;
     void Add_Float_Property(const std::string& key, float new_property) override;
+    void Add_String_Property(const std::string& key, const std::string& new_property);
 public:
     FlatPhysics::ShapeType shape = FlatPhysics::ShapeType::Polygon;
 private:

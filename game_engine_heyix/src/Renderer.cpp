@@ -126,6 +126,54 @@ void Renderer::Render_All_Polygon_Requests()
 	if (polygon_draw_request_queue.empty())
 		return;
 
+	// --- helper: fill a polygon in SCREEN SPACE (concave OK, non-self-intersecting) ---
+	auto FillPolygonEvenOdd = [](SDL_Renderer* r, const std::vector<SDL_FPoint>& pts)
+		{
+			const size_t n = pts.size();
+			if (n < 3) return;
+
+			float ymin = pts[0].y, ymax = pts[0].y;
+			for (size_t i = 1; i < n; ++i) {
+				ymin = std::min(ymin, pts[i].y);
+				ymax = std::max(ymax, pts[i].y);
+			}
+
+			const int yi_min = static_cast<int>(std::ceil(ymin));
+			const int yi_max = static_cast<int>(std::floor(ymax));
+
+			std::vector<float> xs;
+			xs.reserve(n);
+
+			for (int y = yi_min; y <= yi_max; ++y) {
+				xs.clear();
+
+				// collect edge intersections with scanline y (half-open [ymin, ymax) to avoid double-hits on vertices)
+				for (size_t i = 0, j = n - 1; i < n; j = i++) {
+					const float x1 = pts[j].x, y1 = pts[j].y;
+					const float x2 = pts[i].x, y2 = pts[i].y;
+
+					// consider edges that straddle y
+					const bool y1_le_y = (y1 <= y);
+					const bool y2_gt_y = (y2 > y);
+					const bool y2_le_y = (y2 <= y);
+					const bool y1_gt_y = (y1 > y);
+
+					if ((y1_le_y && y2_gt_y) || (y2_le_y && y1_gt_y)) {
+						const float t = (y - y1) / (y2 - y1);  // safe here because we only use non-horizontal edges
+						xs.push_back(x1 + t * (x2 - x1));
+					}
+				}
+
+				if (xs.size() < 2) continue;
+				std::sort(xs.begin(), xs.end());
+
+				// draw pairs: (x0,x1), (x2,x3), ...
+				for (size_t k = 0; k + 1 < xs.size(); k += 2) {
+					SDL_RenderDrawLineF(r, xs[k], static_cast<float>(y), xs[k + 1], static_cast<float>(y));
+				}
+			}
+		};
+
 	SDL_SetRenderDrawBlendMode(sdl_renderer, SDL_BLENDMODE_BLEND);
 
 	const float ppm = 100.0f;
@@ -136,7 +184,10 @@ void Renderer::Render_All_Polygon_Requests()
 	const float ox = cam_dim.x * 0.5f * (1.0f / zoom);
 	const float oy = cam_dim.y * 0.5f * (1.0f / zoom);
 
-	for (auto & req:polygon_draw_request_queue)
+	// Reuse a buffer to avoid per-polygon allocations
+	std::vector<SDL_FPoint> screenPts;
+
+	for (auto& req : polygon_draw_request_queue)
 	{
 		SDL_SetRenderDrawColor(
 			sdl_renderer,
@@ -148,26 +199,34 @@ void Renderer::Render_All_Polygon_Requests()
 
 		const auto& verts = req.vertices;
 		const size_t n = verts.size();
-		if (n >= 2)
-		{
-			for (size_t i = 0; i < n; ++i)
-			{
-				// local → world
-				const float v0wx = verts[i].x() + req.position.x();
-				const float v0wy = verts[i].y() + req.position.y();
-				const float v1wx = verts[(i + 1) % n].x() + req.position.x();
-				const float v1wy = verts[(i + 1) % n].y() + req.position.y();
+		if (n == 0) continue;
 
-				// world → camera space
-				const float c0x = (v0wx - cam_pos.x) * ppm + ox;
-				const float c0y = (v0wy - cam_pos.y) * ppm + oy;
-				const float c1x = (v1wx - cam_pos.x) * ppm + ox;
-				const float c1y = (v1wy - cam_pos.y) * ppm + oy;
-
-				SDL_RenderDrawLineF(sdl_renderer, c0x, c0y, c1x, c1y);
-			}
+		// Build screen-space points once
+		screenPts.clear();
+		screenPts.reserve(n);
+		for (size_t i = 0; i < n; ++i) {
+			// local → world (translate by req.position; your vertices are already rotated/scaled if needed)
+			const float wx = verts[i].x() + req.position.x();
+			const float wy = verts[i].y() + req.position.y();
+			// world → screen
+			const float sx = (wx - cam_pos.x) * ppm + ox;
+			const float sy = (wy - cam_pos.y) * ppm + oy;
+			screenPts.push_back({ sx, sy });
 		}
 
+		// 1) Fill interior
+		if (n >= 3) {
+			FillPolygonEvenOdd(sdl_renderer, screenPts);
+		}
+
+		// 2) Draw outline
+		if (n >= 2) {
+			for (size_t i = 0; i < n; ++i) {
+				const SDL_FPoint a = screenPts[i];
+				const SDL_FPoint b = screenPts[(i + 1) % n];
+				SDL_RenderDrawLineF(sdl_renderer, a.x, a.y, b.x, b.y);
+			}
+		}
 	}
 
 	SDL_SetRenderDrawColor(sdl_renderer, clear_color_r, clear_color_g, clear_color_b, clear_color_a);

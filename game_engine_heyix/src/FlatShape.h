@@ -46,7 +46,7 @@ namespace FlatPhysics {
 	class PolygonShape : public Shape {
 	public:
 		PolygonShape() {}
-		PolygonShape(const std::vector<Vector2>& verts) :vertices(verts){}
+		PolygonShape(const std::vector<Vector2>& verts) { SetVertices(verts); }
 	public:
 		std::vector<Vector2> vertices;
 

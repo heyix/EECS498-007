@@ -6,7 +6,7 @@ namespace FlatPhysics {
 	class FlatTransform {
 	public:
 		FlatTransform() :position({}),sin(0),cos(0) {}
-		FlatTransform(Vector2 position, float angle)
+		FlatTransform(const Vector2& position, float angle)
 			:position(position),sin(std::sinf(angle)),cos(std::cosf(angle))
 		{
 		}
