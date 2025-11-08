@@ -303,15 +303,16 @@ namespace FlatPhysics {
 
 		case ShapeType::Polygon: {
 			const PolygonShape* polygonA = fa->GetShape().AsPolygon();
+			std::vector<Vector2> transformed_a = FlatTransform::TransformVectors(polygonA->vertices, fa->GetBody()->GetTransform());
 			switch (fb->GetShapeType()) {
 			case ShapeType::Polygon: {
 				const PolygonShape* polygonB = fb->GetShape().AsPolygon();
-				return FindContactPoint(FlatTransform::TransformVectors(polygonA->vertices, fa->GetBody()->GetTransform()), FlatTransform::TransformVectors(polygonB->vertices, fb->GetBody()->GetTransform()));
+				return FindContactPoint(transformed_a, FlatTransform::TransformVectors(polygonB->vertices, fb->GetBody()->GetTransform()));
 			}
 			case ShapeType::Circle: {
 				const CircleShape* circleB = fb->GetShape().AsCircle();
 				Vector2 centerB = FlatTransform::TransformVector(circleB->center, fb->GetBody()->GetTransform());
-				return FindContactPoint(centerB, circleB->radius, FlatTransform::TransformVectors(polygonA->vertices, fa->GetBody()->GetTransform()));
+				return FindContactPoint(centerB, circleB->radius, transformed_a);
 			}
 			default: break;
 			}
