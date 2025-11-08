@@ -1,4 +1,7 @@
 #pragma once
+#define _USE_MATH_DEFINES
+#include <cmath>
+#include "Vector2.h"
 namespace FlatPhysics {
 	class FlatMath {
 	public:
@@ -16,5 +19,6 @@ namespace FlatPhysics {
 		{
 			return degrees * (M_PI / 180.0);
 		}
+		static Vector2 FindPolygonCentroid(const std::vector<Vector2>& vertices);
 	};
 }

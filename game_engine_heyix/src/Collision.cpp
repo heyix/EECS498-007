@@ -1,8 +1,11 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include "Collision.h"
 #include <iostream>
 #include <limits>
 #include <algorithm>
 #include "FlatTransform.h"
+#include "FlatMath.h"
 #include "FlatBody.h"
 namespace FlatPhysics {
 	bool FlatPhysics::Collision::IntersectCircles(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, Vector2* normal, float* depth)
@@ -24,8 +27,8 @@ namespace FlatPhysics {
 
 	bool Collision::IntersectPolygons(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB, Vector2* normal, float* depth)
 	{
-		Vector2 centerA = FindPolygonCentroid(verticesA);
-		Vector2 centerB = FindPolygonCentroid(verticesB);
+		Vector2 centerA = FlatMath::FindPolygonCentroid(verticesA);
+		Vector2 centerB = FlatMath::FindPolygonCentroid(verticesB);
 		return IntersectPolygons(verticesA, centerA, verticesB, centerB, normal, depth);
 	}
 
@@ -93,7 +96,7 @@ namespace FlatPhysics {
 
 	bool Collision::IntersectCirclePolygon(const Vector2& center, float radius, const std::vector<Vector2>& vertices, Vector2* normal, float* depth)
 	{
-		Vector2 polygon_center = FindPolygonCentroid(vertices);
+		Vector2 polygon_center = FlatMath::FindPolygonCentroid(vertices);
 		return IntersectCirclePolygon(center, radius, vertices, polygon_center, normal, depth);
 	}
 
@@ -400,27 +403,6 @@ namespace FlatPhysics {
 		return { min,max };
 
 #pragma warning(pop)
-	}
-
-
-
-	Vector2 Collision::FindPolygonCentroid(const std::vector<Vector2>& vertices)
-	{
-		const size_t n = vertices.size();
-		if (n < 3) {
-			return n > 0 ? vertices[0] : Vector2::Zero();
-		}
-
-		float area2 = 0.0f;         
-		Vector2 centroid = Vector2::Zero();
-
-		for (size_t i = 0, j = n - 1; i < n; j = i++) {
-			float cross = vertices[j].x() * vertices[i].y() - vertices[i].x() * vertices[j].y();
-			area2 += cross;
-			centroid += (vertices[j] + vertices[i]) * cross;
-		}
-
-		return centroid / (3.0f * area2);
 	}
 
 

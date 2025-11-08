@@ -46,6 +46,12 @@ namespace FlatPhysics {
         float           GetRestitution() const { return restitution_; }
         void* GetUserData() const { return user_data_; }
 
+    public:
+        float ComputeArea()const;
+        float ComputeMass()const;
+        float ComputeLocalInertia()const;
+        Vector2 ComputeLocalCenter()const;
+
     private:
         FlatBody* body_;
         std::unique_ptr<Shape> shape_;

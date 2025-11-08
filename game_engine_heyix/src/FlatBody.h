@@ -14,9 +14,7 @@ namespace FlatPhysics {
         FlatBody(
             const Vector2& position,
             float density_,
-            float mass_,
             float restitution_,
-            float area_,
             bool is_static_,
             float radius_,
             float width_,
@@ -32,16 +30,22 @@ namespace FlatPhysics {
         float   rotation_velocity;
         Vector2 force;
         FlatTransform current_transform{};
+        float inertia;
+        float inverse_inertia;
+        Vector2 center_of_mass;
+        float mass;
+        float inverse_mass;
+
+
+
         bool need_update_transform = false;
 
         std::vector<std::unique_ptr<FlatFixture>> fixtures_;
 
     public:
-        const float density;
-        const float mass;
-        const float inverse_mass;
-        const float restitution;
-        const float area;
+        float density;
+        float restitution;
+
 
         const bool  is_static;
 
@@ -56,6 +60,8 @@ namespace FlatPhysics {
         void DestroyFixture(FlatFixture* fixture);
         FlatTransform GetTransform();
         Vector2 GetLinearVelocity() { return linear_velocity; }
+        float GetMass() { return mass; }
+        float GetInverseMass() { return inverse_mass; }
     public:
 
         void Move(const Vector2& amount);
@@ -64,6 +70,10 @@ namespace FlatPhysics {
         void Step(float time, const Vector2& gravity);
         void AddForce(const Vector2& amount);
         void SetLinearVelocity(const Vector2& velocity) { if (is_static) return; linear_velocity = velocity; }
+
+    private:
+        float CalculateRotationalInertia();
+        void ResetMassData();
 
     public:
         static bool CreateCircleBody(float radius, const Vector2& position, float density, bool is_static,

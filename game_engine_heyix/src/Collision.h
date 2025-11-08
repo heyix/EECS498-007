@@ -39,7 +39,6 @@ namespace FlatPhysics {
 	private:
 		static std::pair<float, float> ProjectVertices(const std::vector<Vector2>& vertices, const Vector2& axis);
 		static std::pair<float, float> ProjectCircle(const Vector2& center, float radius, const Vector2& axis);
-		static Vector2 FindPolygonCentroid(const std::vector<Vector2>& vertices);
 		static int FindClosestPointFromCircleToPolygon(const Vector2& center, const std::vector<Vector2>& vertices);
 		static float PointSegmentDistanceSquared(const Vector2& point, const Vector2& line_a, const Vector2& line_b,Vector2* contact);
 	};

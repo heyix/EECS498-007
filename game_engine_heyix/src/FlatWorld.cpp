@@ -113,14 +113,14 @@ namespace FlatPhysics {
 		}
 		float e = std::min(bodyA->restitution, bodyB->restitution);
 		float j = -(1 + e) * Vector2::Dot(relative_velocity, normal);
-		j /= (bodyA->inverse_mass + bodyB->inverse_mass);
+		j /= (bodyA->GetInverseMass() + bodyB->GetInverseMass());
 
 		Vector2 impulse = j * normal;
 		Vector2 velocity_a = bodyA->GetLinearVelocity();
-		velocity_a -= impulse * bodyA->inverse_mass;
+		velocity_a -= impulse * bodyA->GetInverseMass();
 		bodyA->SetLinearVelocity(velocity_a);
 		Vector2 velocity_b = bodyB->GetLinearVelocity();
-		velocity_b += impulse * bodyB->inverse_mass;
+		velocity_b += impulse * bodyB->GetInverseMass();
 		bodyB->SetLinearVelocity(velocity_b);
 	}
 	void FlatWorld::DrawContactPoints()
