@@ -207,16 +207,16 @@ namespace FlatPhysics {
 
 		return false;
 	}
-
-	Vector2 Collision::FindContactPoint(const Vector2& centerA, float radiusA, const Vector2& centerB)
+	//circle-circle
+	ContactPoints Collision::FindContactPoint(const Vector2& centerA, float radiusA, const Vector2& centerB)
 	{
 		Vector2 direction = centerB - centerA;
 		direction.Normalize();
 		Vector2 result = centerA + direction * radiusA;
-		return result;
+		return { result };
 	}
-
-	Vector2 Collision::FindContactPoint(const Vector2& circle_center, float circle_radius, const std::vector<Vector2>& vertices)
+	//circle-polygon
+	ContactPoints Collision::FindContactPoint(const Vector2& circle_center, float circle_radius, const std::vector<Vector2>& vertices)
 	{
 		float min_distance = std::numeric_limits<float>::max();
 		Vector2 result;
@@ -228,6 +228,53 @@ namespace FlatPhysics {
 			if (distance_squared < min_distance) {
 				min_distance = distance_squared;
 				result = contact_point;
+			}
+		}
+		return { result };
+	}
+	//polygon-polygon
+	ContactPoints Collision::FindContactPoint(const std::vector<Vector2>& vertices_a, const std::vector<Vector2>& vertices_b)
+	{
+		float min_distance_squared = std::numeric_limits<float>::max();
+		ContactPoints result;
+		for (int i = 0; i < vertices_a.size(); i++) {
+			const Vector2& p = vertices_a[i];
+			for (int j = 0; j < vertices_b.size(); j++) {
+				Vector2 va = vertices_b[j];
+				Vector2 vb = vertices_b[(j + 1) % vertices_b.size()];
+				Vector2 contact_point;
+				float distance_squared = PointSegmentDistanceSquared(p, va, vb, &contact_point);
+				if (distance_squared == min_distance_squared) {
+					if (contact_point != result.point1) {
+						result.point2 = contact_point;
+						result.points_num = 2;
+					}
+				}
+				else if (distance_squared < min_distance_squared) {
+					min_distance_squared = distance_squared;
+					result.point1 = contact_point;
+					result.points_num = 1;
+				}
+			}
+		}
+		for (int i = 0; i < vertices_b.size(); i++) {
+			const Vector2& p = vertices_b[i];
+			for (int j = 0; j < vertices_a.size(); j++) {
+				Vector2 va = vertices_a[j];
+				Vector2 vb = vertices_a[(j + 1) % vertices_a.size()];
+				Vector2 contact_point;
+				float distance_squared = PointSegmentDistanceSquared(p, va, vb, &contact_point);
+				if (distance_squared == min_distance_squared) {
+					if (contact_point != result.point1) {
+						result.point2 = contact_point;
+						result.points_num = 2;
+					}
+				}
+				else if (distance_squared < min_distance_squared) {
+					min_distance_squared = distance_squared;
+					result.point1 = contact_point;
+					result.points_num = 1;
+				}
 			}
 		}
 		return result;
@@ -243,13 +290,11 @@ namespace FlatPhysics {
 			case ShapeType::Circle: {
 				const CircleShape* circleB = fb->GetShape().AsCircle();
 				Vector2 centerB = FlatTransform::TransformVector(circleB->center, fb->GetBody()->GetTransform());
-				ContactPoints result = ContactPoints(FindContactPoint(centerA, circleA->radius, centerB));
-				return result;
+				return FindContactPoint(centerA, circleA->radius, centerB);
 			}
 			case ShapeType::Polygon: {
 				const PolygonShape* polygonB = fb->GetShape().AsPolygon();
-				ContactPoints result = ContactPoints(FindContactPoint(centerA, circleA->radius, FlatTransform::TransformVectors(polygonB->vertices, fb->GetBody()->GetTransform())));
-				return result;
+				return FindContactPoint(centerA, circleA->radius, FlatTransform::TransformVectors(polygonB->vertices, fb->GetBody()->GetTransform()));
 			}
 			default: break;
 			}
@@ -260,13 +305,13 @@ namespace FlatPhysics {
 			const PolygonShape* polygonA = fa->GetShape().AsPolygon();
 			switch (fb->GetShapeType()) {
 			case ShapeType::Polygon: {
-				break;
+				const PolygonShape* polygonB = fb->GetShape().AsPolygon();
+				return FindContactPoint(FlatTransform::TransformVectors(polygonA->vertices, fa->GetBody()->GetTransform()), FlatTransform::TransformVectors(polygonB->vertices, fb->GetBody()->GetTransform()));
 			}
 			case ShapeType::Circle: {
 				const CircleShape* circleB = fb->GetShape().AsCircle();
 				Vector2 centerB = FlatTransform::TransformVector(circleB->center, fb->GetBody()->GetTransform());
-				ContactPoints result = ContactPoints(FindContactPoint(centerB, circleB->radius, FlatTransform::TransformVectors(polygonA->vertices, fa->GetBody()->GetTransform())));
-				return result;
+				return FindContactPoint(centerB, circleB->radius, FlatTransform::TransformVectors(polygonA->vertices, fa->GetBody()->GetTransform()));
 			}
 			default: break;
 			}

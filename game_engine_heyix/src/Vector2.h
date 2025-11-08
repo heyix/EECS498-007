@@ -64,6 +64,11 @@ public:
 	bool operator==(const Vector2& other) const {
 		return vector2 == other.vector2;
 	}
+
+	bool operator!=(const Vector2& other) const {
+		return !(*this == other);
+	}
+public:
 	float GetX() const { return vector2.x; }
 	void SetX(float x) { vector2.x = x;}
 

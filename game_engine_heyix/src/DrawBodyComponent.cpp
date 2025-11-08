@@ -199,7 +199,7 @@ void DrawBodyComponent::DrawBody()
             int r = holder_object->ID % 3 == 0 ? 255 : 0;
             int g = holder_object->ID % 3 == 1 ? 255 : 0;
             int b = holder_object->ID % 3 == 2 ? 255 : 0;
-            Engine::instance->renderer->draw_polygon_world(FlatPhysics::FlatTransform::TransformVectors(vertices,body->GetTransform()),  r, g, b, 255);
+            Engine::instance->renderer->draw_polygon_world(FlatPhysics::FlatTransform::TransformVectors(vertices,body->GetTransform()),  r, g, b, 255,true);
             break;
         }
     }
