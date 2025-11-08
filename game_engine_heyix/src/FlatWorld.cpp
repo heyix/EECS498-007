@@ -173,16 +173,19 @@ namespace FlatPhysics {
 			j /= (float)contact_points.points_num;
 			j_list.push_back(j);
 
-			Vector2 impulse = j * normal;
+			impulse_list.push_back(j * normal);
+			active_ids.push_back(i);
+		}
+		for (int k = 0; k < (int)impulse_list.size(); k++) {
+			int i = active_ids[k];                
+			Vector2& impulse = impulse_list[k];
+			Vector2 ra = contact_list[i] - world_mass_center_a;
+			Vector2 rb = contact_list[i] - world_mass_center_b;
 			bodyA->AddLinearVelocity(-impulse * bodyA->GetInverseMass());
 			bodyB->AddLinearVelocity(impulse * bodyB->GetInverseMass());
 			bodyA->AddAngularVelocity(-Vector2::Cross(ra, impulse) * bodyA->GetInverseInertia());
 			bodyB->AddAngularVelocity(Vector2::Cross(rb, impulse) * bodyB->GetInverseInertia());
-
-			impulse_list.push_back(impulse);
-			active_ids.push_back(i);
 		}
-
 		std::vector<Vector2> friction_impulse_list;
 		std::vector<int>     friction_ids;
 		float friction_coef = std::sqrt(fixture_a->GetFriction() * fixture_b->GetFriction());
@@ -209,6 +212,8 @@ namespace FlatPhysics {
 			if (denom <= 0.0f) continue;
 
 			float jt = -Vector2::Dot(relative_velocity, tangent);
+			std::cout << jt << std::endl;
+			if (std::abs(jt) < 1e-6f) continue;
 			jt /= denom;
 			jt /= (float)contact_points.points_num;
 
