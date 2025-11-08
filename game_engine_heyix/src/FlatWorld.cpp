@@ -148,6 +148,7 @@ namespace FlatPhysics {
 		std::vector<float>   j_list;
 		std::vector<int>     active_ids;
 
+		//normal impulse
 		for (int i = 0; i < contact_points.points_num; i++) {
 			Vector2 ra = contact_list[i] - world_mass_center_a;
 			Vector2 rb = contact_list[i] - world_mass_center_b;
@@ -190,6 +191,9 @@ namespace FlatPhysics {
 		std::vector<int>     friction_ids;
 		float friction_coef = std::sqrt(fixture_a->GetFriction() * fixture_b->GetFriction());
 
+
+
+		//friction impulse
 		for (int k = 0; k < (int)active_ids.size(); k++) {
 			int i = active_ids[k];
 			Vector2 ra = contact_list[i] - world_mass_center_a;
