@@ -124,7 +124,6 @@ void DrawBodyComponent::On_Update()
     //        }
     //    }
     //}
-     
 
     DrawBody();
     DrawAABB();

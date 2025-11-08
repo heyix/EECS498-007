@@ -1,6 +1,6 @@
 #include "FlatMath.h"
 #include <algorithm>
-static float VerySmallAmount = 0.0005f;
+static float VerySmallAmount = 0.00005f;
 Vector2 FlatPhysics::FlatMath::FindPolygonCentroid(const std::vector<Vector2>& vertices)
 {
 	const size_t n = vertices.size();
