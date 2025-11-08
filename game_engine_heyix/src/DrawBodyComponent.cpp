@@ -173,23 +173,24 @@ void DrawBodyComponent::Add_String_Property(const std::string& key, const std::s
 
 void DrawBodyComponent::DrawBody()
 {
-    const float x = body->GetPosition().GetX();
-    const float y = body->GetPosition().GetY();
-    const float rot = body->GetRotation();
+    for (const std::unique_ptr<FlatPhysics::FlatFixture>& fixture : body->GetFixtures()) {
+        const float x = body->GetPosition().GetX();
+        const float y = body->GetPosition().GetY();
+        const float rot = body->GetRotation();
 
-    const float r = 255;
-    const float g = 255;
-    const float bl = 255;
-    const float a = 255;
+        const float r = 255;
+        const float g = 255;
+        const float bl = 255;
+        const float a = 255;
 
-    switch (body->shape_type)
-    {
+        switch (fixture->GetShapeType())
+        {
         case FlatPhysics::ShapeType::Circle: {
             auto& my_fixture = body->GetFixtures().front();
             float radius = my_fixture->GetShape().AsCircle()->radius;
             Engine::instance->renderer->draw_ex("circle", x, y, FlatPhysics::FlatMath::RadToDeg(rot),
-                radius * 2.0f, radius * 2.0f,  
-                0.5f, 0.5f,                   
+                radius * 2.0f, radius * 2.0f,
+                0.5f, 0.5f,
                 r, g, bl, a, 0);
             break;
         }
@@ -199,10 +200,12 @@ void DrawBodyComponent::DrawBody()
             int r = holder_object->ID % 3 == 0 ? 255 : 0;
             int g = holder_object->ID % 3 == 1 ? 255 : 0;
             int b = holder_object->ID % 3 == 2 ? 255 : 0;
-            Engine::instance->renderer->draw_polygon_world(FlatPhysics::FlatTransform::TransformVectors(vertices,body->GetTransform()),  r, g, b, 255,true);
+            Engine::instance->renderer->draw_polygon_world(FlatPhysics::FlatTransform::TransformVectors(vertices, body->GetTransform()), r, g, b, 255, true);
             break;
         }
+        }
     }
+    
 
 }
 
@@ -221,14 +224,8 @@ void DrawBodyComponent::MoveFirstBody()
 void DrawBodyComponent::Rotate()
 {
     if (!body) return;
-    if (body->shape_type == FlatPhysics::ShapeType::Circle) {
-        float rotation_speed_degree = 360.0f * Engine::instance->running_game->Delta_Time();
-        body->Rotate(FlatPhysics::FlatMath::DegToRad(rotation_speed_degree));
-    }
-    else if (body->shape_type == FlatPhysics::ShapeType::Polygon) {
-        float rotation_speed = 360 * Engine::instance->running_game->Delta_Time();
-        body->Rotate(FlatPhysics::FlatMath::DegToRad(rotation_speed));
-    }
+    float rotation_speed = 360 * Engine::instance->running_game->Delta_Time();
+    body->Rotate(FlatPhysics::FlatMath::DegToRad(rotation_speed));
 }
 
 void DrawBodyComponent::DrawAABB()

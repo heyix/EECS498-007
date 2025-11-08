@@ -13,14 +13,8 @@ namespace FlatPhysics {
     private:
         FlatBody(
             const Vector2& position,
-            float density_,
             float restitution_,
-            bool is_static_,
-            float radius_,
-            float width_,
-            float height_,
-            const std::vector<Vector2>& vertices,
-            ShapeType shape_type_
+            bool is_static_
         );
 
     private:
@@ -30,11 +24,11 @@ namespace FlatPhysics {
         float   rotation_velocity;
         Vector2 force;
         FlatTransform current_transform{};
-        float inertia;
-        float inverse_inertia;
+        float inertia = 0;
+        float inverse_inertia = 1;
         Vector2 center_of_mass;
-        float mass;
-        float inverse_mass;
+        float mass = 0;
+        float inverse_mass = 1;
 
 
 
@@ -43,14 +37,8 @@ namespace FlatPhysics {
         std::vector<std::unique_ptr<FlatFixture>> fixtures_;
 
     public:
-        float density;
         float restitution;
-
-
         const bool  is_static;
-
-        const ShapeType shape_type;
-
     public:
         const Vector2& GetPosition() const { return position; }
         float GetRotation()const { return rotation_rad; }

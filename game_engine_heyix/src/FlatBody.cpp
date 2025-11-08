@@ -11,40 +11,17 @@ using namespace FlatPhysics;
 
 FlatBody::FlatBody(
     const Vector2& pos,
-    float density_,
     float restitution_,
-    bool is_static_,
-    float radius_,
-    float width_,
-    float height_,
-    const std::vector<Vector2>& vertices,
-    ShapeType shape_type_)
+    bool is_static_)
     : position(pos),
     linear_velocity(Vector2::Zero()),
     rotation_rad(0.0f),
     rotation_velocity(0.0f),
-    density(density_),
     restitution(FlatMath::Clamp(restitution_, 0.0f, 1.0f)),
     is_static(is_static_),
-    shape_type(shape_type_),
     force(Vector2::Zero()),
     current_transform(FlatTransform(pos, rotation_rad))
 {
-    FixtureDef fd;
-    fd.density = density;
-    fd.restitution = restitution;
-    std::unique_ptr<Shape> shape;
-    if (shape_type == ShapeType::Circle) {
-        auto c = std::make_unique<CircleShape>(Vector2::Zero(), radius_);
-        shape = std::move(c);
-    }
-    else if (shape_type == ShapeType::Polygon) {
-        auto c = std::make_unique<PolygonShape>(vertices);
-        shape = std::move(c);
-    }
-    fd.shape = shape.get();
-
-    CreateFixture(fd);
 }
 
 FlatFixture* FlatPhysics::FlatBody::CreateFixture(const FixtureDef& def)
@@ -167,21 +144,14 @@ bool FlatBody::CreateCircleBody(float r, const Vector2& pos, float density, bool
 {
     out_body = nullptr;
 
-    if (density < FlatWorld::MinDensity) {
-        std::cout <<
-            "Body density is too small, where requested density is " + std::to_string(density) +
-            " and minimum allowed density is " + std::to_string(FlatWorld::MinDensity);
-        return false;
-    }
-    if (density > FlatWorld::MaxDensity) {
-        std::cout <<
-            "Body density is too big, where requested density is " + std::to_string(density) +
-            " and maximum allowed density is " + std::to_string(FlatWorld::MaxDensity);
-        return false;
-    }
+    FixtureDef fd;
+    fd.density = density;
+    fd.restitution = restitution;
 
-    out_body.reset(new FlatBody(pos, density,  restitution,  is_static,
-        r, 0.0f, 0.0f, {},ShapeType::Circle));
+    out_body.reset(new FlatBody(pos, restitution, is_static));
+    std::unique_ptr<Shape> shape = std::make_unique<CircleShape>(Vector2::Zero(), r);
+    fd.shape = shape.get();
+    out_body->CreateFixture(fd);
     return true;
 }
 
@@ -195,24 +165,16 @@ bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2>& vertic
         return false;
     }
 
-    if (density < FlatWorld::MinDensity) {
-        std::cout <<
-            "Body density is too small, requested density is " + std::to_string(density) +
-            " and minimum allowed density is " + std::to_string(FlatWorld::MinDensity);
-        return false;
-    }
-    if (density > FlatWorld::MaxDensity) {
-        std::cout <<
-            "Body density is too big, requested density is " + std::to_string(density) +
-            " and maximum allowed density is " + std::to_string(FlatWorld::MaxDensity);
-        return false;
-    }
-
 
     auto body = std::unique_ptr<FlatBody>(
-        new FlatBody(position, density,  restitution, is_static,
-            /*r*/0.0f, /*w*/0.0f, /*h*/0.0f, vertices,ShapeType::Polygon)
+        new FlatBody(position, restitution, is_static)
     );
+    FixtureDef fd;
+    fd.density = density;
+    fd.restitution = restitution;
+    std::unique_ptr<Shape> shape = std::make_unique<PolygonShape>(vertices);
+    fd.shape = shape.get();
+    body->CreateFixture(fd);
 
     out_body = std::move(body);
     return true;
