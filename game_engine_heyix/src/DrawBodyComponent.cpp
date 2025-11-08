@@ -100,9 +100,9 @@ void DrawBodyComponent::On_Start()
         FlatPhysics::FlatBody::CreatePolygonBody(shape->vertices, transform->Get_World_Position(), 2.0f, true, 0.5f, this->body);
     }
 	else if (shape == FlatPhysics::ShapeType::Polygon) {
-        const float s = 0.4f;
+        const float s = 0.5f;
         std::vector<Vector2> poly;
-        poly.emplace_back(-s, -s+0.2f);       // bottom-left
+        poly.emplace_back(-s, -s);       // bottom-left
         poly.emplace_back(+s, -s);       // bottom-right
         poly.emplace_back(+s, +s);       // top-right
         //poly.emplace_back(0.0f, +s * 0.3f); // inner dent (makes it concave)
@@ -113,6 +113,9 @@ void DrawBodyComponent::On_Start()
 		FlatPhysics::FlatBody::CreateCircleBody(0.5f, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body);
 	}
     PhysicsDB::flat_world->AddBody(body.get());
+    if (holder_object->ID == 7) {
+        body->SetGravityScale(0);
+    }
 }
 
 void DrawBodyComponent::On_Fixed_Update()
@@ -186,8 +189,7 @@ void DrawBodyComponent::DrawBody()
         switch (fixture->GetShapeType())
         {
         case FlatPhysics::ShapeType::Circle: {
-            auto& my_fixture = body->GetFixtures().front();
-            float radius = my_fixture->GetShape().AsCircle()->radius;
+            float radius = fixture->GetShape().AsCircle()->radius;
             Engine::instance->renderer->draw_ex("circle", x, y, FlatPhysics::FlatMath::RadToDeg(rot),
                 radius * 2.0f, radius * 2.0f,
                 0.5f, 0.5f,
@@ -195,8 +197,7 @@ void DrawBodyComponent::DrawBody()
             break;
         }
         case FlatPhysics::ShapeType::Polygon: {
-            auto& my_fixture = body->GetFixtures().front();
-            auto& vertices = my_fixture->GetShape().AsPolygon()->vertices;
+            auto& vertices = fixture->GetShape().AsPolygon()->vertices;
             int r = holder_object->ID % 3 == 0 ? 255 : 0;
             int g = holder_object->ID % 3 == 1 ? 255 : 0;
             int b = holder_object->ID % 3 == 2 ? 255 : 0;

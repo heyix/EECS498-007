@@ -19,21 +19,25 @@ namespace FlatPhysics {
 
     private:
         Vector2 position;
+
+
+
         Vector2 linear_velocity;
         float   rotation_rad;
         float   rotation_velocity;
         Vector2 force;
         FlatTransform current_transform{};
-        float inertia = 0;
-        float inverse_inertia = 1;
+        float inertia;
+        float inverse_inertia;
         Vector2 center_of_mass;
         float mass = 0;
         float inverse_mass = 1;
 
-
+        float   gravity_scale = 1.0f;
+        bool    has_custom_gravity = false;
+        Vector2 custom_gravity = Vector2::Zero();
 
         bool need_update_transform = false;
-
         std::vector<std::unique_ptr<FlatFixture>> fixtures_;
 
     public:
@@ -50,6 +54,15 @@ namespace FlatPhysics {
         Vector2 GetLinearVelocity() { return linear_velocity; }
         float GetMass() { return mass; }
         float GetInverseMass() { return inverse_mass; }
+        float GetInertia() { return inertia; }
+        float GetInverseInertia() { return inverse_inertia; }
+
+        void   SetGravityScale(float s) { gravity_scale = s; }
+        float  GetGravityScale() const { return gravity_scale; }
+        void   SetCustomGravity(const Vector2& g) { custom_gravity = g; has_custom_gravity = true; }
+        void   ClearCustomGravity() { has_custom_gravity = false; custom_gravity = Vector2::Zero(); }
+        bool   HasCustomGravity() const { return has_custom_gravity; }
+        Vector2 GetEffectiveGravity(const Vector2& world_gravity) const;
     public:
 
         void Move(const Vector2& amount);

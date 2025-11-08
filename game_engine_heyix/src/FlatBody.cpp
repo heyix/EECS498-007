@@ -20,6 +20,8 @@ FlatBody::FlatBody(
     restitution(FlatMath::Clamp(restitution_, 0.0f, 1.0f)),
     is_static(is_static_),
     force(Vector2::Zero()),
+    inverse_inertia(0),
+    inertia(0),
     current_transform(FlatTransform(pos, rotation_rad))
 {
 }
@@ -53,6 +55,12 @@ FlatTransform FlatPhysics::FlatBody::GetTransform()
 }
 
 
+Vector2 FlatPhysics::FlatBody::GetEffectiveGravity(const Vector2& world_gravity) const
+{
+    const Vector2 g = has_custom_gravity ? custom_gravity : world_gravity;
+    return g * gravity_scale;
+}
+
 void FlatBody::Move(const Vector2& amount) {
     if (is_static) return;
     MoveTo(this->position + amount);
@@ -76,7 +84,8 @@ void FlatPhysics::FlatBody::Step(float time, const Vector2& gravity)
     if (is_static)return;
     //Vector2 acceleration = force / mass;
     //linear_velocity += acceleration * time;
-    SetLinearVelocity(linear_velocity + gravity * time);
+    const Vector2 effective_g = GetEffectiveGravity(gravity);
+    SetLinearVelocity(linear_velocity + effective_g * time);
     Move(linear_velocity * time);
     Rotate(rotation_velocity * time);
 
@@ -147,11 +156,19 @@ bool FlatBody::CreateCircleBody(float r, const Vector2& pos, float density, bool
     FixtureDef fd;
     fd.density = density;
     fd.restitution = restitution;
-
-    out_body.reset(new FlatBody(pos, restitution, is_static));
     std::unique_ptr<Shape> shape = std::make_unique<CircleShape>(Vector2::Zero(), r);
     fd.shape = shape.get();
+
+    out_body.reset(new FlatBody(pos, restitution, is_static));
     out_body->CreateFixture(fd);
+
+    //FixtureDef fd2;
+    //fd2.density = density;
+    //fd2.restitution = restitution;
+    //std::unique_ptr<Shape> shape2 = std::make_unique<CircleShape>(Vector2(1,1), r);
+    //fd2.shape = shape2.get();
+    //out_body->CreateFixture(fd2);
+    //std::cout << out_body->inertia << " " << out_body->inverse_inertia << std::endl;
     return true;
 }
 
@@ -175,7 +192,21 @@ bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2>& vertic
     std::unique_ptr<Shape> shape = std::make_unique<PolygonShape>(vertices);
     fd.shape = shape.get();
     body->CreateFixture(fd);
-
     out_body = std::move(body);
+
+    //const float s = 1.0f;
+    //std::vector<Vector2> poly;
+    //poly.emplace_back(-s+2, -s+2);       // bottom-left
+    //poly.emplace_back(+s+2, -s+2);       // bottom-right
+    //poly.emplace_back(+s+2, +s+2);       // top-right
+    ////poly.emplace_back(0.0f, +s * 0.3f); // inner dent (makes it concave)
+    //poly.emplace_back(-s+2, +s+2);       // top-left
+    //FixtureDef fd2;
+    //fd2.density = density;
+    //fd2.restitution = restitution;
+    //std::unique_ptr<Shape> shape2 = std::make_unique<PolygonShape>(poly);
+    //fd2.shape = shape2.get();
+    //out_body->CreateFixture(fd2);
+    //std::cout << out_body->inertia << " " << out_body->inverse_inertia << std::endl;
     return true;
 }
