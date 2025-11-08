@@ -44,7 +44,7 @@ namespace FlatPhysics {
         const bool  is_static;
     public:
         const Vector2& GetPosition() const { return position; }
-        float GetRotation()const { return angle_rad; }
+        float GetAngle()const { return angle_rad; }
         const std::vector<std::unique_ptr<FlatFixture>>& GetFixtures()const { return fixtures_; }
         int GetFixtureCount()const { return fixtures_.size(); }
         FlatFixture* CreateFixture(const FixtureDef& def);

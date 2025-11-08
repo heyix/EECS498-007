@@ -216,7 +216,7 @@ void DrawBodyComponent::DrawBody()
     for (const std::unique_ptr<FlatPhysics::FlatFixture>& fixture : body->GetFixtures()) {
         const float x = body->GetPosition().GetX();
         const float y = body->GetPosition().GetY();
-        const float rot = body->GetRotation();
+        const float rot = body->GetAngle();
 
         const float r = 255;
         const float g = 255;
