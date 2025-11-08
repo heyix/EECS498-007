@@ -88,7 +88,7 @@ namespace FlatPhysics {
 				if (bodyA->is_static && bodyB->is_static) {
 					continue;
 				}
-				const std::vector<std::unique_ptr<FlatFixture>>& fixturesB = bodyB->GetFixtures();
+				const std::vector<std::unique_ptr<FlatFixture>>& fixturesB = bodyB->GetFixtures(); 
 				for (const std::unique_ptr<FlatFixture>& pa : fixturesA) {
 					for (const std::unique_ptr<FlatFixture>& pb : fixturesB) {
 						FlatFixture* fa = pa.get();
