@@ -30,9 +30,9 @@ namespace FlatPhysics {
 
 
 	public:
-		static ContactPoints FindContactPoint(const Vector2& centerA, float radiusA, const Vector2& centerB);
-		static ContactPoints FindContactPoint(const Vector2& circle_center, float circle_radius, const std::vector<Vector2>& vertices);
-		static ContactPoints FindContactPoint(const std::vector<Vector2>& vertices_a, const std::vector<Vector2>& vertices_b);
+		static ContactPoints FindCircleCircleContactPoint(const Vector2& centerA, float radiusA, const Vector2& centerB);
+		static ContactPoints FindCirclePolygonContactPoint(const Vector2& circle_center, float circle_radius, const std::vector<Vector2>& vertices);
+		static ContactPoints FindPolygonPolygonContactPoint(const std::vector<Vector2>& vertices_a, const std::vector<Vector2>& vertices_b);
 		static ContactPoints FindContactPoints(const FlatFixture* fa, const FlatFixture* fb);
 
 

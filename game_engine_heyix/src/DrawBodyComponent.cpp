@@ -9,10 +9,53 @@
 #include "Input.h"
 #include "Collision.h"
 #include "FlatShape.h"
-#include "FlatMath.h"
+#include "FlatMath.h" 
 #include "PhysicsDB.h"
 #include "FlatFixture.h"
 #include "FlatWorld.h"
+namespace {
+    static inline uint32_t Hash32(uint32_t x) {
+        x ^= x >> 16; x *= 0x7feb352d; x ^= x >> 15; x *= 0x846ca68b; x ^= x >> 16;
+        return x;
+    }
+
+    static void HSVtoRGB(float h, float s, float v, int& r, int& g, int& b) {
+        float c = v * s;
+        float hp = h * 6.0f;
+        float x = c * (1.0f - std::fabsf(fmodf(hp, 2.0f) - 1.0f));
+        float m = v - c;
+        float rf = 0, gf = 0, bf = 0;
+        if (hp < 1) { rf = c; gf = x; bf = 0; }
+        else if (hp < 2) { rf = x; gf = c; bf = 0; }
+        else if (hp < 3) { rf = 0; gf = c; bf = x; }
+        else if (hp < 4) { rf = 0; gf = x; bf = c; }
+        else if (hp < 5) { rf = x; gf = 0; bf = c; }
+        else { rf = c; gf = 0; bf = x; }
+        r = (int)std::round((rf + m) * 255.0f);
+        g = (int)std::round((gf + m) * 255.0f);
+        b = (int)std::round((bf + m) * 255.0f);
+    }
+
+    // Pastel, well-spaced per-ID color
+    static void PastelColorFromID(int id, int& r, int& g, int& b) {
+        // 1) spread hues evenly with golden ratio; quantize to bins for separation
+        constexpr float PHI = 0.61803398875f;      // golden-ratio conjugate
+        const int bins = 32;                       // increase for more unique hues
+        float baseH = std::fmodf(id * PHI, 1.0f);  // [0,1)
+        float h = (std::floor(baseH * bins) + 0.5f) / bins; // center of bin
+
+        // 2) small deterministic jitter for S to avoid “samey” look
+        uint32_t seed = Hash32((uint32_t)id);
+        float j = ((seed & 0xFFFF) / 65535.0f);    // [0,1)
+
+        // Pastel: medium S, high V
+        float s = 0.50f + 0.20f * j;               // ~[0.50, 0.70]
+        float v = 0.90f + 0.07f * ((seed >> 16) & 0xFF) / 255.0f; // ~[0.90, 0.97]
+
+        HSVtoRGB(h, s, v, r, g, b);
+    }
+}
+
 void DrawBodyComponent::On_Update()
 {
     Rotate();
@@ -100,9 +143,9 @@ void DrawBodyComponent::On_Start()
         FlatPhysics::FlatBody::CreatePolygonBody(shape->vertices, transform->Get_World_Position(), 2.0f, true, 0.5f, this->body);
     }
 	else if (shape == FlatPhysics::ShapeType::Polygon) {
-        const float s = 0.5f;
+        const float s = 0.2f;
         std::vector<Vector2> poly;
-        poly.emplace_back(-s, -s);       // bottom-left
+        poly.emplace_back(-s, -s + 0.05);       // bottom-left
         poly.emplace_back(+s, -s);       // bottom-right
         poly.emplace_back(+s, +s);       // top-right
         //poly.emplace_back(0.0f, +s * 0.3f); // inner dent (makes it concave)
@@ -110,12 +153,9 @@ void DrawBodyComponent::On_Start()
         FlatPhysics::FlatBody::CreatePolygonBody(poly, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body);
     }
 	else {
-		FlatPhysics::FlatBody::CreateCircleBody(0.5f, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body);
+		FlatPhysics::FlatBody::CreateCircleBody(0.2f, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body);
 	}
     PhysicsDB::flat_world->AddBody(body.get());
-    if (holder_object->ID == 7) {
-        body->SetGravityScale(0);
-    }
 }
 
 void DrawBodyComponent::On_Fixed_Update()
@@ -198,9 +238,9 @@ void DrawBodyComponent::DrawBody()
         }
         case FlatPhysics::ShapeType::Polygon: {
             auto& vertices = fixture->GetShape().AsPolygon()->vertices;
-            int r = holder_object->ID % 3 == 0 ? 255 : 0;
-            int g = holder_object->ID % 3 == 1 ? 255 : 0;
-            int b = holder_object->ID % 3 == 2 ? 255 : 0;
+            int r, g, b;
+            PastelColorFromID(holder_object->ID, r, g, b);
+
             Engine::instance->renderer->draw_polygon_world(FlatPhysics::FlatTransform::TransformVectors(vertices, body->GetTransform()), r, g, b, 255, true);
             break;
         }

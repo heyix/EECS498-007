@@ -23,8 +23,8 @@ namespace FlatPhysics {
 
 
         Vector2 linear_velocity;
-        float   rotation_rad;
-        float   rotation_velocity;
+        float   angle_rad;
+        float   angular_velocity;
         Vector2 force;
         FlatTransform current_transform{};
         float inertia;
@@ -37,15 +37,14 @@ namespace FlatPhysics {
         bool    has_custom_gravity = false;
         Vector2 custom_gravity = Vector2::Zero();
 
-        bool need_update_transform = false;
+        bool need_update_transform = true;
         std::vector<std::unique_ptr<FlatFixture>> fixtures_;
-
     public:
         float restitution;
         const bool  is_static;
     public:
         const Vector2& GetPosition() const { return position; }
-        float GetRotation()const { return rotation_rad; }
+        float GetRotation()const { return angle_rad; }
         const std::vector<std::unique_ptr<FlatFixture>>& GetFixtures()const { return fixtures_; }
         int GetFixtureCount()const { return fixtures_.size(); }
         FlatFixture* CreateFixture(const FixtureDef& def);

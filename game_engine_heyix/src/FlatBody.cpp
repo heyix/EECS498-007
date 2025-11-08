@@ -15,14 +15,14 @@ FlatBody::FlatBody(
     bool is_static_)
     : position(pos),
     linear_velocity(Vector2::Zero()),
-    rotation_rad(0.0f),
-    rotation_velocity(0.0f),
+    angle_rad(0.0f),
+    angular_velocity(0.0f),
     restitution(FlatMath::Clamp(restitution_, 0.0f, 1.0f)),
     is_static(is_static_),
     force(Vector2::Zero()),
     inverse_inertia(0),
     inertia(0),
-    current_transform(FlatTransform(pos, rotation_rad))
+    current_transform(FlatTransform(pos, angle_rad))
 {
 }
 
@@ -48,7 +48,7 @@ void FlatPhysics::FlatBody::DestroyFixture(FlatFixture* fixture)
 FlatTransform FlatPhysics::FlatBody::GetTransform()
 {
     if (need_update_transform) {
-        current_transform = FlatTransform(position, rotation_rad);
+        current_transform = FlatTransform(position, angle_rad);
         need_update_transform = false;
     }
     return current_transform;
@@ -75,7 +75,7 @@ void FlatBody::MoveTo(const Vector2& p) {
 void FlatPhysics::FlatBody::Rotate(float amount)
 {
     if (is_static)return;
-    this->rotation_rad += amount;
+    this->angle_rad += amount;
     need_update_transform = true;
 }
 
@@ -87,7 +87,7 @@ void FlatPhysics::FlatBody::Step(float time, const Vector2& gravity)
     const Vector2 effective_g = GetEffectiveGravity(gravity);
     SetLinearVelocity(linear_velocity + effective_g * time);
     Move(linear_velocity * time);
-    Rotate(rotation_velocity * time);
+    Rotate(angular_velocity * time);
 
     force = Vector2::Zero();
 }
@@ -191,9 +191,8 @@ bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2>& vertic
     fd.restitution = restitution;
     std::unique_ptr<Shape> shape = std::make_unique<PolygonShape>(vertices);
     fd.shape = shape.get();
-    body->CreateFixture(fd);
+    FlatFixture* sb = body->CreateFixture(fd);
     out_body = std::move(body);
-
     //const float s = 1.0f;
     //std::vector<Vector2> poly;
     //poly.emplace_back(-s+2, -s+2);       // bottom-left

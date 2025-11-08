@@ -211,7 +211,7 @@ namespace FlatPhysics {
 		return false;
 	}
 	//circle-circle
-	ContactPoints Collision::FindContactPoint(const Vector2& centerA, float radiusA, const Vector2& centerB)
+	ContactPoints Collision::FindCircleCircleContactPoint(const Vector2& centerA, float radiusA, const Vector2& centerB)
 	{
 		Vector2 direction = centerB - centerA;
 		direction.Normalize();
@@ -219,7 +219,7 @@ namespace FlatPhysics {
 		return { result };
 	}
 	//circle-polygon
-	ContactPoints Collision::FindContactPoint(const Vector2& circle_center, float circle_radius, const std::vector<Vector2>& vertices)
+	ContactPoints Collision::FindCirclePolygonContactPoint(const Vector2& circle_center, float circle_radius, const std::vector<Vector2>& vertices)
 	{
 		float min_distance = std::numeric_limits<float>::max();
 		Vector2 result;
@@ -236,7 +236,7 @@ namespace FlatPhysics {
 		return { result };
 	}
 	//polygon-polygon
-	ContactPoints Collision::FindContactPoint(const std::vector<Vector2>& vertices_a, const std::vector<Vector2>& vertices_b)
+	ContactPoints Collision::FindPolygonPolygonContactPoint(const std::vector<Vector2>& vertices_a, const std::vector<Vector2>& vertices_b)
 	{
 		float min_distance_squared = std::numeric_limits<float>::max();
 		ContactPoints result;
@@ -293,11 +293,11 @@ namespace FlatPhysics {
 			case ShapeType::Circle: {
 				const CircleShape* circleB = fb->GetShape().AsCircle();
 				Vector2 centerB = FlatTransform::TransformVector(circleB->center, fb->GetBody()->GetTransform());
-				return FindContactPoint(centerA, circleA->radius, centerB);
+				return FindCircleCircleContactPoint(centerA, circleA->radius, centerB);
 			}
 			case ShapeType::Polygon: {
 				const PolygonShape* polygonB = fb->GetShape().AsPolygon();
-				return FindContactPoint(centerA, circleA->radius, FlatTransform::TransformVectors(polygonB->vertices, fb->GetBody()->GetTransform()));
+				return FindCirclePolygonContactPoint(centerA, circleA->radius, FlatTransform::TransformVectors(polygonB->vertices, fb->GetBody()->GetTransform()));
 			}
 			default: break;
 			}
@@ -310,12 +310,12 @@ namespace FlatPhysics {
 			switch (fb->GetShapeType()) {
 			case ShapeType::Polygon: {
 				const PolygonShape* polygonB = fb->GetShape().AsPolygon();
-				return FindContactPoint(transformed_a, FlatTransform::TransformVectors(polygonB->vertices, fb->GetBody()->GetTransform()));
+				return FindPolygonPolygonContactPoint(transformed_a, FlatTransform::TransformVectors(polygonB->vertices, fb->GetBody()->GetTransform()));
 			}
 			case ShapeType::Circle: {
 				const CircleShape* circleB = fb->GetShape().AsCircle();
 				Vector2 centerB = FlatTransform::TransformVector(circleB->center, fb->GetBody()->GetTransform());
-				return FindContactPoint(centerB, circleB->radius, transformed_a);
+				return FindCirclePolygonContactPoint(centerB, circleB->radius, transformed_a);
 			}
 			default: break;
 			}

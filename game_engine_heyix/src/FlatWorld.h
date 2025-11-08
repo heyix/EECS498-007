@@ -6,6 +6,11 @@
 #include "FlatManifold.h"
 namespace FlatPhysics {
 	class FlatWorld {
+	private:
+		struct ContactPair {
+			FlatFixture* fixture_a;
+			FlatFixture* fixture_b;
+		};
 	public:
 		FlatWorld() 
 			:gravity({0,9.81})
@@ -24,10 +29,14 @@ namespace FlatPhysics {
 		void CollisionDetectionStep();
 		bool ShouldCollide(FlatFixture* fixture_a, FlatFixture* fixture_b);
 		void ResolveCollision(const FlatManifold& manifold);
+		void SeperateBodies(FlatBody* bodyA, FlatBody* bodyB, const Vector2& mtv);
+		void BroadPhase();
+		void NarrowPhase();
 	private:
 		Vector2 gravity;
 		std::vector<FlatBody*> bodies;
 		std::unordered_map<FlatBody*, int> index_map;
 		std::vector<FlatManifold> contacts;
+		std::vector<ContactPair> contact_pairs;
 	};
 }
