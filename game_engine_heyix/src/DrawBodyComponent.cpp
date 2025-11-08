@@ -58,7 +58,7 @@ namespace {
 
 void DrawBodyComponent::On_Update()
 {
-    Rotate();
+    //Rotate();
     Vector2 dir(0.0f, 0.0f);
     if (Input::GetKey(SDL_SCANCODE_W)) dir += Vector2(0.0f, -1.0f);
     if (Input::GetKey(SDL_SCANCODE_S)) dir += Vector2(0.0f, 1.0f);
@@ -124,8 +124,6 @@ void DrawBodyComponent::On_Update()
     //        }
     //    }
     //}
-
-
      
 
     DrawBody();
@@ -145,7 +143,7 @@ void DrawBodyComponent::On_Start()
 	else if (shape == FlatPhysics::ShapeType::Polygon) {
         const float s = 0.2f;
         std::vector<Vector2> poly;
-        poly.emplace_back(-s, -s + 0.05);       // bottom-left
+        poly.emplace_back(-s, -s);       // bottom-left
         poly.emplace_back(+s, -s);       // bottom-right
         poly.emplace_back(+s, +s);       // top-right
         //poly.emplace_back(0.0f, +s * 0.3f); // inner dent (makes it concave)

@@ -20,5 +20,7 @@ namespace FlatPhysics {
 			return degrees * (M_PI / 180.0);
 		}
 		static Vector2 FindPolygonCentroid(const std::vector<Vector2>& vertices);
+		static bool NearlyEqual(float a, float b);
+		static bool NearlyEqual(const Vector2& a, const Vector2& b);
 	};
 }

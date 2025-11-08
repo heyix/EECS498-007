@@ -247,8 +247,8 @@ namespace FlatPhysics {
 				Vector2 vb = vertices_b[(j + 1) % vertices_b.size()];
 				Vector2 contact_point;
 				float distance_squared = PointSegmentDistanceSquared(p, va, vb, &contact_point);
-				if (distance_squared == min_distance_squared) {
-					if (contact_point != result.point1) {
+				if (FlatMath::NearlyEqual(distance_squared,min_distance_squared)) {
+					if (!FlatMath::NearlyEqual(contact_point,result.point1)) {
 						result.point2 = contact_point;
 						result.points_num = 2;
 					}
@@ -267,8 +267,8 @@ namespace FlatPhysics {
 				Vector2 vb = vertices_a[(j + 1) % vertices_a.size()];
 				Vector2 contact_point;
 				float distance_squared = PointSegmentDistanceSquared(p, va, vb, &contact_point);
-				if (distance_squared == min_distance_squared) {
-					if (contact_point != result.point1) {
+				if (FlatMath::NearlyEqual(distance_squared, min_distance_squared)) {
+					if (!FlatMath::NearlyEqual(contact_point, result.point1)) {
 						result.point2 = contact_point;
 						result.points_num = 2;
 					}

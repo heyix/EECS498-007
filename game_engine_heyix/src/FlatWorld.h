@@ -28,7 +28,8 @@ namespace FlatPhysics {
 	private:
 		void CollisionDetectionStep();
 		bool ShouldCollide(FlatFixture* fixture_a, FlatFixture* fixture_b);
-		void ResolveCollision(const FlatManifold& manifold);
+		void ResolveCollisionBasic(const FlatManifold& manifold);
+		void ResolveCollisionWithRotation(const FlatManifold& manifold);
 		void SeperateBodies(FlatBody* bodyA, FlatBody* bodyB, const Vector2& mtv);
 		void BroadPhase();
 		void NarrowPhase();

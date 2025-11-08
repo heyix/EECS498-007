@@ -45,7 +45,7 @@ void FlatPhysics::FlatBody::DestroyFixture(FlatFixture* fixture)
     ResetMassData();
 }
 
-FlatTransform FlatPhysics::FlatBody::GetTransform()
+const FlatTransform& FlatPhysics::FlatBody::GetTransform()
 {
     if (need_update_transform) {
         current_transform = FlatTransform(position, angle_rad);
@@ -55,7 +55,7 @@ FlatTransform FlatPhysics::FlatBody::GetTransform()
 }
 
 
-Vector2 FlatPhysics::FlatBody::GetEffectiveGravity(const Vector2& world_gravity) const
+const Vector2& FlatPhysics::FlatBody::GetEffectiveGravity(const Vector2& world_gravity) const
 {
     const Vector2 g = has_custom_gravity ? custom_gravity : world_gravity;
     return g * gravity_scale;
@@ -123,7 +123,7 @@ void FlatPhysics::FlatBody::ResetMassData()
         const float  m = f->ComputeMass();
         if (m <= 0.0f) continue;
 
-        const Vector2 c = f->ComputeLocalCenter();  
+        const Vector2 c = f->GetLocalCenter();  
         const float  Ic = f->ComputeLocalInertia();
 
         M += m;

@@ -62,7 +62,7 @@ namespace FlatPhysics {
 		}
 		return true;
 	}
-	void FlatWorld::ResolveCollision(const FlatManifold& manifold)
+	void FlatWorld::ResolveCollisionBasic(const FlatManifold& manifold)
 	{
 		FlatBody* bodyA = manifold.fixtureA->GetBody();
 		FlatBody* bodyB = manifold.fixtureB->GetBody();
@@ -78,12 +78,58 @@ namespace FlatPhysics {
 		j /= (bodyA->GetInverseMass() + bodyB->GetInverseMass());
 
 		Vector2 impulse = j * normal;
-		Vector2 velocity_a = bodyA->GetLinearVelocity();
-		velocity_a -= impulse * bodyA->GetInverseMass();
-		bodyA->SetLinearVelocity(velocity_a);
-		Vector2 velocity_b = bodyB->GetLinearVelocity();
-		velocity_b += impulse * bodyB->GetInverseMass();
-		bodyB->SetLinearVelocity(velocity_b);
+		bodyA->AddLinearVelocity(-impulse * bodyA->GetInverseMass());
+		bodyB->AddLinearVelocity(impulse * bodyB->GetInverseMass());
+	}
+	void FlatWorld::ResolveCollisionWithRotation(const FlatManifold& manifold)
+	{
+		FlatFixture* fixture_a = manifold.fixtureA;
+		FlatFixture* fixture_b = manifold.fixtureB;
+		float depth = manifold.depth;
+		const Vector2& normal = manifold.normal;
+		FlatBody* bodyA = fixture_a->GetBody();
+		FlatBody* bodyB = fixture_b->GetBody();
+		Vector2 world_mass_center_a = FlatTransform::TransformVector(bodyA->GetMassCenter(), bodyA->GetTransform());
+		Vector2 world_mass_center_b = FlatTransform::TransformVector(bodyB->GetMassCenter(), bodyB->GetTransform());
+		const ContactPoints& contact_points = manifold.contact_points;
+		float e = std::min(bodyA->restitution, bodyB->restitution);
+		std::vector<Vector2> contact_list{ contact_points.point1,contact_points.point2 };
+		std::vector<Vector2> impulse_list;
+		std::vector<Vector2> ra_list;
+		std::vector<Vector2> rb_list;
+		for (int i = 0; i < contact_points.points_num; i++) {
+			Vector2 ra = contact_list[i] - world_mass_center_a;
+			Vector2 rb = contact_list[i] - world_mass_center_b;
+			Vector2 ra_perp = { -ra.y(),ra.x() };
+			Vector2 rb_perp = { -rb.y(),rb.x() };
+			Vector2 angular_linear_velocity_a = ra_perp * bodyA->GetAngularVelocity();
+			Vector2 angular_linear_velocity_b = rb_perp * bodyB->GetAngularVelocity();
+			Vector2 relative_velocity = (bodyB->GetLinearVelocity() + angular_linear_velocity_b) - (bodyA->GetLinearVelocity() + angular_linear_velocity_a);
+			
+			float contact_velocity_mag = Vector2::Dot(relative_velocity, normal);
+			if (contact_velocity_mag > 0) {
+				continue;
+			}
+			float ra_perp_dot_n = Vector2::Dot(ra_perp, normal);
+			float rb_perp_dot_n = Vector2::Dot(rb_perp, normal);
+			float denom = bodyA->GetInverseMass() + bodyB->GetInverseMass() + (ra_perp_dot_n * ra_perp_dot_n) * bodyA->GetInverseInertia() + (rb_perp_dot_n * rb_perp_dot_n) * bodyB->GetInverseInertia();
+			float j = -(1 + e) * contact_velocity_mag;
+			j /= denom;
+			j /= (float)contact_points.points_num;
+			Vector2 impulse = j * normal;
+			impulse_list.push_back(impulse);
+			ra_list.push_back(ra);
+			rb_list.push_back(rb);
+		}
+		for (int i = 0; i < impulse_list.size(); i++) {
+			Vector2& impulse = impulse_list[i];
+			Vector2& ra = ra_list[i];
+			Vector2& rb = rb_list[i];
+			bodyA->AddLinearVelocity(-impulse * bodyA->GetInverseMass());
+			bodyB->AddLinearVelocity(impulse * bodyB->GetInverseMass());
+			bodyA->AddAngularVelocity(-Vector2::Cross(ra, impulse) * bodyA->GetInverseInertia());
+			bodyB->AddAngularVelocity(Vector2::Cross(rb, impulse) * bodyB->GetInverseInertia());
+		}
 	}
 	void FlatWorld::SeperateBodies(FlatBody* bodyA, FlatBody* bodyB, const Vector2& mtv)
 	{
@@ -136,9 +182,9 @@ namespace FlatPhysics {
 				SeperateBodies(bodyA, bodyB, normal * depth);
 				ContactPoints contact_points = Collision::FindContactPoints(fa, fb);
 				FlatManifold contact{ fa,fb,normal,depth,contact_points };
-				contacts.push_back(contact);
-				ResolveCollision(contact);
+				ResolveCollisionWithRotation(contact);
 
+				contacts.push_back(contact);
 			}
 		}
 	}

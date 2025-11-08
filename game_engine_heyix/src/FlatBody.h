@@ -49,27 +49,36 @@ namespace FlatPhysics {
         int GetFixtureCount()const { return fixtures_.size(); }
         FlatFixture* CreateFixture(const FixtureDef& def);
         void DestroyFixture(FlatFixture* fixture);
-        FlatTransform GetTransform();
-        Vector2 GetLinearVelocity() { return linear_velocity; }
+        const FlatTransform& GetTransform();
+
+
+        const Vector2& GetLinearVelocity() { return linear_velocity; }
+        float GetAngularVelocity() { return angular_velocity; }
         float GetMass() { return mass; }
         float GetInverseMass() { return inverse_mass; }
         float GetInertia() { return inertia; }
         float GetInverseInertia() { return inverse_inertia; }
+        const Vector2& GetMassCenter() { return center_of_mass; }
+
+        void AddForce(const Vector2& amount);
+        void SetLinearVelocity(const Vector2& velocity) { if (is_static) return; linear_velocity = velocity; }
+        void SetAngularVelocity(float velocity) { if (is_static)return; angular_velocity = velocity; }
+        void AddLinearVelocity(const Vector2& delta) { SetLinearVelocity(linear_velocity + delta); }
+        void AddAngularVelocity(float delta) { SetAngularVelocity(angular_velocity + delta); }
 
         void   SetGravityScale(float s) { gravity_scale = s; }
         float  GetGravityScale() const { return gravity_scale; }
         void   SetCustomGravity(const Vector2& g) { custom_gravity = g; has_custom_gravity = true; }
         void   ClearCustomGravity() { has_custom_gravity = false; custom_gravity = Vector2::Zero(); }
         bool   HasCustomGravity() const { return has_custom_gravity; }
-        Vector2 GetEffectiveGravity(const Vector2& world_gravity) const;
+        const Vector2& GetEffectiveGravity(const Vector2& world_gravity) const;
     public:
 
         void Move(const Vector2& amount);
         void MoveTo(const Vector2& position);
         void Rotate(float amount);
         void Step(float time, const Vector2& gravity);
-        void AddForce(const Vector2& amount);
-        void SetLinearVelocity(const Vector2& velocity) { if (is_static) return; linear_velocity = velocity; }
+
 
     private:
         float CalculateRotationalInertia();
