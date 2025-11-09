@@ -64,6 +64,7 @@ namespace FlatPhysics {
         float GetInertia() { return inertia; }
         float GetInverseInertia() { return inverse_inertia; }
         const Vector2& GetMassCenter() { return center_of_mass; }
+        Vector2 GetMassCenterWorld() { return FlatTransform::TransformVector(GetMassCenter(), GetTransform()); }
 
         void AddForce(const Vector2& amount);
         void SetLinearVelocity(const Vector2& velocity) { if (is_static) return; linear_velocity = velocity; }

@@ -41,8 +41,8 @@ namespace FlatPhysics {
 		const Vector2& normal = manifold.normal;
 		FlatBody* bodyA = fixture_a->GetBody();
 		FlatBody* bodyB = fixture_b->GetBody();
-		Vector2 world_mass_center_a = FlatTransform::TransformVector(bodyA->GetMassCenter(), bodyA->GetTransform());
-		Vector2 world_mass_center_b = FlatTransform::TransformVector(bodyB->GetMassCenter(), bodyB->GetTransform());
+		Vector2 world_mass_center_a = bodyA->GetMassCenterWorld();
+		Vector2 world_mass_center_b = bodyB->GetMassCenterWorld();
 		const ContactPoints& contact_points = manifold.contact_points;
 		float e = std::min(bodyA->restitution, bodyB->restitution);
 		std::vector<Vector2> contact_list{ contact_points.point1, contact_points.point2 };
