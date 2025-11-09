@@ -109,6 +109,30 @@
     <Filter Include="Source Files\Engine\Utils">
       <UniqueIdentifier>{48f55f66-b0b9-47b1-a0ad-841b1b1c25b7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\FlatPhysics\Physics Objects">
+      <UniqueIdentifier>{fdd5fb57-09f8-4a2d-a91e-9f95efff9ebe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\FlatPhysics\Physics Objects">
+      <UniqueIdentifier>{1111bfe2-27b0-435d-a127-1ec1479fcdc6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\FlatPhysics\Collision">
+      <UniqueIdentifier>{0df6c6b9-f4e1-485f-ba24-0aec4ee7e797}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\FlatPhysics\Collision">
+      <UniqueIdentifier>{d44427ec-6d21-4751-a606-7f81a942a955}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\FlatPhysics\BroadPhase">
+      <UniqueIdentifier>{2d19f07f-11fc-4370-aa5b-50421e9f6ab2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\FlatPhysics\Solver">
+      <UniqueIdentifier>{598e1002-a74e-4e9b-a30a-933d25da3ded}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\FlatPhysics\BroadPhase">
+      <UniqueIdentifier>{7969b84a-d226-44c5-b231-b5a307cdbba8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\FlatPhysics\Solver">
+      <UniqueIdentifier>{e0d5e623-9c97-4be3-9953-8f72a35687d3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ThirdParty\lua\lapi.c">
@@ -354,9 +378,6 @@
     <ClCompile Include="src\LuaComponent.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
-    <ClCompile Include="src\FlatBody.cpp">
-      <Filter>Source Files\FlatPhysics</Filter>
-    </ClCompile>
     <ClCompile Include="src\ParticleSystem.cpp">
       <Filter>Source Files\Components\CppComponents</Filter>
     </ClCompile>
@@ -375,9 +396,6 @@
     <ClCompile Include="src\RigidBody.cpp">
       <Filter>Source Files\Components\CppComponents\PhysicsComponents</Filter>
     </ClCompile>
-    <ClCompile Include="src\FlatWorld.cpp">
-      <Filter>Source Files\FlatPhysics</Filter>
-    </ClCompile>
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
@@ -388,12 +406,6 @@
       <Filter>Source Files\FlatPhysics</Filter>
     </ClCompile>
     <ClCompile Include="src\FlatShape.cpp">
-      <Filter>Source Files\FlatPhysics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\FlatFixture.cpp">
-      <Filter>Source Files\FlatPhysics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Collision.cpp">
       <Filter>Source Files\FlatPhysics</Filter>
     </ClCompile>
     <ClCompile Include="src\FlatTransform.cpp">
@@ -471,8 +483,41 @@
     <ClCompile Include="src\FlatAABB.cpp">
       <Filter>Source Files\FlatPhysics</Filter>
     </ClCompile>
-    <ClCompile Include="src\FlatManifold.cpp">
+    <ClCompile Include="src\FlatDefs.cpp">
       <Filter>Source Files\FlatPhysics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FlatCallbacks.cpp">
+      <Filter>Source Files\FlatPhysics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FlatBody.cpp">
+      <Filter>Source Files\FlatPhysics\Physics Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FlatFixture.cpp">
+      <Filter>Source Files\FlatPhysics\Physics Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FlatWorld.cpp">
+      <Filter>Source Files\FlatPhysics\Physics Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FlatManifold.cpp">
+      <Filter>Source Files\FlatPhysics\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Collision.cpp">
+      <Filter>Source Files\FlatPhysics\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FlatContact.cpp">
+      <Filter>Source Files\FlatPhysics\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FlatSolver.cpp">
+      <Filter>Source Files\FlatPhysics\Solver</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IBroadPhase.cpp">
+      <Filter>Source Files\FlatPhysics\BroadPhase</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BroadPhaseNaive.cpp">
+      <Filter>Source Files\FlatPhysics\BroadPhase</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FlatSolverNaive.cpp">
+      <Filter>Source Files\FlatPhysics\Solver</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -719,9 +764,6 @@
     <ClInclude Include="src\LuaComponent.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="src\FlatBody.h">
-      <Filter>Header Files\FlatPhysics</Filter>
-    </ClInclude>
     <ClInclude Include="src\ParticleSystem.h">
       <Filter>Header Files\Components\CppComponents</Filter>
     </ClInclude>
@@ -743,9 +785,6 @@
     <ClInclude Include="src\ComponentGroup.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="src\FlatWorld.h">
-      <Filter>Header Files\FlatPhysics</Filter>
-    </ClInclude>
     <ClInclude Include="src\FlatMath.h">
       <Filter>Header Files\FlatPhysics</Filter>
     </ClInclude>
@@ -753,12 +792,6 @@
       <Filter>Header Files\FlatPhysics</Filter>
     </ClInclude>
     <ClInclude Include="src\FlatShape.h">
-      <Filter>Header Files\FlatPhysics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\FlatFixture.h">
-      <Filter>Header Files\FlatPhysics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Collision.h">
       <Filter>Header Files\FlatPhysics</Filter>
     </ClInclude>
     <ClInclude Include="src\FlatTransform.h">
@@ -836,8 +869,41 @@
     <ClInclude Include="src\FlatAABB.h">
       <Filter>Header Files\FlatPhysics</Filter>
     </ClInclude>
-    <ClInclude Include="src\FlatManifold.h">
+    <ClInclude Include="src\FlatDefs.h">
       <Filter>Header Files\FlatPhysics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatCallbacks.h">
+      <Filter>Header Files\FlatPhysics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatBody.h">
+      <Filter>Header Files\FlatPhysics\Physics Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatFixture.h">
+      <Filter>Header Files\FlatPhysics\Physics Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatWorld.h">
+      <Filter>Header Files\FlatPhysics\Physics Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Collision.h">
+      <Filter>Header Files\FlatPhysics\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatContact.h">
+      <Filter>Header Files\FlatPhysics\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatManifold.h">
+      <Filter>Header Files\FlatPhysics\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IBroadPhase.h">
+      <Filter>Header Files\FlatPhysics\BroadPhase</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatSolver.h">
+      <Filter>Header Files\FlatPhysics\Solver</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BroadPhaseNaive.h">
+      <Filter>Header Files\FlatPhysics\BroadPhase</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatSolverNaive.h">
+      <Filter>Header Files\FlatPhysics\Solver</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

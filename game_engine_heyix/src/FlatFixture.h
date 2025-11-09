@@ -2,26 +2,8 @@
 #include "FlatShape.h"
 #include <memory>
 #include "FlatAABB.h"
+#include "FlatDefs.h"
 namespace FlatPhysics {
-	struct Filter {
-		uint16_t category_bits = 0x0001; 
-		uint16_t mask_bits = 0xFFFF;
-		int16_t  group_index = 0;
-	};
-	struct FixtureDef {
-		const Shape* shape = nullptr;
-		float density = 1.0f;
-		float friction = 0.3f;
-		float restitution = 0.0f;
-		bool is_trigger = false;
-		Filter filter{};
-        void* user_data = nullptr;
-	};
-	class FlatBody;
-
-
-
-
 
     class FlatFixture {
     public:
@@ -49,6 +31,8 @@ namespace FlatPhysics {
         float           GetFriction()    const { return friction_; }
         float           GetRestitution() const { return restitution_; }
         void* GetUserData() const { return user_data_; }
+        ProxyID GetProxyID()const { return proxy_id; }
+        void SetProxyID(ProxyID id) { proxy_id = id; }
     public:
         float ComputeArea()const;
         float ComputeMass()const;
@@ -66,5 +50,6 @@ namespace FlatPhysics {
         Filter filter_{};
         void* user_data_ = nullptr;
         Vector2 local_center;
+        ProxyID proxy_id{ kNullProxy };
     };
 }

@@ -4,17 +4,13 @@
 #include <vector>
 #include <unordered_map>
 #include "FlatManifold.h"
+#include "FlatContact.h"
+#include "IBroadPhase.h"
+#include "FlatSolver.h"
 namespace FlatPhysics {
 	class FlatWorld {
-	private:
-		struct ContactPair {
-			FlatFixture* fixture_a;
-			FlatFixture* fixture_b;
-		};
 	public:
-		FlatWorld() 
-			:gravity({0,9.81})
-		{}
+		FlatWorld();
 	public:
 		int GetBodyCount() { return bodies.size(); }
 	public:
@@ -24,14 +20,12 @@ namespace FlatPhysics {
 		void Step(float time);
 	public:
 		void DrawContactPoints();
-
+		void SetBroadPhase(std::unique_ptr<IBroadPhase> bp);
+		void SetSolver(std::unique_ptr<IContactSolver> solver);
 	private:
-		void CollisionDetectionStep();
-		bool ShouldCollide(FlatFixture* fixture_a, FlatFixture* fixture_b);
-		void ResolveCollisionBasic(const FlatManifold& manifold);
-		void ResolveCollisionWithRotation(const FlatManifold& manifold);
-		void ResolveCollisionWithRotationAndFriction(const FlatManifold& manifold);
+		void CollisionDetectionStep(float dt);
 		void SeperateBodies(FlatBody* bodyA, FlatBody* bodyB, const Vector2& mtv);
+		void SynchronizeFixtures();
 		void BroadPhase();
 		void NarrowPhase();
 	private:
@@ -40,5 +34,9 @@ namespace FlatPhysics {
 		std::unordered_map<FlatBody*, int> index_map;
 		std::vector<FlatManifold> contacts;
 		std::vector<ContactPair> contact_pairs;
+		std::unique_ptr<IBroadPhase>    broadphase_;
+		std::unique_ptr<IContactSolver> solver_;
+		int velocity_iterations_{ 1 };
+		int position_iterations_{ 1 };
 	};
 }

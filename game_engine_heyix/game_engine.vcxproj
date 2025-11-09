@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="src\AudioDB.cpp" />
     <ClCompile Include="src\BoxCollider.cpp" />
+    <ClCompile Include="src\BroadPhaseNaive.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\CircleCollider.cpp" />
     <ClCompile Include="src\ColliderBase.cpp" />
@@ -32,14 +33,20 @@
     <ClCompile Include="src\DrawBodyComponent.cpp" />
     <ClCompile Include="src\EventBus.cpp" />
     <ClCompile Include="src\FlatAABB.cpp" />
+    <ClCompile Include="src\FlatCallbacks.cpp" />
+    <ClCompile Include="src\FlatContact.cpp" />
+    <ClCompile Include="src\FlatDefs.cpp" />
     <ClCompile Include="src\FlatFixture.cpp" />
     <ClCompile Include="src\FlatManifold.cpp" />
     <ClCompile Include="src\FlatMath.cpp" />
     <ClCompile Include="src\FlatShape.cpp" />
+    <ClCompile Include="src\FlatSolver.cpp" />
+    <ClCompile Include="src\FlatSolverNaive.cpp" />
     <ClCompile Include="src\FlatTransform.cpp" />
     <ClCompile Include="src\FlatWorld.cpp" />
     <ClCompile Include="src\GameData.cpp" />
     <ClCompile Include="src\GameObjectDB.cpp" />
+    <ClCompile Include="src\IBroadPhase.cpp" />
     <ClCompile Include="src\LuaComponent.cpp" />
     <ClCompile Include="src\LuaDB.cpp" />
     <ClCompile Include="src\Engine.cpp" />
@@ -144,6 +151,7 @@
   <ItemGroup>
     <ClInclude Include="src\AudioDB.h" />
     <ClInclude Include="src\BoxCollider.h" />
+    <ClInclude Include="src\BroadPhaseNaive.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\CircleCollider.h" />
     <ClInclude Include="src\ColliderBase.h" />
@@ -156,14 +164,20 @@
     <ClInclude Include="src\DrawBodyComponent.h" />
     <ClInclude Include="src\EventBus.h" />
     <ClInclude Include="src\FlatAABB.h" />
+    <ClInclude Include="src\FlatCallbacks.h" />
+    <ClInclude Include="src\FlatContact.h" />
+    <ClInclude Include="src\FlatDefs.h" />
     <ClInclude Include="src\FlatFixture.h" />
     <ClInclude Include="src\FlatManifold.h" />
     <ClInclude Include="src\FlatMath.h" />
     <ClInclude Include="src\FlatShape.h" />
+    <ClInclude Include="src\FlatSolver.h" />
+    <ClInclude Include="src\FlatSolverNaive.h" />
     <ClInclude Include="src\FlatTransform.h" />
     <ClInclude Include="src\FlatWorld.h" />
     <ClInclude Include="src\GameData.h" />
     <ClInclude Include="src\GameObjectDB.h" />
+    <ClInclude Include="src\IBroadPhase.h" />
     <ClInclude Include="src\LuaComponent.h" />
     <ClInclude Include="src\LuaDB.h" />
     <ClInclude Include="src\Engine.h" />

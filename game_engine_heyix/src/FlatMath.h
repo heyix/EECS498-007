@@ -1,6 +1,6 @@
 #pragma once
-#define _USE_MATH_DEFINES
-#include <cmath>
+constexpr float kPi = 3.14159265358979323846f;
+
 #include "Vector2.h"
 namespace FlatPhysics {
 	class FlatMath {
@@ -12,12 +12,12 @@ namespace FlatPhysics {
 		}
 		static float RadToDeg(float radians)
 		{
-			return radians * (180.0 / M_PI);
+			return radians * (180.0 / kPi);
 		}
 
 		static float DegToRad(float degrees)
 		{
-			return degrees * (M_PI / 180.0);
+			return degrees * (kPi / 180.0);
 		}
 		static Vector2 FindPolygonCentroid(const std::vector<Vector2>& vertices);
 		static bool NearlyEqual(float a, float b);
