@@ -87,7 +87,6 @@ namespace FlatPhysics {
 
 
     private:
-        float CalculateRotationalInertia();
         void ResetMassData();
         void MarkFixturesDirty();
 

@@ -100,9 +100,16 @@ void FlatPhysics::FlatBody::Rotate(float amount)
 
 void FlatPhysics::FlatBody::Step(float time, const Vector2& gravity)
 {
-    if (is_static)return;
+    if (is_static) return;
+
     const Vector2 effective_g = GetEffectiveGravity(gravity);
-    SetLinearVelocity(linear_velocity + effective_g * time);
+    Vector2 acceleration = effective_g;
+
+    if (inverse_mass > 0.0f) {
+        acceleration += force * inverse_mass;
+    }
+
+    SetLinearVelocity(linear_velocity + acceleration * time);
     Move(linear_velocity * time);
     Rotate(angular_velocity * time);
 
@@ -113,11 +120,6 @@ void FlatPhysics::FlatBody::AddForce(const Vector2& amount)
 {
     if (is_static) return;
     force += amount;
-}
-
-float FlatPhysics::FlatBody::CalculateRotationalInertia()
-{
-    
 }
 
 void FlatPhysics::FlatBody::ResetMassData()
