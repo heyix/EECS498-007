@@ -8,7 +8,7 @@
 #include "FlatTransform.h"
 namespace FlatPhysics {
 
-
+    class FlatWorld;
     class FlatBody {
     private:
         FlatBody(
@@ -39,10 +39,15 @@ namespace FlatPhysics {
 
         bool need_update_transform = true;
         std::vector<std::unique_ptr<FlatFixture>> fixtures_;
+
+        FlatWorld* world_ = nullptr;
     public:
         float restitution;
         const bool  is_static;
     public:
+        void SetWorld(FlatWorld* world) { world_ = world; }
+        FlatWorld* GetWorld() const { return world_; }
+
         const Vector2& GetPosition() const { return position; }
         float GetAngle()const { return angle_rad; }
         const std::vector<std::unique_ptr<FlatFixture>>& GetFixtures()const { return fixtures_; }
@@ -83,6 +88,7 @@ namespace FlatPhysics {
     private:
         float CalculateRotationalInertia();
         void ResetMassData();
+        void MarkFixturesDirty();
 
     public:
         static bool CreateCircleBody(float radius, const Vector2& position, float density, bool is_static,

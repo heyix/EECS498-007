@@ -22,9 +22,11 @@ namespace FlatPhysics {
 		void DrawContactPoints();
 		void SetBroadPhase(std::unique_ptr<IBroadPhase> bp);
 		void SetSolver(std::unique_ptr<IContactSolver> solver);
+
+		void RegisterFixture(FlatFixture* fixture);
+		void UnregisterFixture(FlatFixture* fixture);
 	private:
 		void CollisionDetectionStep(float dt);
-		void SeperateBodies(FlatBody* bodyA, FlatBody* bodyB, const Vector2& mtv);
 		void SynchronizeFixtures();
 		void BroadPhase();
 		void NarrowPhase();

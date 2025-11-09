@@ -29,13 +29,25 @@ FlatBody::FlatBody(
 FlatFixture* FlatPhysics::FlatBody::CreateFixture(const FixtureDef& def)
 {
     fixtures_.push_back(std::make_unique<FlatFixture>(this, def));
+    FlatFixture* fixture = fixtures_.back().get();
     ResetMassData();
-    return fixtures_.back().get();
+
+    if (world_) {
+        world_->RegisterFixture(fixture);
+    }
+
+    return fixture;
 }
 
 void FlatPhysics::FlatBody::DestroyFixture(FlatFixture* fixture)
 {
+
     if (!fixture) return;
+
+    if (world_) {
+        world_->UnregisterFixture(fixture);
+    }
+
     for (auto it = fixtures_.begin(); it != fixtures_.end(); ++it) {
         if (it->get() == fixture) {
             fixtures_.erase(it);
@@ -53,7 +65,12 @@ const FlatTransform& FlatPhysics::FlatBody::GetTransform()
     }
     return current_transform;
 }
-
+void FlatBody::MarkFixturesDirty()
+{
+    for (auto& fixture : fixtures_) {
+        fixture->MarkProxyDirty();
+    }
+}
 
 const Vector2& FlatPhysics::FlatBody::GetEffectiveGravity(const Vector2& world_gravity) const
 {
@@ -70,6 +87,7 @@ void FlatBody::MoveTo(const Vector2& p) {
     if (is_static)return;
     this->position = p;
     need_update_transform = true;
+    MarkFixturesDirty();
 }
 
 void FlatPhysics::FlatBody::Rotate(float amount)
@@ -77,13 +95,12 @@ void FlatPhysics::FlatBody::Rotate(float amount)
     if (is_static)return;
     this->angle_rad += amount;
     need_update_transform = true;
+    MarkFixturesDirty();
 }
 
 void FlatPhysics::FlatBody::Step(float time, const Vector2& gravity)
 {
     if (is_static)return;
-    //Vector2 acceleration = force / mass;
-    //linear_velocity += acceleration * time;
     const Vector2 effective_g = GetEffectiveGravity(gravity);
     SetLinearVelocity(linear_velocity + effective_g * time);
     Move(linear_velocity * time);

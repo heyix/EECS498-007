@@ -34,15 +34,15 @@ namespace FlatPhysics {
 	void FlatWorld::AddBody(FlatBody* body)
 	{
 		if (!body || index_map.count(body))return;
-		int index = bodies.size();
+		const int index = static_cast<int>(bodies.size());
 		bodies.push_back(body);
 		index_map[body] = index;
+
+		body->SetWorld(this);
+
 		if (broadphase_) {
 			for (const auto& fixture_uptr : body->GetFixtures()) {
-				FlatFixture* fixture = fixture_uptr.get();
-				FlatAABB aabb = fixture->GetAABB();
-				ProxyID id = broadphase_->CreateProxy(aabb, fixture);
-				fixture->SetProxyID(id);
+				RegisterFixture(fixture_uptr.get());
 			}
 		}
 	}
@@ -56,12 +56,7 @@ namespace FlatPhysics {
 
 		if (broadphase_) {
 			for (const auto& fixture_uptr : body->GetFixtures()) {
-				FlatFixture* fixture = fixture_uptr.get();
-				ProxyID id = fixture->GetProxyID();
-				if (id != kNullProxy) {
-					broadphase_->DestroyProxy(id);
-					fixture->SetProxyID(kNullProxy);
-				}
+				UnregisterFixture(fixture_uptr.get());
 			}
 		}
 
@@ -73,6 +68,8 @@ namespace FlatPhysics {
 		}
 		bodies.pop_back();
 		index_map.erase(it);
+
+		body->SetWorld(nullptr);
 		return true;
 	}
 
@@ -82,6 +79,33 @@ namespace FlatPhysics {
 			return nullptr;
 		}
 		return bodies[index];
+	}
+	void FlatWorld::RegisterFixture(FlatFixture* fixture)
+	{
+		if (!fixture || !broadphase_) {
+			return;
+		}
+
+		FlatAABB aabb = fixture->GetAABB();
+		ProxyID id = broadphase_->CreateProxy(aabb, fixture->GetBroadPhaseUserData());
+		fixture->SetProxyID(id);
+		fixture->SetLastAABB(aabb);
+		fixture->ClearProxyDirty();
+	}
+
+	void FlatWorld::UnregisterFixture(FlatFixture* fixture)
+	{
+		if (!fixture || !broadphase_) {
+			return;
+		}
+
+		ProxyID id = fixture->GetProxyID();
+		if (id != kNullProxy) {
+			broadphase_->DestroyProxy(id);
+			fixture->SetProxyID(kNullProxy);
+		}
+		fixture->ClearLastAABB();
+		fixture->MarkProxyDirty();
 	}
 	void FlatWorld::SynchronizeFixtures()
 	{
@@ -93,16 +117,36 @@ namespace FlatPhysics {
 			const auto& fixtures = body->GetFixtures();
 			for (const auto& fixture_uptr : fixtures) {
 				FlatFixture* fixture = fixture_uptr.get();
-				FlatAABB aabb = fixture->GetAABB();
 				ProxyID id = fixture->GetProxyID();
 
 				if (id == kNullProxy) {
-					ProxyID new_id = broadphase_->CreateProxy(aabb, fixture);
-					fixture->SetProxyID(new_id);
+					RegisterFixture(fixture);
+					continue;
 				}
-				else {
-					broadphase_->MoveProxy(id, aabb, Vector2::Zero());
+
+				if (!fixture->IsProxyDirty()) {
+					continue;
 				}
+
+				FlatAABB new_aabb = fixture->GetAABB();
+				Vector2 displacement = Vector2::Zero();
+
+				if (fixture->HasLastAABB()) {
+					FlatAABB old_aabb = fixture->GetLastAABB();
+					Vector2 old_center{
+						(old_aabb.min.x() + old_aabb.max.x()) * 0.5f,
+						(old_aabb.min.y() + old_aabb.max.y()) * 0.5f
+					};
+					Vector2 new_center{
+						(new_aabb.min.x() + new_aabb.max.x()) * 0.5f,
+						(new_aabb.min.y() + new_aabb.max.y()) * 0.5f
+					};
+					displacement = new_center - old_center;
+				}
+
+				broadphase_->MoveProxy(id, new_aabb, displacement);
+				fixture->SetLastAABB(new_aabb);
+				fixture->ClearProxyDirty();
 			}
 		}
 	}
@@ -133,20 +177,6 @@ namespace FlatPhysics {
 		}
 	}
 
-
-	void FlatWorld::SeperateBodies(FlatBody* bodyA, FlatBody* bodyB, const Vector2& mtv)
-	{
-		if (!bodyA->is_static && !bodyB->is_static) {
-			bodyA->Move(-mtv * 0.5f);
-			bodyB->Move(mtv * 0.5f);
-		}
-		else if (!bodyA->is_static && bodyB->is_static) {
-			bodyA->Move(-mtv);
-		}
-		else if (bodyA->is_static && !bodyB->is_static) {
-			bodyB->Move(mtv);
-		}
-	}
 	void FlatWorld::BroadPhase()
 	{
 		if (!broadphase_) {

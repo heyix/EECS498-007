@@ -20,6 +20,19 @@ namespace {
     }
 }
 namespace FlatPhysics {
+    FlatFixture::FlatFixture(FlatBody* body, const FixtureDef& def)
+        : body_(body),
+        shape_(def.shape ? def.shape->Clone() : nullptr),
+        density_(def.density),
+        friction_(def.friction),
+        restitution_(def.restitution),
+        is_trigger_(def.is_trigger),
+        filter_(def.filter),
+        user_data_(def.user_data)
+    {
+        local_center = ComputeLocalCenter();
+        proxy_dirty_ = true;
+    }
     FlatAABB FlatPhysics::FlatFixture::GetAABB()
     {
         if (!body_ || !shape_) {
