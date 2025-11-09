@@ -196,8 +196,8 @@ namespace FlatPhysics {
 
 			Vector2 normal;
 			float depth;
-			if (Collision::DetectCollision(fa, fb, &normal, &depth)) {
-				ContactPoints contact_points = Collision::FindContactPoints(fa, fb);
+			if (Collision::DetectCollisionOld(fa, fb, &normal, &depth)) {
+				ContactPointsOld contact_points = Collision::FindContactPointsOld(fa, fb);
 				contacts.emplace_back(fa, fb, normal, depth, contact_points);
 			}
 		}
@@ -205,7 +205,7 @@ namespace FlatPhysics {
 	void FlatWorld::DrawContactPoints()
 	{
 		for (FlatManifold& manifold : contacts) {
-			ContactPoints& contact_points = manifold.contact_points;
+			ContactPointsOld& contact_points = manifold.contact_points;
 			if (contact_points.points_num > 0) {
 				constexpr float kMarkerHalfSize = 0.05f;
 				static const std::vector<Vector2> markerVerts = {

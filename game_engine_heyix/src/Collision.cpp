@@ -8,7 +8,7 @@
 #include "FlatMath.h"
 #include "FlatBody.h"
 namespace FlatPhysics {
-	bool FlatPhysics::Collision::IntersectCircles(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, Vector2* normal, float* depth)
+	bool FlatPhysics::Collision::IntersectCirclesOld(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, Vector2* normal, float* depth)
 	{
 		float distance = Vector2::Distance(centerA, centerB);
 		float radii = radiusA + radiusB;
@@ -25,14 +25,14 @@ namespace FlatPhysics {
 		return true;
 	}
 
-	bool Collision::IntersectPolygons(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB, Vector2* normal, float* depth)
+	bool Collision::IntersectPolygonsOld(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB, Vector2* normal, float* depth)
 	{
 		Vector2 centerA = FlatMath::FindPolygonCentroid(verticesA);
 		Vector2 centerB = FlatMath::FindPolygonCentroid(verticesB);
-		return IntersectPolygons(verticesA, centerA, verticesB, centerB, normal, depth);
+		return IntersectPolygonsOld(verticesA, centerA, verticesB, centerB, normal, depth);
 	}
 
-	bool Collision::IntersectPolygons(const std::vector<Vector2>& verticesA, const Vector2& centerA, const std::vector<Vector2>& verticesB, const Vector2& centerB, Vector2* normal, float* depth)
+	bool Collision::IntersectPolygonsOld(const std::vector<Vector2>& verticesA, const Vector2& centerA, const std::vector<Vector2>& verticesB, const Vector2& centerB, Vector2* normal, float* depth)
 	{
 		float min_depth = std::numeric_limits<float>::max();
 		Vector2 result_normal = Vector2::Zero();
@@ -94,13 +94,13 @@ namespace FlatPhysics {
 		return true;
 	}
 
-	bool Collision::IntersectCirclePolygon(const Vector2& center, float radius, const std::vector<Vector2>& vertices, Vector2* normal, float* depth)
+	bool Collision::IntersectCirclePolygonOld(const Vector2& center, float radius, const std::vector<Vector2>& vertices, Vector2* normal, float* depth)
 	{
 		Vector2 polygon_center = FlatMath::FindPolygonCentroid(vertices);
-		return IntersectCirclePolygon(center, radius, vertices, polygon_center, normal, depth);
+		return IntersectCirclePolygonOld(center, radius, vertices, polygon_center, normal, depth);
 	}
 
-	bool Collision::IntersectCirclePolygon(const Vector2& center, float radius, const std::vector<Vector2>& vertices, const Vector2& polygon_center, Vector2* normal, float* depth)
+	bool Collision::IntersectCirclePolygonOld(const Vector2& center, float radius, const std::vector<Vector2>& vertices, const Vector2& polygon_center, Vector2* normal, float* depth)
 	{
 		float min_depth = std::numeric_limits<float>::max();
 		Vector2 result_normal = Vector2::Zero();
@@ -152,7 +152,7 @@ namespace FlatPhysics {
 		return true;
 	}
 
-	bool Collision::DetectCollision(const FlatFixture* fa, const FlatFixture* fb, Vector2* normal, float* depth)
+	bool Collision::DetectCollisionOld(const FlatFixture* fa, const FlatFixture* fb, Vector2* normal, float* depth)
 	{
 		auto bodyA = fa->GetBody();
 		auto bodyB = fb->GetBody();
@@ -171,12 +171,12 @@ namespace FlatPhysics {
 				auto* cb = fb->GetShape().AsCircle();
 				Vector2 cB = FlatTransform::TransformVector(cb->center, transformB);
 				float rB = cb->radius;
-				return Collision::IntersectCircles(cA, rA, cB, rB, normal, depth);
+				return Collision::IntersectCirclesOld(cA, rA, cB, rB, normal, depth);
 			}
 			case ShapeType::Polygon: {
 				const auto& vertsB_local = fb->GetShape().AsPolygon()->vertices;
 				auto vertsB = FlatTransform::TransformVectors(vertsB_local, transformB);
-				return Collision::IntersectCirclePolygon(cA, rA, vertsB, normal, depth);
+				return Collision::IntersectCirclePolygonOld(cA, rA, vertsB, normal, depth);
 			}
 			default: break;
 			}
@@ -191,13 +191,13 @@ namespace FlatPhysics {
 			case ShapeType::Polygon: {
 				const auto& vertsB_local = fb->GetShape().AsPolygon()->vertices;
 				auto vertsB = FlatTransform::TransformVectors(vertsB_local, transformB);
-				return Collision::IntersectPolygons(vertsA, vertsB, normal, depth);
+				return Collision::IntersectPolygonsOld(vertsA, vertsB, normal, depth);
 			}
 			case ShapeType::Circle: {
 				auto* cb = fb->GetShape().AsCircle();
 				Vector2 cB = FlatTransform::TransformVector(cb->center, transformB);
 				float rB = cb->radius;
-				bool hit = Collision::IntersectCirclePolygon(cB, rB, vertsA, normal, depth);
+				bool hit = Collision::IntersectCirclePolygonOld(cB, rB, vertsA, normal, depth);
 				if (hit && normal) *normal = -*normal;
 				return hit;
 			}
@@ -211,7 +211,7 @@ namespace FlatPhysics {
 		return false;
 	}
 	//circle-circle
-	ContactPoints Collision::FindCircleCircleContactPoint(const Vector2& centerA, float radiusA, const Vector2& centerB)
+	ContactPointsOld Collision::FindCircleCircleContactPointOld(const Vector2& centerA, float radiusA, const Vector2& centerB)
 	{
 		Vector2 direction = centerB - centerA;
 		direction.Normalize();
@@ -219,7 +219,7 @@ namespace FlatPhysics {
 		return { result };
 	}
 	//circle-polygon
-	ContactPoints Collision::FindCirclePolygonContactPoint(const Vector2& circle_center, float circle_radius, const std::vector<Vector2>& vertices)
+	ContactPointsOld Collision::FindCirclePolygonContactPointOld(const Vector2& circle_center, float circle_radius, const std::vector<Vector2>& vertices)
 	{
 		float min_distance = std::numeric_limits<float>::max();
 		Vector2 result;
@@ -236,10 +236,10 @@ namespace FlatPhysics {
 		return { result };
 	}
 	//polygon-polygon
-	ContactPoints Collision::FindPolygonPolygonContactPoint(const std::vector<Vector2>& vertices_a, const std::vector<Vector2>& vertices_b)
+	ContactPointsOld Collision::FindPolygonPolygonContactPointOld(const std::vector<Vector2>& vertices_a, const std::vector<Vector2>& vertices_b)
 	{
 		float min_distance_squared = std::numeric_limits<float>::max();
-		ContactPoints result;
+		ContactPointsOld result;
 		for (int i = 0; i < vertices_a.size(); i++) {
 			const Vector2& p = vertices_a[i];
 			for (int j = 0; j < vertices_b.size(); j++) {
@@ -283,7 +283,7 @@ namespace FlatPhysics {
 		return result;
 	}
 
-	ContactPoints Collision::FindContactPoints(const FlatFixture* fa, const FlatFixture* fb)
+	ContactPointsOld Collision::FindContactPointsOld(const FlatFixture* fa, const FlatFixture* fb)
 	{
 		switch (fa->GetShapeType()) {
 		case ShapeType::Circle: {
@@ -293,11 +293,11 @@ namespace FlatPhysics {
 			case ShapeType::Circle: {
 				const CircleShape* circleB = fb->GetShape().AsCircle();
 				Vector2 centerB = FlatTransform::TransformVector(circleB->center, fb->GetBody()->GetTransform());
-				return FindCircleCircleContactPoint(centerA, circleA->radius, centerB);
+				return FindCircleCircleContactPointOld(centerA, circleA->radius, centerB);
 			}
 			case ShapeType::Polygon: {
 				const PolygonShape* polygonB = fb->GetShape().AsPolygon();
-				return FindCirclePolygonContactPoint(centerA, circleA->radius, FlatTransform::TransformVectors(polygonB->vertices, fb->GetBody()->GetTransform()));
+				return FindCirclePolygonContactPointOld(centerA, circleA->radius, FlatTransform::TransformVectors(polygonB->vertices, fb->GetBody()->GetTransform()));
 			}
 			default: break;
 			}
@@ -310,12 +310,12 @@ namespace FlatPhysics {
 			switch (fb->GetShapeType()) {
 			case ShapeType::Polygon: {
 				const PolygonShape* polygonB = fb->GetShape().AsPolygon();
-				return FindPolygonPolygonContactPoint(transformed_a, FlatTransform::TransformVectors(polygonB->vertices, fb->GetBody()->GetTransform()));
+				return FindPolygonPolygonContactPointOld(transformed_a, FlatTransform::TransformVectors(polygonB->vertices, fb->GetBody()->GetTransform()));
 			}
 			case ShapeType::Circle: {
 				const CircleShape* circleB = fb->GetShape().AsCircle();
 				Vector2 centerB = FlatTransform::TransformVector(circleB->center, fb->GetBody()->GetTransform());
-				return FindCirclePolygonContactPoint(centerB, circleB->radius, transformed_a);
+				return FindCirclePolygonContactPointOld(centerB, circleB->radius, transformed_a);
 			}
 			default: break;
 			}
