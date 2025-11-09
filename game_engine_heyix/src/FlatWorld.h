@@ -11,6 +11,7 @@ namespace FlatPhysics {
 	class FlatWorld {
 	public:
 		FlatWorld();
+		friend class FlatBody;
 	public:
 		int GetBodyCount() { return bodies.size(); }
 	public:
@@ -23,13 +24,15 @@ namespace FlatPhysics {
 		void SetBroadPhase(std::unique_ptr<IBroadPhase> bp);
 		void SetSolver(std::unique_ptr<IContactSolver> solver);
 
-		void RegisterFixture(FlatFixture* fixture);
-		void UnregisterFixture(FlatFixture* fixture);
+
 	private:
 		void CollisionDetectionStep(float dt);
 		void SynchronizeFixtures();
 		void BroadPhase();
 		void NarrowPhase();
+
+		void RegisterFixture(FlatFixture* fixture);
+		void UnregisterFixture(FlatFixture* fixture);
 	private:
 		Vector2 gravity;
 		std::vector<FlatBody*> bodies;

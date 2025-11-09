@@ -4,7 +4,7 @@
 #include "FlatAABB.h"
 #include "FlatDefs.h"
 namespace FlatPhysics {
-
+    class FlatBody;
     class FlatFixture {
     public:
         FlatFixture(FlatBody* body, const FixtureDef& def);
