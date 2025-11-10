@@ -156,9 +156,7 @@ namespace FlatPhysics {
 			body->Step(time, gravity);
 		}
 
-		SynchronizeFixtures();
 		CollisionDetectionStep(time);
-
 	}
 	void FlatWorld::CollisionDetectionStep(float dt)
 	{
@@ -182,6 +180,7 @@ namespace FlatPhysics {
 		if (!broadphase_) {
 			return;
 		}
+		SynchronizeFixtures();
 		BroadphasePairCollector collector(contact_pairs);
 		broadphase_->UpdatePairs(&collector);
 	}
