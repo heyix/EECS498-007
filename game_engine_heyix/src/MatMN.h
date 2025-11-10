@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-#include <cassert>
 #include "VecN.h"
 
 namespace FlatPhysics {
@@ -9,49 +8,80 @@ namespace FlatPhysics {
     public:
         class RowView {
         public:
-            RowView(float* p, int n) noexcept : p_mut(p), p_const(p), n(n), is_const(false) {}
-            RowView(const float* p, int n) noexcept : p_mut(nullptr), p_const(p), n(n), is_const(true) {}
-
-            float& operator[](int j) {
-                return p_mut[j];
-            }
-            const float& operator[](int j) const {
-                return p_const[j];
-            }
-
+            RowView(float* p, int n) noexcept : p(p), n(n) {}
+            float& operator[](int j) {  return p[j]; }
+            const float& operator[](int j) const {  return p[j]; }
             int size() const noexcept { return n; }
-
         private:
-            float* p_mut = nullptr;
-            const float* p_const = nullptr;
+            float* p = nullptr;
+            int    n = 0;
+        };
+        class RowViewConst {
+        public:
+            RowViewConst(const float* p, int n) noexcept : p(p), n(n) {}
+            const float& operator[](int j) const {  return p[j]; }
+            int size() const noexcept { return n; }
+        private:
+            const float* p = nullptr;
             int          n = 0;
-            bool         is_const = false;
+        };
+
+        class ColumnView {
+        public:
+            ColumnView(float* base, int m, int stride) noexcept : base(base), m(m), stride(stride) {}
+            float& operator[](int i) {  return base[i * stride]; }
+            const float& operator[](int i) const {  return base[i * stride]; }
+            int size() const noexcept { return m; }
+        private:
+            float* base = nullptr;
+            int    m = 0;
+            int    stride = 0;
+        };
+        class ColumnViewConst {
+        public:
+            ColumnViewConst(const float* base, int m, int stride) noexcept : base(base), m(m), stride(stride) {}
+            const float& operator[](int i) const { return base[i * stride]; }
+            int size() const noexcept { return m; }
+        private:
+            const float* base = nullptr;
+            int          m = 0;
+            int          stride = 0;
         };
 
     public:
-        MatMN();
         MatMN(int M, int N);
         MatMN(const MatMN& m);
-        MatMN& operator=(const MatMN& m); 
+        MatMN& operator=(const MatMN& m);
 
-        VecN  operator*(const VecN& v) const;
+        VecN operator*(const VecN& v) const;
+
         MatMN operator*(const MatMN& m) const;
 
-        void  Zero();
+        void Zero();
+
         MatMN Transpose() const;
 
+
         RowView operator[](int i) {
-            return RowView(&data[i * N], N); 
+            return RowView(data.data() + i * N, N);
         }
-        RowView operator[](int i) const { 
-            return RowView(&data[i * N], N);
+        RowViewConst operator[](int i) const {
+            return RowViewConst(data.data() + i * N, N);
+        }
+
+        ColumnView GetColumn(int j) {
+            return ColumnView(data.data() + j, M, N);
+        }
+        ColumnViewConst GetColumn(int j) const {
+            return ColumnViewConst(data.data() + j, M, N);
         }
 
     public:
         int M = 0;
         int N = 0;
+
     private:
-        std::vector<float> data;          
+        std::vector<float> data;
     };
 
 }
