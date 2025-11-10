@@ -41,7 +41,7 @@ namespace FlatPhysics {
 			const Vector2& vb = verticesA[(i + 1) % verticesA.size()];
 
 			Vector2 edge = vb - va;
-			Vector2 axis = Vector2(-edge.y(), edge.x());
+			Vector2 axis = edge.NormalDirection();
 
 			float axis_len = axis.Normalize();
 			if (axis_len <= 1e-8f) continue;
@@ -64,7 +64,7 @@ namespace FlatPhysics {
 			const Vector2& vb = verticesB[(i + 1) % verticesB.size()];
 
 			Vector2 edge = vb - va;
-			Vector2 axis = Vector2(-edge.y(), edge.x());
+			Vector2 axis = edge.NormalDirection();
 
 			float axis_len = axis.Normalize();
 			if (axis_len <= 1e-8f) continue;
@@ -109,7 +109,7 @@ namespace FlatPhysics {
 			const Vector2& vb = vertices[(i + 1) % vertices.size()];
 
 			Vector2 edge = vb - va;
-			Vector2 axis = Vector2(-edge.y(), edge.x());
+			Vector2 axis = edge.NormalDirection();
 
 			float axis_len = axis.Normalize();
 			if (axis_len <= 1e-8f) continue;
@@ -126,7 +126,7 @@ namespace FlatPhysics {
 				result_normal = axis;
 			}
 		}
-		int closest_index = FindClosestPointFromCircleToPolygon(center, vertices);
+		int closest_index = FindClosestVertexBetweenCircleAndPolygon(center, vertices);
 		Vector2 closest = vertices[closest_index];
 		Vector2 axis = closest - center;
 		float axis_len = axis.Normalize();
@@ -326,6 +326,85 @@ namespace FlatPhysics {
 		return {};
 	}
 
+	bool Collision::IsCollidingCircleCirle(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, ContactPoint& contact)
+	{
+		Vector2 d = centerB - centerA;
+		float rSum = radiusA + radiusB;
+		float dist2 = d.LengthSquared();
+
+		if (dist2 > rSum * rSum) return false;
+
+		float dist = 0.0f;
+		Vector2 n;
+		if (dist2 > 1e-12f) {
+			dist = std::sqrt(dist2);
+			n = d * (1.0f / dist);
+		}
+		else {
+			n = Vector2(1, 0);     
+			dist = 0.0f;
+		}
+
+		contact.normal = n;
+		contact.contact_point = centerA + n * radiusA;      
+		contact.depth = std::max(0.0f, rSum - dist);  
+		return true;
+	}
+
+	bool Collision::IsCollidingCirclePolygon(const Vector2& center, float radius, const std::vector<Vector2>& vertices, ContactPoint& contact)
+	{
+		Vector2 min_cur_vertex;
+		Vector2 min_next_vertex;
+
+		bool is_outside = false;
+		float distance_circle_edge = std::numeric_limits<float>::lowest();
+
+		for (int i = 0; i < vertices.size(); i++) {
+			Vector2 va = vertices[i];
+			Vector2 vb = vertices[(i + 1) % vertices.size()];
+			Vector2 edge = vb - va;
+			Vector2 normal = edge.NormalDirection();
+			normal.Normalize();
+			Vector2 vertex_to_circle_center = center - va;
+			float projection = Vector2::Dot(center - va, normal);
+			if (projection > 0) {
+				if (projection > distance_circle_edge) {
+					min_cur_vertex = va;
+					min_next_vertex = vb;
+					distance_circle_edge = projection;
+				}
+				is_outside = true;
+			}
+			else {
+				if (projection > distance_circle_edge) {
+					distance_circle_edge = projection;
+					min_cur_vertex = va;
+					min_next_vertex = vb;
+				}
+			}
+		}
+
+		if (is_outside) {
+			Vector2 closest_point;
+			float center_edge_dist_squared = PointSegmentDistanceSquared(center, min_cur_vertex, min_next_vertex, &closest_point);
+			if (center_edge_dist_squared > radius * radius) {
+				return false;
+			}
+			contact.depth = radius - std::sqrt(center_edge_dist_squared);
+			contact.normal = closest_point - center;
+			contact.normal.Normalize();
+			contact.contact_point = center + contact.normal * radius;
+		}
+		else {
+			contact.depth = radius - distance_circle_edge;
+			contact.normal = (min_next_vertex - min_cur_vertex).NormalDirection();
+			contact.normal.Normalize();
+			contact.contact_point = center + contact.normal * radius;
+		}
+
+		return true;
+	}
+
 	std::pair<float, float> Collision::ProjectCircle(const Vector2& center, float radius, const Vector2& axis)
 	{
 		//Vector2& direction = axis;
@@ -344,7 +423,7 @@ namespace FlatPhysics {
 		float c = Vector2::Dot(center, normalized_axis);
 		return { c - radius, c + radius };
 	}
-	int Collision::FindClosestPointFromCircleToPolygon(const Vector2& center, const std::vector<Vector2>& vertices)
+	int Collision::FindClosestVertexBetweenCircleAndPolygon(const Vector2& center, const std::vector<Vector2>& vertices)
 	{
 		int result = -1;
 		float min_distance = std::numeric_limits<float>::max();
