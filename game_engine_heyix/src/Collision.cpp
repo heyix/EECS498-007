@@ -404,30 +404,86 @@ namespace FlatPhysics {
 
 	bool Collision::IsCollidingPolygonPolygon(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB, std::vector<ContactPoint>& contact)
 	{
-		Vector2 a_axis, b_axis;
-		Vector2 a_point, b_point;
-		float ab_seperation = FindMinSeperation(verticesA, verticesB, a_axis, a_point);
-		if (ab_seperation >= 0) {
+		int a_reference_edge_index, b_reference_edge_index;
+		Vector2 a_support_point, b_support_point;
+		float ab_separation = FindMinSeperation(verticesA, verticesB, a_reference_edge_index, a_support_point);
+		if (ab_separation >= 0) {
 			return false;
 		}
-		float ba_seperation = FindMinSeperation(verticesB, verticesA, b_axis, b_point);
-		if (ba_seperation >= 0) {
+		float ba_separation = FindMinSeperation(verticesB, verticesA, b_reference_edge_index, b_support_point);
+		if (ba_separation >= 0) {
 			return false;
 		}
-		ContactPoint contact_point;
-		if (ab_seperation > ba_seperation) {
-			contact_point.depth = -ab_seperation;
-			contact_point.normal = a_axis.NormalDirection();
-			contact_point.normal.Normalize();
-			contact_point.point = a_point + contact_point.normal * contact_point.depth;
+		int reference_edge_index;
+		const std::vector<Vector2>* reference_vertices;
+		const std::vector<Vector2>* incident_vertices;
+		if (ab_separation > ba_separation) {
+			reference_edge_index = a_reference_edge_index;
+			reference_vertices = &verticesA;
+			incident_vertices = &verticesB;
 		}
 		else {
-			contact_point.depth = -ba_seperation;
-			contact_point.normal = -b_axis.NormalDirection();
-			contact_point.normal.Normalize();
-			contact_point.point = b_point;
+			reference_edge_index = b_reference_edge_index;
+			reference_vertices = &verticesB;
+			incident_vertices = &verticesA;
 		}
-		contact.push_back(contact_point);
+		ContactPoint contact_point;
+		Vector2 reference_edge = EdgeAt(*reference_vertices, reference_edge_index);
+
+		Vector2 reference_edge_normal = reference_edge.NormalDirection();
+		reference_edge_normal.Normalize();
+		//clip
+		int incident_edge_index = FindIncidentEdgeIndex(*incident_vertices, reference_edge_normal);
+		int incident_next_index = (incident_edge_index + 1) % incident_vertices->size();
+
+		Vector2 v0 = (*incident_vertices)[incident_edge_index];
+		Vector2 v1 = (*incident_vertices)[incident_next_index];
+		
+
+
+
+
+
+		Vector2 ref_v0 = (*reference_vertices)[reference_edge_index];
+		Vector2 ref_v1 = (*reference_vertices)[(reference_edge_index + 1) % reference_vertices->size()];
+		Vector2 t = (ref_v1 - ref_v0); t.Normalize();   
+		Vector2 n = t.NormalDirection(); n.Normalize();       
+
+		int ie = FindIncidentEdgeIndex(*incident_vertices, n);
+		int ie1 = (ie + 1) % incident_vertices->size();
+		std::vector<Vector2> in{ (*incident_vertices)[ie], (*incident_vertices)[ie1] };
+		std::vector<Vector2> out = in;
+
+		// ---- clip against the two side planes (these use ±t as the plane NORMALS) ----
+		// plane through ref_v0, NORMAL = -t  => pass (c0=ref_v0, c1=ref_v0 - t)
+		if (ClipSegmentToLine(*reference_vertices, in, out, ref_v0, ref_v0 - t) < 2) return false;
+		in = out;
+
+		// plane through ref_v1, NORMAL = +t  => pass (c0=ref_v1, c1=ref_v1 + t)
+		if (ClipSegmentToLine(*reference_vertices, in, out, ref_v1, ref_v1 + t) < 2) return false;
+
+
+
+
+
+
+
+
+		Vector2 reference_vertex = (*reference_vertices)[reference_edge_index];
+		for (Vector2& v_clip : out) {
+			float separation = Vector2::Dot((v_clip - reference_vertex), reference_edge_normal);
+			if (separation <= 0) {
+				ContactPoint contact_point;
+				contact_point.normal = reference_edge_normal;
+				contact_point.point = v_clip + contact_point.normal * -separation;
+				if (ba_separation >= ab_separation) {
+					contact_point.normal *= -1;
+					contact_point.point = v_clip;
+				}
+				contact_point.depth = -separation;
+				contact.push_back(contact_point);
+			}
+		}
 		return true;
 	}
 
@@ -488,11 +544,11 @@ namespace FlatPhysics {
 		return Vector2::DistanceSquared(point, *contact);
 	}
 
-	float Collision::FindMinSeperation(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB, Vector2& axis, Vector2& point)
+	float Collision::FindMinSeperation(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB,int& reference_edge_index, Vector2& support_point)
 	{
 		float seperation = std::numeric_limits<float>::lowest();
 		for (int i = 0; i < verticesA.size(); i++) {
-			Vector2 edge = verticesA[(i + 1) % verticesA.size()] - verticesA[i];
+			Vector2 edge = EdgeAt(verticesA, i);
 			Vector2 normal = edge.NormalDirection();
 			normal.Normalize();
 			float min_sep = std::numeric_limits<float>::max();
@@ -506,11 +562,57 @@ namespace FlatPhysics {
 			}
 			if (min_sep > seperation) {
 				seperation = min_sep;
-				axis = edge;
-				point = min_vertex;
+				reference_edge_index = i;
+				support_point = min_vertex;
 			}
 		}
 		return seperation;
+	}
+
+	int Collision::FindIncidentEdgeIndex(const std::vector<Vector2>& vertices, const Vector2& normal)
+	{
+		int result;
+		float min_proj = std::numeric_limits<float>::max();
+		for (int i = 0; i < vertices.size(); i++) {
+			auto edge_normal = EdgeAt(vertices, i).NormalDirection();
+			edge_normal.Normalize();
+			auto proj = Vector2::Dot(edge_normal, normal);
+			if (proj < min_proj) {
+				min_proj = proj;
+				result = i;
+			}
+		}
+		return result;
+	}
+
+	Vector2 Collision::EdgeAt(const std::vector<Vector2>& vertices, int index)
+	{
+		return vertices[(index + 1) % vertices.size()] - vertices[index];
+	}
+
+	int Collision::ClipSegmentToLine(const std::vector<Vector2>& vertices, std::vector<Vector2>& contacts_in, std::vector<Vector2>& contacts_out, const Vector2& c0, const Vector2& c1)
+	{
+		int num_out = 0;
+		Vector2 edge = c1 - c0;
+		Vector2 normalalized_edge = edge;
+		normalalized_edge.Normalize();
+
+		float dist0 = Vector2::Dot(contacts_in[0] - c0, normalalized_edge);
+		float dist1 = Vector2::Dot(contacts_in[1] - c0, normalalized_edge);
+
+		if (dist0 <= 0) {
+			contacts_out[num_out++] = contacts_in[0];
+		}
+		if (dist1 <= 0) {
+			contacts_out[num_out++] = contacts_in[1];
+		}
+
+		if (dist0 * dist1 < 0.0f) {
+			float t = dist0 / (dist0 - dist1);
+			Vector2 contact_point = contacts_in[0] + (contacts_in[1] - contacts_in[0]) * t;
+			contacts_out[num_out++] = contact_point;
+		}
+		return num_out;
 	}
 
 	//return {min,max}
