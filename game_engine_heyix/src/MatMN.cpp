@@ -20,7 +20,7 @@ namespace FlatPhysics {
 	{
 	}
 
-	const MatMN& MatMN::operator=(const MatMN& m)
+	MatMN& MatMN::operator=(const MatMN& m)
 	{
 		if (this == &m) return *this;
 		M = m.M;
