@@ -6,7 +6,7 @@
 namespace FlatPhysics {
 	class FlatManifold {
 	public:
-		FlatManifold(FlatFixture* fixtureA_, FlatFixture* fixtureB_, const Vector2& normal_, float depth_, const ContactPoints& contact_points_)
+		FlatManifold(FlatFixture* fixtureA_, FlatFixture* fixtureB_, const Vector2& normal_, float depth_, const ContactPointsOld& contact_points_)
 			:fixtureA(fixtureA_), fixtureB(fixtureB_),normal(normal_),depth(depth_),contact_points(contact_points_)
 		{
 		}
@@ -15,6 +15,6 @@ namespace FlatPhysics {
 		FlatFixture* fixtureB;
 		Vector2 normal;
 		float depth;
-		ContactPoints contact_points;
+		ContactPointsOld contact_points;
 	};
 }

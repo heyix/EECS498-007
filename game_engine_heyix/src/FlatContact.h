@@ -4,15 +4,15 @@ namespace FlatPhysics {
 	class FlatBody;
 	class FlatFixture;
 	class FlatManifold;
-	struct ContactPoints {
+	struct ContactPointsOld {
 	public:
-		ContactPoints(const Vector2& point1_, const Vector2& point2_)
+		ContactPointsOld(const Vector2& point1_, const Vector2& point2_)
 			:point1(point1_), point2(point2_), points_num(2)
 		{}
-		ContactPoints(const Vector2& point1_)
+		ContactPointsOld(const Vector2& point1_)
 			:point1(point1_), points_num(1)
 		{}
-		ContactPoints()
+		ContactPointsOld()
 			:points_num(0)
 		{}
 	public:
@@ -32,6 +32,12 @@ namespace FlatPhysics {
 		Vector2 point1{ 0,0 };
 		Vector2 point2{ 0,0 };
 		int points_num = 0;
+	};
+
+	struct ContactPoint {
+		Vector2 point;
+		float depth = 0;
+		Vector2 normal;
 	};
 	class IContactFilter {
 	public:

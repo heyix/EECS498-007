@@ -211,7 +211,7 @@ namespace FlatPhysics {
 		return false;
 	}
 	//circle-circle
-	ContactPoints Collision::FindCircleCircleContactPointOld(const Vector2& centerA, float radiusA, const Vector2& centerB)
+	ContactPointsOld Collision::FindCircleCircleContactPointOld(const Vector2& centerA, float radiusA, const Vector2& centerB)
 	{
 		Vector2 direction = centerB - centerA;
 		direction.Normalize();
@@ -219,7 +219,7 @@ namespace FlatPhysics {
 		return { result };
 	}
 	//circle-polygon
-	ContactPoints Collision::FindCirclePolygonContactPointOld(const Vector2& circle_center, float circle_radius, const std::vector<Vector2>& vertices)
+	ContactPointsOld Collision::FindCirclePolygonContactPointOld(const Vector2& circle_center, float circle_radius, const std::vector<Vector2>& vertices)
 	{
 		float min_distance = std::numeric_limits<float>::max();
 		Vector2 result;
@@ -236,10 +236,10 @@ namespace FlatPhysics {
 		return { result };
 	}
 	//polygon-polygon
-	ContactPoints Collision::FindPolygonPolygonContactPointOld(const std::vector<Vector2>& vertices_a, const std::vector<Vector2>& vertices_b)
+	ContactPointsOld Collision::FindPolygonPolygonContactPointOld(const std::vector<Vector2>& vertices_a, const std::vector<Vector2>& vertices_b)
 	{
 		float min_distance_squared = std::numeric_limits<float>::max();
-		ContactPoints result;
+		ContactPointsOld result;
 		for (int i = 0; i < vertices_a.size(); i++) {
 			const Vector2& p = vertices_a[i];
 			for (int j = 0; j < vertices_b.size(); j++) {
@@ -279,7 +279,7 @@ namespace FlatPhysics {
 		return result;
 	}
 
-	ContactPoints Collision::FindContactPointsOld(const FlatFixture* fa, const FlatFixture* fb)
+	ContactPointsOld Collision::FindContactPointsOld(const FlatFixture* fa, const FlatFixture* fb)
 	{
 		switch (fa->GetShapeType()) {
 		case ShapeType::Circle: {
@@ -322,7 +322,7 @@ namespace FlatPhysics {
 		return {};
 	}
 
-	bool Collision::IsCollidingCircleCirle(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, ContactPoints& contact, Vector2& normal, float& depth)
+	bool Collision::IsCollidingCircleCirle(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, ContactPoint& contact)
 	{
 		Vector2 d = centerB - centerA;
 		float rSum = radiusA + radiusB;
@@ -341,13 +341,13 @@ namespace FlatPhysics {
 			dist = 0.0f;
 		}
 
-		normal = n;
-		contact.SetPoint(centerA + n * radiusA);
-		depth = std::max(0.0f, rSum - dist);  
+		contact.normal = n;
+		contact.point = centerA + n * radiusA;
+		contact.depth = std::max(0.0f, rSum - dist);  
 		return true;
 	}
 
-	bool Collision::IsCollidingCirclePolygon(const Vector2& center, float radius, const std::vector<Vector2>& vertices, ContactPoints& contact, Vector2& normal, float& depth)
+	bool Collision::IsCollidingCirclePolygon(const Vector2& center, float radius, const std::vector<Vector2>& vertices, ContactPoint& contact)
 	{
 		Vector2 min_cur_vertex;
 		Vector2 min_next_vertex;
@@ -386,22 +386,22 @@ namespace FlatPhysics {
 			if (center_edge_dist_squared > radius * radius) {
 				return false;
 			}
-			depth = radius - std::sqrt(center_edge_dist_squared);
-			normal = closest_point - center;
-			normal.Normalize();
-			contact.SetPoint(center + normal * radius);
+			contact.depth = radius - std::sqrt(center_edge_dist_squared);
+			contact.normal = closest_point - center;
+			contact.normal.Normalize();
+			contact.point = center + contact.normal * radius;
 		}
 		else {
-			depth = radius - distance_circle_edge;
-			normal = (min_next_vertex - min_cur_vertex).NormalDirection();
-			normal.Normalize();
-			contact.SetPoint(center + normal * radius);
+			contact.depth = radius - distance_circle_edge;
+			contact.normal = (min_next_vertex - min_cur_vertex).NormalDirection();
+			contact.normal.Normalize();
+			contact.point = center + contact.normal * radius;
 		}
 
 		return true;
 	}
 
-	bool Collision::IsCollidingPolygonPolygon(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB, ContactPoints& contact, Vector2& normal, float& depth)
+	bool Collision::IsCollidingPolygonPolygon(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB, std::vector<ContactPoint>& contact)
 	{
 		Vector2 a_axis, b_axis;
 		Vector2 a_point, b_point;
@@ -413,18 +413,20 @@ namespace FlatPhysics {
 		if (ba_seperation >= 0) {
 			return false;
 		}
+		ContactPoint contact_point;
 		if (ab_seperation > ba_seperation) {
-			depth = -ab_seperation;
-			normal = a_axis.NormalDirection();
-			normal.Normalize();
-			contact.SetPoint(a_point + normal * depth);
+			contact_point.depth = -ab_seperation;
+			contact_point.normal = a_axis.NormalDirection();
+			contact_point.normal.Normalize();
+			contact_point.point = a_point + contact_point.normal * contact_point.depth;
 		}
 		else {
-			depth = -ba_seperation;
-			normal = -b_axis.NormalDirection();
-			normal.Normalize();
-			contact.SetPoint(b_point);
+			contact_point.depth = -ba_seperation;
+			contact_point.normal = -b_axis.NormalDirection();
+			contact_point.normal.Normalize();
+			contact_point.point = b_point;
 		}
+		contact.push_back(contact_point);
 		return true;
 	}
 
