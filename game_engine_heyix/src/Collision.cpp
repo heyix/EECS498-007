@@ -342,13 +342,14 @@ namespace FlatPhysics {
 		}
 		ContactPoint contact_point;
 		contact_point.normal = n;
-		contact_point.point = centerA + n * radiusA;
+		contact_point.start = centerB - n * radiusB;
+		contact_point.end = centerA + n * radiusA;
 		contact_point.depth = std::max(0.0f, rSum - dist);
 		contact.push_back(contact_point);
 		return true;
 	}
 
-	bool Collision::IsCollidingCirclePolygon(const Vector2& center, float radius, const std::vector<Vector2>& vertices, std::vector<ContactPoint>& contact)
+	bool Collision::IsCollidingPolygonCircle(const std::vector<Vector2>& vertices, const Vector2& center, float radius,  std::vector<ContactPoint>& contact)
 	{
 		Vector2 min_cur_vertex;
 		Vector2 min_next_vertex;
@@ -362,7 +363,6 @@ namespace FlatPhysics {
 			Vector2 edge = vb - va;
 			Vector2 normal = edge.NormalDirection();
 			normal.Normalize();
-			Vector2 vertex_to_circle_center = center - va;
 			float projection = Vector2::Dot(center - va, normal);
 			if (projection > 0) {
 				if (projection > distance_circle_edge) {
@@ -388,15 +388,17 @@ namespace FlatPhysics {
 				return false;
 			}
 			contact_point.depth = radius - std::sqrt(center_edge_dist_squared);
-			contact_point.normal = closest_point - center;
+			contact_point.normal = center - closest_point;
 			contact_point.normal.Normalize();
-			contact_point.point = center + contact_point.normal * radius;
+			contact_point.start = center - contact_point.normal * radius;
+			contact_point.end = contact_point.start + (contact_point.normal * contact_point.depth);
 		}
 		else {
 			contact_point.depth = radius - distance_circle_edge;
 			contact_point.normal = (min_next_vertex - min_cur_vertex).NormalDirection();
 			contact_point.normal.Normalize();
-			contact_point.point = center + contact_point.normal * radius;
+			contact_point.start = center - contact_point.normal * radius;
+			contact_point.end = contact_point.start + (contact_point.normal * contact_point.depth);
 		}
 		contact.push_back(contact_point);
 		return true;
@@ -438,53 +440,100 @@ namespace FlatPhysics {
 
 		Vector2 v0 = (*incident_vertices)[incident_edge_index];
 		Vector2 v1 = (*incident_vertices)[incident_next_index];
-		
 
-
-
-
-
-		Vector2 ref_v0 = (*reference_vertices)[reference_edge_index];
-		Vector2 ref_v1 = (*reference_vertices)[(reference_edge_index + 1) % reference_vertices->size()];
-		Vector2 t = (ref_v1 - ref_v0); t.Normalize();   
-		Vector2 n = t.NormalDirection(); n.Normalize();       
-
-		int ie = FindIncidentEdgeIndex(*incident_vertices, n);
-		int ie1 = (ie + 1) % incident_vertices->size();
-		std::vector<Vector2> in{ (*incident_vertices)[ie], (*incident_vertices)[ie1] };
-		std::vector<Vector2> out = in;
-
-		// ---- clip against the two side planes (these use ±t as the plane NORMALS) ----
-		// plane through ref_v0, NORMAL = -t  => pass (c0=ref_v0, c1=ref_v0 - t)
-		if (ClipSegmentToLine(*reference_vertices, in, out, ref_v0, ref_v0 - t) < 2) return false;
-		in = out;
-
-		// plane through ref_v1, NORMAL = +t  => pass (c0=ref_v1, c1=ref_v1 + t)
-		if (ClipSegmentToLine(*reference_vertices, in, out, ref_v1, ref_v1 + t) < 2) return false;
-
-
-
-
-
-
+		std::vector<Vector2> contact_points = { v0,v1 };
+		std::vector<Vector2> clipped_points = contact_points;
+		for (int i = 0; i < reference_vertices->size(); i++) {
+			if (i == reference_edge_index) {
+				continue;
+			}
+			Vector2 c0 = (*reference_vertices)[i];
+			Vector2 c1 = (*reference_vertices)[(i + 1) % reference_vertices->size()];
+			int num_clipped = ClipSegmentToLine(*reference_vertices,contact_points, clipped_points, c0, c1);
+			if (num_clipped < 2) {
+				break;
+			}
+			contact_points = clipped_points;
+		}
 
 
 		Vector2 reference_vertex = (*reference_vertices)[reference_edge_index];
-		for (Vector2& v_clip : out) {
+		for (Vector2& v_clip : clipped_points) {
 			float separation = Vector2::Dot((v_clip - reference_vertex), reference_edge_normal);
 			if (separation <= 0) {
 				ContactPoint contact_point;
 				contact_point.normal = reference_edge_normal;
-				contact_point.point = v_clip + contact_point.normal * -separation;
+				contact_point.start = v_clip;
+				contact_point.end = v_clip + contact_point.normal * -separation;
 				if (ba_separation >= ab_separation) {
 					contact_point.normal *= -1;
-					contact_point.point = v_clip;
+					std::swap(contact_point.start, contact_point.end);
 				}
 				contact_point.depth = -separation;
 				contact.push_back(contact_point);
 			}
 		}
 		return true;
+	}
+
+	bool Collision::DetectCollision(const FlatFixture* fa, const FlatFixture* fb, std::vector<ContactPoint>& contact)
+	{
+		auto bodyA = fa->GetBody();
+		auto bodyB = fb->GetBody();
+
+		const auto& transformA = bodyA->GetTransform();
+		const auto& transformB = bodyB->GetTransform();
+
+		switch (fa->GetShapeType()) {
+		case ShapeType::Circle: {
+			auto* ca = fa->GetShape().AsCircle();
+			Vector2 cA = FlatTransform::TransformVector(ca->center, transformA);
+			float rA = ca->radius;
+
+			switch (fb->GetShapeType()) {
+			case ShapeType::Circle: {
+				auto* cb = fb->GetShape().AsCircle();
+				Vector2 cB = FlatTransform::TransformVector(cb->center, transformB);
+				float rB = cb->radius;
+				return IsCollidingCircleCirle(cA, rA, cB, rB, contact);
+			}
+			case ShapeType::Polygon: {
+				const auto& vertsB_local = fb->GetShape().AsPolygon()->vertices;
+				auto vertsB = FlatTransform::TransformVectors(vertsB_local, transformB);
+				bool hit = IsCollidingPolygonCircle(vertsB, cA, rA, contact);;
+				if (hit)contact[0].normal *= -1;
+				return hit;
+			}
+			default: break;
+			}
+			break;
+		}
+
+		case ShapeType::Polygon: {
+			const auto& vertsA_local = fa->GetShape().AsPolygon()->vertices;
+			auto vertsA = FlatTransform::TransformVectors(vertsA_local, transformA);
+
+			switch (fb->GetShapeType()) {
+			case ShapeType::Polygon: {
+				const auto& vertsB_local = fb->GetShape().AsPolygon()->vertices;
+				auto vertsB = FlatTransform::TransformVectors(vertsB_local, transformB);
+				bool hit = IsCollidingPolygonPolygon(vertsA, vertsB, contact);
+				return hit;
+			}
+			case ShapeType::Circle: {
+				auto* cb = fb->GetShape().AsCircle();
+				Vector2 cB = FlatTransform::TransformVector(cb->center, transformB);
+				float rB = cb->radius;
+				return IsCollidingPolygonCircle(vertsA, cB, rB, contact);
+			}
+			default: break;
+			}
+			break;
+		}
+		default: break;
+		}
+
+		return false;
 	}
 
 	std::pair<float, float> Collision::ProjectCircle(const Vector2& center, float radius, const Vector2& axis)
@@ -594,11 +643,9 @@ namespace FlatPhysics {
 	{
 		int num_out = 0;
 		Vector2 edge = c1 - c0;
-		Vector2 normalalized_edge = edge;
-		normalalized_edge.Normalize();
-
-		float dist0 = Vector2::Dot(contacts_in[0] - c0, normalalized_edge);
-		float dist1 = Vector2::Dot(contacts_in[1] - c0, normalalized_edge);
+		edge.Normalize();
+		float dist0 = Vector2::Cross((contacts_in[0] - c0), edge);
+		float dist1 = Vector2::Cross((contacts_in[1] - c0), edge);
 
 		if (dist0 <= 0) {
 			contacts_out[num_out++] = contacts_in[0];
@@ -608,9 +655,11 @@ namespace FlatPhysics {
 		}
 
 		if (dist0 * dist1 < 0.0f) {
-			float t = dist0 / (dist0 - dist1);
-			Vector2 contact_point = contacts_in[0] + (contacts_in[1] - contacts_in[0]) * t;
-			contacts_out[num_out++] = contact_point;
+			float total_dist = dist0 - dist1;
+			float t = dist0 / total_dist;
+			Vector2 contact = contacts_in[0] + (contacts_in[1] - contacts_in[0]) * t;
+			contacts_out[num_out] = contact;
+			num_out++;
 		}
 		return num_out;
 	}

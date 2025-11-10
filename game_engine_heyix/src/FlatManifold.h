@@ -2,19 +2,18 @@
 #include "FlatFixture.h"
 #include "Vector2.h"
 #include <vector>
+#include "FlatContact.h"
 #include "Collision.h"
 namespace FlatPhysics {
 	class FlatManifold {
 	public:
-		FlatManifold(FlatFixture* fixtureA_, FlatFixture* fixtureB_, const Vector2& normal_, float depth_, const ContactPointsOld& contact_points_)
-			:fixtureA(fixtureA_), fixtureB(fixtureB_),normal(normal_),depth(depth_),contact_points(contact_points_)
+		FlatManifold(FlatFixture* fixtureA_, FlatFixture* fixtureB_, const std::vector<ContactPoint>& contact_point)
+			:fixtureA(fixtureA_), fixtureB(fixtureB_), contact_points(contact_point)
 		{
 		}
 	public:
 		FlatFixture* fixtureA;
 		FlatFixture* fixtureB;
-		Vector2 normal;
-		float depth;
-		ContactPointsOld contact_points;
+		std::vector<ContactPoint> contact_points;
 	};
 }

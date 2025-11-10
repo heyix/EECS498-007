@@ -193,35 +193,31 @@ namespace FlatPhysics {
 			if (!fa || !fb || fa->GetBody() == fb->GetBody()) {
 				continue;
 			}
+			std::vector<ContactPoint> contact_points;
+			if (Collision::DetectCollision(fa, fb, contact_points)) {
+				contacts.push_back({ fa, fb, contact_points });
 
-			Vector2 normal;
-			float depth;
-			if (Collision::DetectCollisionOld(fa, fb, &normal, &depth)) {
-				ContactPointsOld contact_points = Collision::FindContactPointsOld(fa, fb);
-				contacts.emplace_back(fa, fb, normal, depth, contact_points);
+				//ContactPointsOld contact_points = Collision::FindContactPointsOld(fa, fb);
 			}
 		}
 	}
 	void FlatWorld::DrawContactPoints()
 	{
 		for (FlatManifold& manifold : contacts) {
-			ContactPointsOld& contact_points = manifold.contact_points;
-			if (contact_points.points_num > 0) {
-				constexpr float kMarkerHalfSize = 0.05f;
-				static const std::vector<Vector2> markerVerts = {
-					{ -kMarkerHalfSize, -kMarkerHalfSize },
-					{  kMarkerHalfSize, -kMarkerHalfSize },
-					{  kMarkerHalfSize,  kMarkerHalfSize },
-					{ -kMarkerHalfSize,  kMarkerHalfSize }
-				};
-
-				auto queueMarker = [&](const Vector2& p) {
-					Engine::instance->renderer->draw_polygon(markerVerts, p, 255, 0, 0, 255, false);
+			for (ContactPoint& point : manifold.contact_points) {
+				Vector2 contact_point = point.end; {
+					constexpr float kMarkerHalfSize = 0.05f;
+					static const std::vector<Vector2> markerVerts = {
+						{ -kMarkerHalfSize, -kMarkerHalfSize },
+						{  kMarkerHalfSize, -kMarkerHalfSize },
+						{  kMarkerHalfSize,  kMarkerHalfSize },
+						{ -kMarkerHalfSize,  kMarkerHalfSize }
 					};
 
-				queueMarker(contact_points.point1);
-				if (contact_points.points_num > 1) {
-					queueMarker(contact_points.point2);
+					auto queueMarker = [&](const Vector2& p) {
+						Engine::instance->renderer->draw_polygon(markerVerts, p, 255, 0, 0, 255, false);
+						};
+					queueMarker(contact_point);
 				}
 			}
 		}

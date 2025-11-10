@@ -38,12 +38,18 @@ namespace FlatPhysics {
     void FlatSolverNaive::SolveVelocityForManifold(const FlatManifold& manifold) const {
 		FlatFixture* fixture_a = manifold.fixtureA;
 		FlatFixture* fixture_b = manifold.fixtureB;
-		const Vector2& normal = manifold.normal;
+		const Vector2& normal = manifold.contact_points[0].normal;
 		FlatBody* bodyA = fixture_a->GetBody();
 		FlatBody* bodyB = fixture_b->GetBody();
 		Vector2 world_mass_center_a = bodyA->GetMassCenterWorld();
 		Vector2 world_mass_center_b = bodyB->GetMassCenterWorld();
-		const ContactPointsOld& contact_points = manifold.contact_points;
+		ContactPointsOld contact_points;
+		if (manifold.contact_points.size() == 1) {
+			contact_points.SetPoint(manifold.contact_points[0].end);
+		}
+		else {
+			contact_points.SetPoints(manifold.contact_points[0].end, manifold.contact_points[1].end);
+		}
 		float e = std::min(bodyA->restitution, bodyB->restitution);
 		std::vector<Vector2> contact_list{ contact_points.point1, contact_points.point2 };
 
@@ -163,19 +169,19 @@ namespace FlatPhysics {
     }
 
     void FlatSolverNaive::CorrectPositions(const FlatManifold& manifold, float percent) const {
-        auto* fixtureA = manifold.fixtureA;
-        auto* fixtureB = manifold.fixtureB;
-        if (!fixtureA || !fixtureB) {
-            return;
-        }
+		auto* fixtureA = manifold.fixtureA;
+		auto* fixtureB = manifold.fixtureB;
+		if (!fixtureA || !fixtureB) {
+			return;
+		}
 
-        FlatBody* bodyA = fixtureA->GetBody();
-        FlatBody* bodyB = fixtureB->GetBody();
-        if (!bodyA || !bodyB) {
-            return;
-        }
+		FlatBody* bodyA = fixtureA->GetBody();
+		FlatBody* bodyB = fixtureB->GetBody();
+		if (!bodyA || !bodyB) {
+			return;
+		}
 
-		Vector2 mtv = manifold.normal * manifold.depth;
+		Vector2 mtv = manifold.contact_points[0].normal * manifold.contact_points[0].depth;
 		if (!bodyA->is_static && !bodyB->is_static) {
 			bodyA->Move(-mtv * 0.5f);
 			bodyB->Move(mtv * 0.5f);
@@ -186,6 +192,7 @@ namespace FlatPhysics {
 		else if (bodyA->is_static && !bodyB->is_static) {
 			bodyB->Move(mtv);
 		}
+
     }
 
     void FlatSolverNaive::StoreImpulses() {}

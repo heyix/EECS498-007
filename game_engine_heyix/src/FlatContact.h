@@ -35,7 +35,8 @@ namespace FlatPhysics {
 	};
 
 	struct ContactPoint {
-		Vector2 point;
+		Vector2 start;
+		Vector2 end;
 		float depth = 0;
 		Vector2 normal;
 	};
