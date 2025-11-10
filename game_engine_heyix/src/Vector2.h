@@ -75,7 +75,8 @@ public:
 	float GetY() const { return vector2.y; }
 	void SetY(float y) { vector2.y = y; }
 	float Normalize();
-	Vector2 NormalizedVector()const;
+	Vector2 NormalizedVector()const;//return normalized new vector
+	Vector2& Normalized();//return normalized self
 	float Length();
 	float LengthSquared();
 	Vector2 NormalDirection() const;//clockwise 90, polygons are counterclockwise

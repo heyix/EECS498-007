@@ -16,6 +16,12 @@ Vector2 Vector2::NormalizedVector()const
 	return Vector2(v);
 }
 
+Vector2& Vector2::Normalized()
+{
+	Normalize();
+	return *this;
+}
+
 float Vector2::Length()
 {
 	return vector2.Length();

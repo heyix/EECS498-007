@@ -213,8 +213,7 @@ namespace FlatPhysics {
 	//circle-circle
 	ContactPointsOld Collision::FindCircleCircleContactPointOld(const Vector2& centerA, float radiusA, const Vector2& centerB)
 	{
-		Vector2 direction = centerB - centerA;
-		direction.Normalize();
+		Vector2 direction = (centerB - centerA).Normalized();
 		Vector2 result = centerA + direction * radiusA;
 		return { result };
 	}
@@ -361,8 +360,7 @@ namespace FlatPhysics {
 			Vector2 va = vertices[i];
 			Vector2 vb = vertices[(i + 1) % vertices.size()];
 			Vector2 edge = vb - va;
-			Vector2 normal = edge.NormalDirection();
-			normal.Normalize();
+			Vector2 normal = edge.NormalDirection().Normalized();
 			float projection = Vector2::Dot(center - va, normal);
 			if (projection > 0) {
 				if (projection > distance_circle_edge) {
@@ -388,15 +386,13 @@ namespace FlatPhysics {
 				return false;
 			}
 			contact_point.depth = radius - std::sqrt(center_edge_dist_squared);
-			contact_point.normal = center - closest_point;
-			contact_point.normal.Normalize();
+			contact_point.normal = (center - closest_point).Normalized();
 			contact_point.start = center - contact_point.normal * radius;
 			contact_point.end = contact_point.start + (contact_point.normal * contact_point.depth);
 		}
 		else {
 			contact_point.depth = radius - distance_circle_edge;
-			contact_point.normal = (min_next_vertex - min_cur_vertex).NormalDirection();
-			contact_point.normal.Normalize();
+			contact_point.normal = (min_next_vertex - min_cur_vertex).NormalDirection().Normalized();
 			contact_point.start = center - contact_point.normal * radius;
 			contact_point.end = contact_point.start + (contact_point.normal * contact_point.depth);
 		}
@@ -432,8 +428,7 @@ namespace FlatPhysics {
 		ContactPoint contact_point;
 		Vector2 reference_edge = EdgeAt(*reference_vertices, reference_edge_index);
 
-		Vector2 reference_edge_normal = reference_edge.NormalDirection();
-		reference_edge_normal.Normalize();
+		Vector2 reference_edge_normal = reference_edge.NormalDirection().Normalized();
 		//clip
 		int incident_edge_index = FindIncidentEdgeIndex(*incident_vertices, reference_edge_normal);
 		int incident_next_index = (incident_edge_index + 1) % incident_vertices->size();
@@ -598,8 +593,7 @@ namespace FlatPhysics {
 		float seperation = std::numeric_limits<float>::lowest();
 		for (int i = 0; i < verticesA.size(); i++) {
 			Vector2 edge = EdgeAt(verticesA, i);
-			Vector2 normal = edge.NormalDirection();
-			normal.Normalize();
+			Vector2 normal = edge.NormalDirection().Normalized();
 			float min_sep = std::numeric_limits<float>::max();
 			Vector2 min_vertex;
 			for (const Vector2& vb : verticesB) {
@@ -623,8 +617,7 @@ namespace FlatPhysics {
 		int result;
 		float min_proj = std::numeric_limits<float>::max();
 		for (int i = 0; i < vertices.size(); i++) {
-			auto edge_normal = EdgeAt(vertices, i).NormalDirection();
-			edge_normal.Normalize();
+			auto edge_normal = EdgeAt(vertices, i).NormalDirection().Normalized();
 			auto proj = Vector2::Dot(edge_normal, normal);
 			if (proj < min_proj) {
 				min_proj = proj;
@@ -642,8 +635,7 @@ namespace FlatPhysics {
 	int Collision::ClipSegmentToLine(const std::vector<Vector2>& vertices, std::vector<Vector2>& contacts_in, std::vector<Vector2>& contacts_out, const Vector2& c0, const Vector2& c1)
 	{
 		int num_out = 0;
-		Vector2 edge = c1 - c0;
-		edge.Normalize();
+		Vector2 edge = (c1 - c0).Normalized();
 		float dist0 = Vector2::Cross((contacts_in[0] - c0), edge);
 		float dist1 = Vector2::Cross((contacts_in[1] - c0), edge);
 
