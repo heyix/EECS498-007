@@ -41,11 +41,9 @@ namespace FlatPhysics {
         MatMN Transpose() const;
 
         RowView operator[](int i) {
-            assert(i >= 0 && i < M);
             return RowView(&data[i * N], N); 
         }
         RowView operator[](int i) const { 
-            assert(i >= 0 && i < M);
             return RowView(&data[i * N], N);
         }
 
