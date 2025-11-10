@@ -322,7 +322,7 @@ namespace FlatPhysics {
 		return {};
 	}
 
-	bool Collision::IsCollidingCircleCirle(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, ContactPoint& contact)
+	bool Collision::IsCollidingCircleCirle(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, std::vector<ContactPoint>& contact)
 	{
 		Vector2 d = centerB - centerA;
 		float rSum = radiusA + radiusB;
@@ -340,14 +340,15 @@ namespace FlatPhysics {
 			n = Vector2(1, 0);     
 			dist = 0.0f;
 		}
-
-		contact.normal = n;
-		contact.point = centerA + n * radiusA;
-		contact.depth = std::max(0.0f, rSum - dist);  
+		ContactPoint contact_point;
+		contact_point.normal = n;
+		contact_point.point = centerA + n * radiusA;
+		contact_point.depth = std::max(0.0f, rSum - dist);
+		contact.push_back(contact_point);
 		return true;
 	}
 
-	bool Collision::IsCollidingCirclePolygon(const Vector2& center, float radius, const std::vector<Vector2>& vertices, ContactPoint& contact)
+	bool Collision::IsCollidingCirclePolygon(const Vector2& center, float radius, const std::vector<Vector2>& vertices, std::vector<ContactPoint>& contact)
 	{
 		Vector2 min_cur_vertex;
 		Vector2 min_next_vertex;
@@ -379,25 +380,25 @@ namespace FlatPhysics {
 				}
 			}
 		}
-
+		ContactPoint contact_point;
 		if (is_outside) {
 			Vector2 closest_point;
 			float center_edge_dist_squared = PointSegmentDistanceSquared(center, min_cur_vertex, min_next_vertex, &closest_point);
 			if (center_edge_dist_squared > radius * radius) {
 				return false;
 			}
-			contact.depth = radius - std::sqrt(center_edge_dist_squared);
-			contact.normal = closest_point - center;
-			contact.normal.Normalize();
-			contact.point = center + contact.normal * radius;
+			contact_point.depth = radius - std::sqrt(center_edge_dist_squared);
+			contact_point.normal = closest_point - center;
+			contact_point.normal.Normalize();
+			contact_point.point = center + contact_point.normal * radius;
 		}
 		else {
-			contact.depth = radius - distance_circle_edge;
-			contact.normal = (min_next_vertex - min_cur_vertex).NormalDirection();
-			contact.normal.Normalize();
-			contact.point = center + contact.normal * radius;
+			contact_point.depth = radius - distance_circle_edge;
+			contact_point.normal = (min_next_vertex - min_cur_vertex).NormalDirection();
+			contact_point.normal.Normalize();
+			contact_point.point = center + contact_point.normal * radius;
 		}
-
+		contact.push_back(contact_point);
 		return true;
 	}
 

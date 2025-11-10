@@ -21,8 +21,8 @@ namespace FlatPhysics {
 
 
 	public:
-		static bool IsCollidingCircleCirle(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, ContactPoint& contact);
-		static bool IsCollidingCirclePolygon(const Vector2& center, float radius, const std::vector<Vector2>& vertices, ContactPoint& contact);
+		static bool IsCollidingCircleCirle(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, std::vector<ContactPoint>& contact);
+		static bool IsCollidingCirclePolygon(const Vector2& center, float radius, const std::vector<Vector2>& vertices, std::vector<ContactPoint>& contact);
 		static bool IsCollidingPolygonPolygon(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB, std::vector<ContactPoint>& contact);
 
 
