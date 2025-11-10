@@ -519,6 +519,9 @@
     <ClCompile Include="src\FlatSolverNaive.cpp">
       <Filter>Source Files\FlatPhysics\Solver</Filter>
     </ClCompile>
+    <ClCompile Include="src\FlatVecN.cpp">
+      <Filter>Source Files\FlatPhysics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThirdParty\lua\lapi.h">
@@ -904,6 +907,9 @@
     </ClInclude>
     <ClInclude Include="src\FlatSolverNaive.h">
       <Filter>Header Files\FlatPhysics\Solver</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatVecN.h">
+      <Filter>Header Files\FlatPhysics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

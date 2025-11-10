@@ -43,6 +43,7 @@
     <ClCompile Include="src\FlatSolver.cpp" />
     <ClCompile Include="src\FlatSolverNaive.cpp" />
     <ClCompile Include="src\FlatTransform.cpp" />
+    <ClCompile Include="src\FlatVecN.cpp" />
     <ClCompile Include="src\FlatWorld.cpp" />
     <ClCompile Include="src\GameData.cpp" />
     <ClCompile Include="src\GameObjectDB.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="src\FlatSolver.h" />
     <ClInclude Include="src\FlatSolverNaive.h" />
     <ClInclude Include="src\FlatTransform.h" />
+    <ClInclude Include="src\FlatVecN.h" />
     <ClInclude Include="src\FlatWorld.h" />
     <ClInclude Include="src\GameData.h" />
     <ClInclude Include="src\GameObjectDB.h" />
