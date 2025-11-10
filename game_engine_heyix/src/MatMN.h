@@ -1,22 +1,36 @@
 #pragma once
+#include <vector>
+#include <cassert>
 #include "VecN.h"
-namespace FlatPhysics{
+
+namespace FlatPhysics {
 	class MatMN {
 	public:
 		MatMN();
 		MatMN(int M, int N);
 		MatMN(const MatMN& m);
 		const MatMN& operator=(const MatMN& m);
-		VecN operator*(const VecN& v)const;
-		MatMN operator*(const MatMN& m)const;
+
+		VecN  operator*(const VecN& v) const; 
+		MatMN operator*(const MatMN& m) const;
+
 	public:
 		void Zero();
-		MatMN Transpose();
+		MatMN Transpose() const;
+
+		inline float* operator[](int i) {
+			assert(i >= 0 && i < M);
+			return &data[i * N];
+		}
+
+		inline const float* operator[](int i) const {
+			assert(i >= 0 && i < M);
+			return &data[i * N];
+		}
 
 	public:
-		int M;
-		int N;
-		std::vector<VecN> rows;
-
+		int M = 0;
+		int N = 0;
+		std::vector<float> data;
 	};
 }

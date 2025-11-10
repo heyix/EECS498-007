@@ -133,6 +133,12 @@
     <Filter Include="Source Files\FlatPhysics\Solver">
       <UniqueIdentifier>{e0d5e623-9c97-4be3-9953-8f72a35687d3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\FlatPhysics\Math">
+      <UniqueIdentifier>{91f63757-29d7-464b-a73e-c6802efaff2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\FlatPhysics\Math">
+      <UniqueIdentifier>{77451d45-6c72-4726-8486-bcd7d2ab91d2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ThirdParty\lua\lapi.c">
@@ -399,9 +405,6 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
-    <ClCompile Include="src\FlatMath.cpp">
-      <Filter>Source Files\FlatPhysics</Filter>
-    </ClCompile>
     <ClCompile Include="src\DrawBodyComponent.cpp">
       <Filter>Source Files\FlatPhysics</Filter>
     </ClCompile>
@@ -519,8 +522,14 @@
     <ClCompile Include="src\FlatSolverNaive.cpp">
       <Filter>Source Files\FlatPhysics\Solver</Filter>
     </ClCompile>
-    <ClCompile Include="src\FlatVecN.cpp">
-      <Filter>Source Files\FlatPhysics</Filter>
+    <ClCompile Include="src\VecN.cpp">
+      <Filter>Source Files\FlatPhysics\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MatMN.cpp">
+      <Filter>Source Files\FlatPhysics\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FlatMath.cpp">
+      <Filter>Source Files\FlatPhysics\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -788,9 +797,6 @@
     <ClInclude Include="src\ComponentGroup.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="src\FlatMath.h">
-      <Filter>Header Files\FlatPhysics</Filter>
-    </ClInclude>
     <ClInclude Include="src\DrawBodyComponent.h">
       <Filter>Header Files\FlatPhysics</Filter>
     </ClInclude>
@@ -908,8 +914,14 @@
     <ClInclude Include="src\FlatSolverNaive.h">
       <Filter>Header Files\FlatPhysics\Solver</Filter>
     </ClInclude>
-    <ClInclude Include="src\FlatVecN.h">
-      <Filter>Header Files\FlatPhysics</Filter>
+    <ClInclude Include="src\MatMN.h">
+      <Filter>Header Files\FlatPhysics\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\VecN.h">
+      <Filter>Header Files\FlatPhysics\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatMath.h">
+      <Filter>Header Files\FlatPhysics\Math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

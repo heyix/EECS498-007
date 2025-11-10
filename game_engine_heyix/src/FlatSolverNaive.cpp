@@ -181,16 +181,25 @@ namespace FlatPhysics {
 			return;
 		}
 
-		Vector2 mtv = manifold.contact_points[0].normal * manifold.contact_points[0].depth;
-		if (!bodyA->is_static && !bodyB->is_static) {
-			bodyA->Move(-mtv * 0.5f);
-			bodyB->Move(mtv * 0.5f);
+		const float invMassA = bodyA->is_static ? 0.0f : bodyA->GetInverseMass();
+		const float invMassB = bodyB->is_static ? 0.0f : bodyB->GetInverseMass();
+		const float invMassSum = invMassA + invMassB;
+		if (invMassSum <= 0.0f) {
+			return;
 		}
-		else if (!bodyA->is_static && bodyB->is_static) {
-			bodyA->Move(-mtv);
+
+		const int pointCount = static_cast<int>(manifold.contact_points.size());
+		if (pointCount == 0) {
+			return;
 		}
-		else if (bodyA->is_static && !bodyB->is_static) {
-			bodyB->Move(mtv);
+
+		for (const ContactPoint& point : manifold.contact_points) {
+			float bias = point.depth * percent / pointCount;
+			if (bias <= 0.0f) continue;
+
+			Vector2 correction = point.normal * (bias / invMassSum);
+			if (invMassA > 0.0f) bodyA->Move(-correction * invMassA);
+			if (invMassB > 0.0f) bodyB->Move(correction * invMassB);
 		}
 
     }

@@ -1,4 +1,6 @@
 #include "MatMN.h"
+#include <cmath>
+#include <algorithm>
 
 namespace FlatPhysics {
 
@@ -10,14 +12,11 @@ namespace FlatPhysics {
 	MatMN::MatMN(int m, int n)
 		: M(m), N(n)
 	{
-		rows.reserve(M);
-		for (int i = 0; i < M; i++) {
-			rows.push_back(VecN(N));
-		}
+		data.resize(M * N, 0.0f);
 	}
 
 	MatMN::MatMN(const MatMN& m)
-		: M(m.M), N(m.N), rows(m.rows)
+		: M(m.M), N(m.N), data(m.data)
 	{
 	}
 
@@ -26,7 +25,7 @@ namespace FlatPhysics {
 		if (this == &m) return *this;
 		M = m.M;
 		N = m.N;
-		rows = m.rows;
+		data = m.data;
 		return *this;
 	}
 
@@ -34,7 +33,11 @@ namespace FlatPhysics {
 	{
 		VecN out(M);
 		for (int i = 0; i < M; i++) {
-			out[i] = rows[i].Dot(v);
+			float sum = 0.0f;
+			for (int j = 0; j < N; j++) {
+				sum += (*this)[i][j] * v[j];
+			}
+			out[i] = sum;
 		}
 		return out;
 	}
@@ -46,9 +49,9 @@ namespace FlatPhysics {
 			for (int j = 0; j < m.N; j++) {
 				float s = 0.0f;
 				for (int k = 0; k < N; k++) {
-					s += rows[i][k] * m.rows[k][j];
+					s += (*this)[i][k] * m[k][j];
 				}
-				out.rows[i][j] = s;
+				out[i][j] = s;
 			}
 		}
 		return out;
@@ -56,17 +59,17 @@ namespace FlatPhysics {
 
 	void MatMN::Zero()
 	{
-		for (int i = 0; i < M; i++) {
-			rows[i].Zero();
+		for (int i = 0; i < M * N; i++) {
+			data[i] = 0.0f;
 		}
 	}
 
-	MatMN MatMN::Transpose()
+	MatMN MatMN::Transpose() const
 	{
 		MatMN t(N, M);
 		for (int i = 0; i < M; i++) {
 			for (int j = 0; j < N; j++) {
-				t.rows[j][i] = rows[i][j];
+				t[j][i] = (*this)[i][j];
 			}
 		}
 		return t;
