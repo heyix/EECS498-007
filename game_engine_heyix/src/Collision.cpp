@@ -211,7 +211,7 @@ namespace FlatPhysics {
 		return false;
 	}
 	//circle-circle
-	ContactPointsOld Collision::FindCircleCircleContactPointOld(const Vector2& centerA, float radiusA, const Vector2& centerB)
+	ContactPoints Collision::FindCircleCircleContactPointOld(const Vector2& centerA, float radiusA, const Vector2& centerB)
 	{
 		Vector2 direction = centerB - centerA;
 		direction.Normalize();
@@ -219,7 +219,7 @@ namespace FlatPhysics {
 		return { result };
 	}
 	//circle-polygon
-	ContactPointsOld Collision::FindCirclePolygonContactPointOld(const Vector2& circle_center, float circle_radius, const std::vector<Vector2>& vertices)
+	ContactPoints Collision::FindCirclePolygonContactPointOld(const Vector2& circle_center, float circle_radius, const std::vector<Vector2>& vertices)
 	{
 		float min_distance = std::numeric_limits<float>::max();
 		Vector2 result;
@@ -236,10 +236,10 @@ namespace FlatPhysics {
 		return { result };
 	}
 	//polygon-polygon
-	ContactPointsOld Collision::FindPolygonPolygonContactPointOld(const std::vector<Vector2>& vertices_a, const std::vector<Vector2>& vertices_b)
+	ContactPoints Collision::FindPolygonPolygonContactPointOld(const std::vector<Vector2>& vertices_a, const std::vector<Vector2>& vertices_b)
 	{
 		float min_distance_squared = std::numeric_limits<float>::max();
-		ContactPointsOld result;
+		ContactPoints result;
 		for (int i = 0; i < vertices_a.size(); i++) {
 			const Vector2& p = vertices_a[i];
 			for (int j = 0; j < vertices_b.size(); j++) {
@@ -249,14 +249,12 @@ namespace FlatPhysics {
 				float distance_squared = PointSegmentDistanceSquared(p, va, vb, &contact_point);
 				if (FlatMath::NearlyEqual(distance_squared,min_distance_squared)) {
 					if (!FlatMath::NearlyEqual(contact_point,result.point1)) {
-						result.point2 = contact_point;
-						result.points_num = 2;
+						result.SetPoints(result.point1, contact_point);
 					}
 				}
 				else if (distance_squared < min_distance_squared) {
 					min_distance_squared = distance_squared;
-					result.point1 = contact_point;
-					result.points_num = 1;
+					result.SetPoint(contact_point);
 				}
 			}
 		}
@@ -269,21 +267,19 @@ namespace FlatPhysics {
 				float distance_squared = PointSegmentDistanceSquared(p, va, vb, &contact_point);
 				if (FlatMath::NearlyEqual(distance_squared, min_distance_squared)) {
 					if (!FlatMath::NearlyEqual(contact_point, result.point1)) {
-						result.point2 = contact_point;
-						result.points_num = 2;
+						result.SetPoints(result.point1, contact_point);
 					}
 				}
 				else if (distance_squared < min_distance_squared) {
 					min_distance_squared = distance_squared;
-					result.point1 = contact_point;
-					result.points_num = 1;
+					result.SetPoint(contact_point);
 				}
 			}
 		}
 		return result;
 	}
 
-	ContactPointsOld Collision::FindContactPointsOld(const FlatFixture* fa, const FlatFixture* fb)
+	ContactPoints Collision::FindContactPointsOld(const FlatFixture* fa, const FlatFixture* fb)
 	{
 		switch (fa->GetShapeType()) {
 		case ShapeType::Circle: {
@@ -326,7 +322,7 @@ namespace FlatPhysics {
 		return {};
 	}
 
-	bool Collision::IsCollidingCircleCirle(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, ContactPoint& contact)
+	bool Collision::IsCollidingCircleCirle(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, ContactPoints& contact, Vector2& normal, float& depth)
 	{
 		Vector2 d = centerB - centerA;
 		float rSum = radiusA + radiusB;
@@ -345,13 +341,13 @@ namespace FlatPhysics {
 			dist = 0.0f;
 		}
 
-		contact.normal = n;
-		contact.contact_point = centerA + n * radiusA;      
-		contact.depth = std::max(0.0f, rSum - dist);  
+		normal = n;
+		contact.SetPoint(centerA + n * radiusA);
+		depth = std::max(0.0f, rSum - dist);  
 		return true;
 	}
 
-	bool Collision::IsCollidingCirclePolygon(const Vector2& center, float radius, const std::vector<Vector2>& vertices, ContactPoint& contact)
+	bool Collision::IsCollidingCirclePolygon(const Vector2& center, float radius, const std::vector<Vector2>& vertices, ContactPoints& contact, Vector2& normal, float& depth)
 	{
 		Vector2 min_cur_vertex;
 		Vector2 min_next_vertex;
@@ -390,18 +386,45 @@ namespace FlatPhysics {
 			if (center_edge_dist_squared > radius * radius) {
 				return false;
 			}
-			contact.depth = radius - std::sqrt(center_edge_dist_squared);
-			contact.normal = closest_point - center;
-			contact.normal.Normalize();
-			contact.contact_point = center + contact.normal * radius;
+			depth = radius - std::sqrt(center_edge_dist_squared);
+			normal = closest_point - center;
+			normal.Normalize();
+			contact.SetPoint(center + normal * radius);
 		}
 		else {
-			contact.depth = radius - distance_circle_edge;
-			contact.normal = (min_next_vertex - min_cur_vertex).NormalDirection();
-			contact.normal.Normalize();
-			contact.contact_point = center + contact.normal * radius;
+			depth = radius - distance_circle_edge;
+			normal = (min_next_vertex - min_cur_vertex).NormalDirection();
+			normal.Normalize();
+			contact.SetPoint(center + normal * radius);
 		}
 
+		return true;
+	}
+
+	bool Collision::IsCollidingPolygonPolygon(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB, ContactPoints& contact, Vector2& normal, float& depth)
+	{
+		Vector2 a_axis, b_axis;
+		Vector2 a_point, b_point;
+		float ab_seperation = FindMinSeperation(verticesA, verticesB, a_axis, a_point);
+		if (ab_seperation >= 0) {
+			return false;
+		}
+		float ba_seperation = FindMinSeperation(verticesB, verticesA, b_axis, b_point);
+		if (ba_seperation >= 0) {
+			return false;
+		}
+		if (ab_seperation > ba_seperation) {
+			depth = -ab_seperation;
+			normal = a_axis.NormalDirection();
+			normal.Normalize();
+			contact.SetPoint(a_point + normal * depth);
+		}
+		else {
+			depth = -ba_seperation;
+			normal = -b_axis.NormalDirection();
+			normal.Normalize();
+			contact.SetPoint(b_point);
+		}
 		return true;
 	}
 
@@ -460,6 +483,31 @@ namespace FlatPhysics {
 			*contact = line_a + ab * d;
 		}
 		return Vector2::DistanceSquared(point, *contact);
+	}
+
+	float Collision::FindMinSeperation(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB, Vector2& axis, Vector2& point)
+	{
+		float seperation = std::numeric_limits<float>::lowest();
+		for (int i = 0; i < verticesA.size(); i++) {
+			Vector2 edge = verticesA[(i + 1) % verticesA.size()] - verticesA[i];
+			Vector2 normal = edge.NormalDirection();
+			normal.Normalize();
+			float min_sep = std::numeric_limits<float>::max();
+			Vector2 min_vertex;
+			for (const Vector2& vb : verticesB) {
+				float proj = Vector2::Dot(vb - verticesA[i], normal);
+				if (proj < min_sep) {
+					min_sep = proj;
+					min_vertex = vb;
+				}
+			}
+			if (min_sep > seperation) {
+				seperation = min_sep;
+				axis = edge;
+				point = min_vertex;
+			}
+		}
+		return seperation;
 	}
 
 	//return {min,max}

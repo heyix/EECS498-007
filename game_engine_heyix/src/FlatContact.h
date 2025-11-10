@@ -4,21 +4,34 @@ namespace FlatPhysics {
 	class FlatBody;
 	class FlatFixture;
 	class FlatManifold;
-	
-	class ContactPoint {
+	struct ContactPoints {
 	public:
-		ContactPoint(FlatFixture* fixture_a, FlatFixture* fixture_b, const Vector2& contact_point, const Vector2& normal, float depth)
-			:fixture_a(fixture_a),fixture_b(fixture_b),contact_point(contact_point),normal(normal),depth(depth)
+		ContactPoints(const Vector2& point1_, const Vector2& point2_)
+			:point1(point1_), point2(point2_), points_num(2)
 		{}
-		ContactPoint(FlatFixture* fixture_a, FlatFixture* fixture_b)
-			:fixture_a(fixture_a),fixture_b(fixture_b)
+		ContactPoints(const Vector2& point1_)
+			:point1(point1_), points_num(1)
+		{}
+		ContactPoints()
+			:points_num(0)
 		{}
 	public:
-		FlatFixture* fixture_a = nullptr;
-		FlatFixture* fixture_b = nullptr;
-		Vector2 contact_point{};
-		Vector2 normal{};
-		float depth = 0;
+		void SetPoint(const Vector2& point) {
+			point1 = point;
+			points_num = 1;
+		}
+		void SetPoints(const Vector2& point1_, const Vector2& point2_) {
+			point1 = point1_;
+			point2 = point2_;
+			points_num = 2;
+		}
+		void ClearPoints() {
+			points_num = 0;
+		}
+	public:
+		Vector2 point1{ 0,0 };
+		Vector2 point2{ 0,0 };
+		int points_num = 0;
 	};
 	class IContactFilter {
 	public:

@@ -43,7 +43,7 @@ namespace FlatPhysics {
 		FlatBody* bodyB = fixture_b->GetBody();
 		Vector2 world_mass_center_a = bodyA->GetMassCenterWorld();
 		Vector2 world_mass_center_b = bodyB->GetMassCenterWorld();
-		const ContactPointsOld& contact_points = manifold.contact_points;
+		const ContactPoints& contact_points = manifold.contact_points;
 		float e = std::min(bodyA->restitution, bodyB->restitution);
 		std::vector<Vector2> contact_list{ contact_points.point1, contact_points.point2 };
 
