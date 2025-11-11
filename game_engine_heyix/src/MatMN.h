@@ -64,6 +64,8 @@ namespace FlatPhysics {
         RowViewConst operator[](int i) const {
             return RowViewConst(data.data() + i * N, N);
         }
+        inline float& operator()(int i, int j)       noexcept { return data[i * N + j]; }
+        inline const float& operator()(int i, int j) const noexcept { return data[i * N + j]; }
     public:
 
 
@@ -79,12 +81,6 @@ namespace FlatPhysics {
         }
         ColumnViewConst GetColumn(int j) const {
             return ColumnViewConst(data.data() + j, M, N);
-        }
-        inline float& At(int i, int j) noexcept {
-            return data[i * N + j];
-        }
-        inline const float& At(int i, int j) const noexcept {
-            return data[i * N + j];
         }
 
     public:

@@ -8,20 +8,25 @@ namespace FlatPhysics {
     }
 
     MatMN::MatMN(const MatMN& m) : M(m.M), N(m.N), data(m.data) {}
+
     MatMN::MatMN(int m, int n, float init_value)
         : M(m), N(n)
     {
-        data.assign(static_cast<size_t>(M) * static_cast<size_t>(N), init_value);
+        data.assign((size_t)M * (size_t)N, init_value);
     }
+
     MatMN::MatMN(MatMN&& other) noexcept
         : M(other.M), N(other.N), data(std::move(other.data))
     {
         other.M = 0;
         other.N = 0;
     }
+
     MatMN& MatMN::operator=(const MatMN& m) {
         if (this == &m) return *this;
-        M = m.M; N = m.N; data = m.data;
+        M = m.M;
+        N = m.N;
+        data = m.data;
         return *this;
     }
 
@@ -30,7 +35,7 @@ namespace FlatPhysics {
         for (int i = 0; i < M; ++i) {
             float sum = 0.0f;
             for (int j = 0; j < N; ++j) {
-                sum += At(i, j) * v[j];
+                sum += (*this)(i, j) * v[j];
             }
             out[i] = sum;
         }
@@ -43,9 +48,9 @@ namespace FlatPhysics {
             for (int j = 0; j < m.N; ++j) {
                 float s = 0.0f;
                 for (int k = 0; k < N; ++k) {
-                    s += At(i, k) * m.At(k, j);
+                    s += (*this)(i, k) * m(k, j);
                 }
-                out.At(i, j) = s;
+                out(i, j) = s;
             }
         }
         return out;
@@ -59,7 +64,7 @@ namespace FlatPhysics {
         MatMN t(N, M);
         for (int i = 0; i < M; ++i) {
             for (int j = 0; j < N; ++j) {
-                t.At(j, i) = At(i, j);
+                t(j, i) = (*this)(i, j);
             }
         }
         return t;
