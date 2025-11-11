@@ -13,6 +13,12 @@ namespace FlatPhysics {
     {
         data.assign(static_cast<size_t>(M) * static_cast<size_t>(N), init_value);
     }
+    MatMN::MatMN(MatMN&& other) noexcept
+        : M(other.M), N(other.N), data(std::move(other.data))
+    {
+        other.M = 0;
+        other.N = 0;
+    }
     MatMN& MatMN::operator=(const MatMN& m) {
         if (this == &m) return *this;
         M = m.M; N = m.N; data = m.data;

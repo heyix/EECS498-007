@@ -53,6 +53,7 @@ namespace FlatPhysics {
         MatMN(int M, int N, float init_value);
         MatMN(const MatMN& m);
         MatMN& operator=(const MatMN& m);
+        MatMN(MatMN&& other) noexcept;
 
         VecN operator*(const VecN& v) const;
 
