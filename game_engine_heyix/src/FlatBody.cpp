@@ -100,20 +100,40 @@ void FlatPhysics::FlatBody::Rotate(float amount)
 
 void FlatPhysics::FlatBody::Step(float time, const Vector2& gravity)
 {
-    if (is_static) return;
+    IntegrateLinear(time, gravity);
+    IntegrateAngular(time);
 
+}
+
+void FlatPhysics::FlatBody::IntegrateForces(float time, const Vector2& gravity)
+{
+}
+
+void FlatPhysics::FlatBody::IntegrateVelocities(float time)
+{
+}
+
+void FlatPhysics::FlatBody::IntegrateLinear(float time, const Vector2& gravity)
+{
+    if (is_static) return;
     const Vector2 effective_g = GetEffectiveGravity(gravity);
     Vector2 acceleration = effective_g;
 
     if (inverse_mass > 0.0f) {
         acceleration += force * inverse_mass;
     }
-
-    SetLinearVelocity(linear_velocity + acceleration * time);
+    AddLinearVelocity(acceleration * time);
     Move(linear_velocity * time);
-    Rotate(angular_velocity * time);
-
     force = Vector2::Zero();
+}
+
+void FlatPhysics::FlatBody::IntegrateAngular(float time)
+{
+    if (is_static) return;
+    float angular_acceleration = torque * GetInverseInertia();
+    AddAngularVelocity(angular_acceleration * time);
+    Rotate(angular_velocity * time);
+    torque = 0;
 }
 
 Vector2 FlatPhysics::FlatBody::WorldToLocal(const Vector2& world_point)
@@ -142,6 +162,12 @@ void FlatPhysics::FlatBody::AddForce(const Vector2& amount)
 {
     if (is_static) return;
     force += amount;
+}
+
+void FlatPhysics::FlatBody::AddTorque(float amount)
+{
+    if (is_static) return;
+    torque += amount;
 }
 
 void FlatPhysics::FlatBody::ResetMassData()

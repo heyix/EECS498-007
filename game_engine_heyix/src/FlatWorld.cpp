@@ -155,8 +155,21 @@ namespace FlatPhysics {
 		for (FlatBody* body : bodies) {
 			body->Step(time, gravity);
 		}
-
+		//for (FlatBody* body : bodies) {
+		//	body->IntegrateForces(time,gravity);
+		//}
+		//for (FlatBody* body : bodies) {
+		//	body->IntegrateVelocities(time);
+		//}
 		CollisionDetectionStep(time);
+	}
+	void FlatWorld::AddConstraint(std::unique_ptr<FlatConstraint> constraint)
+	{
+		constraints.push_back(std::move(constraint));
+	}
+	std::vector<std::unique_ptr<FlatConstraint>>& FlatWorld::GetConstraints()
+	{
+		return constraints;
 	}
 	void FlatWorld::CollisionDetectionStep(float dt)
 	{

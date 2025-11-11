@@ -26,6 +26,7 @@ namespace FlatPhysics {
         float   angle_rad;
         float   angular_velocity;
         Vector2 force;
+        float torque = 0;
         FlatTransform current_transform{};
         float inertia;
         float inverse_inertia;
@@ -71,6 +72,7 @@ namespace FlatPhysics {
         std::vector<Vector2> LocalToWorld(const std::vector<Vector2>& local_point);
 
         void AddForce(const Vector2& amount);
+        void AddTorque(float amount);
         void SetLinearVelocity(const Vector2& velocity) { if (is_static) return; linear_velocity = velocity; }
         void SetAngularVelocity(float velocity) { if (is_static)return; angular_velocity = velocity; }
         void AddLinearVelocity(const Vector2& delta) { SetLinearVelocity(linear_velocity + delta); }
@@ -88,7 +90,11 @@ namespace FlatPhysics {
         void MoveTo(const Vector2& position);
         void Rotate(float amount);
         void Step(float time, const Vector2& gravity);
-
+    public:
+        void IntegrateForces(float time, const Vector2& gravity);
+        void IntegrateVelocities(float time);
+        void IntegrateLinear(float time, const Vector2& gravity);
+        void IntegrateAngular(float time);
 
     private:
         void ResetMassData();

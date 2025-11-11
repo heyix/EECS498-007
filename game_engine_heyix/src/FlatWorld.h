@@ -7,6 +7,7 @@
 #include "FlatContact.h"
 #include "IBroadPhase.h"
 #include "FlatSolver.h"
+#include "FlatConstraint.h"
 namespace FlatPhysics {
 	class FlatWorld {
 	public:
@@ -19,6 +20,9 @@ namespace FlatPhysics {
 		bool RemoveBody(FlatBody* body);
 		FlatBody* GetBody(int index);
 		void Step(float time);
+
+		void AddConstraint(std::unique_ptr<FlatConstraint> constraint);
+		std::vector<std::unique_ptr<FlatConstraint>>& GetConstraints();
 	public:
 		void DrawContactPoints();
 		void SetBroadPhase(std::unique_ptr<IBroadPhase> bp);
@@ -41,6 +45,7 @@ namespace FlatPhysics {
 		std::vector<ContactPair> contact_pairs;
 		std::unique_ptr<IBroadPhase>    broadphase_;
 		std::unique_ptr<IContactSolver> solver_;
+		std::vector<std::unique_ptr<FlatConstraint>> constraints;
 		int velocity_iterations_{ 1 };
 		int position_iterations_{ 1 };
 	};
