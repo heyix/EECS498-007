@@ -1,73 +1,58 @@
 #include "MatMN.h"
-#include <cmath>
 #include <algorithm>
 
 namespace FlatPhysics {
 
-	MatMN::MatMN(int m, int n)
-		: M(m), N(n)
-	{
-		data.resize(M * N, 0.0f);
-	}
+    MatMN::MatMN(int m, int n) : M(m), N(n) {
+        data.resize((size_t)M * N, 0.0f);
+    }
 
-	MatMN::MatMN(const MatMN& m)
-		: M(m.M), N(m.N), data(m.data)
-	{
-	}
+    MatMN::MatMN(const MatMN& m) : M(m.M), N(m.N), data(m.data) {}
 
-	MatMN& MatMN::operator=(const MatMN& m)
-	{
-		if (this == &m) return *this;
-		M = m.M;
-		N = m.N;
-		data = m.data;
-		return *this;
-	}
+    MatMN& MatMN::operator=(const MatMN& m) {
+        if (this == &m) return *this;
+        M = m.M; N = m.N; data = m.data;
+        return *this;
+    }
 
-	VecN MatMN::operator*(const VecN& v) const
-	{
-		VecN out(M);
-		for (int i = 0; i < M; i++) {
-			float sum = 0.0f;
-			for (int j = 0; j < N; j++) {
-				sum += (*this)[i][j] * v[j];
-			}
-			out[i] = sum;
-		}
-		return out;
-	}
+    VecN MatMN::operator*(const VecN& v) const {
+        VecN out(M);
+        for (int i = 0; i < M; ++i) {
+            float sum = 0.0f;
+            for (int j = 0; j < N; ++j) {
+                sum += At(i, j) * v[j];
+            }
+            out[i] = sum;
+        }
+        return out;
+    }
 
-	MatMN MatMN::operator*(const MatMN& m) const
-	{
-		MatMN out(M, m.N);
-		for (int i = 0; i < M; i++) {
-			for (int j = 0; j < m.N; j++) {
-				float s = 0.0f;
-				for (int k = 0; k < N; k++) {
-					s += (*this)[i][k] * m[k][j];
-				}
-				out[i][j] = s;
-			}
-		}
-		return out;
-	}
+    MatMN MatMN::operator*(const MatMN& m) const {
+        MatMN out(M, m.N);
+        for (int i = 0; i < M; ++i) {
+            for (int j = 0; j < m.N; ++j) {
+                float s = 0.0f;
+                for (int k = 0; k < N; ++k) {
+                    s += At(i, k) * m.At(k, j);
+                }
+                out.At(i, j) = s;
+            }
+        }
+        return out;
+    }
 
-	void MatMN::Zero()
-	{
-		for (int i = 0; i < M * N; i++) {
-			data[i] = 0.0f;
-		}
-	}
+    void MatMN::Zero() {
+        std::fill(data.begin(), data.end(), 0.0f);
+    }
 
-	MatMN MatMN::Transpose() const
-	{
-		MatMN t(N, M);
-		for (int i = 0; i < M; i++) {
-			for (int j = 0; j < N; j++) {
-				t[j][i] = (*this)[i][j];
-			}
-		}
-		return t;
-	}
+    MatMN MatMN::Transpose() const {
+        MatMN t(N, M);
+        for (int i = 0; i < M; ++i) {
+            for (int j = 0; j < N; ++j) {
+                t.At(j, i) = At(i, j);
+            }
+        }
+        return t;
+    }
 
-} 
+}

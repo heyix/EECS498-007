@@ -75,6 +75,12 @@ namespace FlatPhysics {
         ColumnViewConst GetColumn(int j) const {
             return ColumnViewConst(data.data() + j, M, N);
         }
+        inline float& At(int i, int j) noexcept {
+            return data[i * N + j];
+        }
+        inline const float& At(int i, int j) const noexcept {
+            return data[i * N + j];
+        }
 
     public:
         int M = 0;

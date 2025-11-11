@@ -531,6 +531,9 @@
     <ClCompile Include="src\FlatMath.cpp">
       <Filter>Source Files\FlatPhysics\Math</Filter>
     </ClCompile>
+    <ClCompile Include="src\FlatConstraint.cpp">
+      <Filter>Source Files\FlatPhysics\Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThirdParty\lua\lapi.h">
@@ -921,6 +924,9 @@
       <Filter>Header Files\FlatPhysics\Math</Filter>
     </ClInclude>
     <ClInclude Include="src\FlatMath.h">
+      <Filter>Header Files\FlatPhysics\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatConstraint.h">
       <Filter>Header Files\FlatPhysics\Math</Filter>
     </ClInclude>
   </ItemGroup>

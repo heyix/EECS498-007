@@ -34,6 +34,7 @@
     <ClCompile Include="src\EventBus.cpp" />
     <ClCompile Include="src\FlatAABB.cpp" />
     <ClCompile Include="src\FlatCallbacks.cpp" />
+    <ClCompile Include="src\FlatConstraint.cpp" />
     <ClCompile Include="src\FlatContact.cpp" />
     <ClCompile Include="src\FlatDefs.cpp" />
     <ClCompile Include="src\FlatFixture.cpp" />
@@ -167,6 +168,7 @@
     <ClInclude Include="src\EventBus.h" />
     <ClInclude Include="src\FlatAABB.h" />
     <ClInclude Include="src\FlatCallbacks.h" />
+    <ClInclude Include="src\FlatConstraint.h" />
     <ClInclude Include="src\FlatContact.h" />
     <ClInclude Include="src\FlatDefs.h" />
     <ClInclude Include="src\FlatFixture.h" />
