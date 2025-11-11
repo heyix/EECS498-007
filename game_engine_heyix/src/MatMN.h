@@ -50,24 +50,28 @@ namespace FlatPhysics {
 
     public:
         MatMN(int M, int N);
+        MatMN(int M, int N, float init_value);
         MatMN(const MatMN& m);
         MatMN& operator=(const MatMN& m);
 
         VecN operator*(const VecN& v) const;
 
         MatMN operator*(const MatMN& m) const;
-
-        void Zero();
-
-        MatMN Transpose() const;
-
-
         RowView operator[](int i) {
             return RowView(data.data() + i * N, N);
         }
         RowViewConst operator[](int i) const {
             return RowViewConst(data.data() + i * N, N);
         }
+    public:
+
+
+        void Zero();
+
+        MatMN Transpose() const;
+
+
+
 
         ColumnView GetColumn(int j) {
             return ColumnView(data.data() + j, M, N);

@@ -8,7 +8,11 @@ namespace FlatPhysics {
     }
 
     MatMN::MatMN(const MatMN& m) : M(m.M), N(m.N), data(m.data) {}
-
+    MatMN::MatMN(int m, int n, float init_value)
+        : M(m), N(n)
+    {
+        data.assign(static_cast<size_t>(M) * static_cast<size_t>(N), init_value);
+    }
     MatMN& MatMN::operator=(const MatMN& m) {
         if (this == &m) return *this;
         M = m.M; N = m.N; data = m.data;
