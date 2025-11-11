@@ -9,8 +9,8 @@ namespace FlatPhysics {
         class RowView {
         public:
             RowView(float* p, int n) noexcept : p(p), n(n) {}
-            float& operator[](int j) {  return p[j]; }
-            const float& operator[](int j) const {  return p[j]; }
+            float& operator()(int j) {  return p[j]; }
+            const float& operator()(int j) const {  return p[j]; }
             int size() const noexcept { return n; }
         private:
             float* p = nullptr;
@@ -19,7 +19,7 @@ namespace FlatPhysics {
         class RowViewConst {
         public:
             RowViewConst(const float* p, int n) noexcept : p(p), n(n) {}
-            const float& operator[](int j) const {  return p[j]; }
+            const float& operator()(int j) const {  return p[j]; }
             int size() const noexcept { return n; }
         private:
             const float* p = nullptr;
@@ -29,8 +29,8 @@ namespace FlatPhysics {
         class ColumnView {
         public:
             ColumnView(float* base, int m, int stride) noexcept : base(base), m(m), stride(stride) {}
-            float& operator[](int i) {  return base[i * stride]; }
-            const float& operator[](int i) const {  return base[i * stride]; }
+            float& operator()(int i) {  return base[i * stride]; }
+            const float& operator()(int i) const {  return base[i * stride]; }
             int size() const noexcept { return m; }
         private:
             float* base = nullptr;
@@ -40,7 +40,7 @@ namespace FlatPhysics {
         class ColumnViewConst {
         public:
             ColumnViewConst(const float* base, int m, int stride) noexcept : base(base), m(m), stride(stride) {}
-            const float& operator[](int i) const { return base[i * stride]; }
+            const float& operator()(int i) const { return base[i * stride]; }
             int size() const noexcept { return m; }
         private:
             const float* base = nullptr;
