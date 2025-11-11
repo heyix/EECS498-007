@@ -49,8 +49,7 @@ namespace FlatPhysics {
         void SetWorld(FlatWorld* world) { world_ = world; }
         FlatWorld* GetWorld() const { return world_; }
 
-        const Vector2& GetPosition() const { return position; }
-        float GetAngle()const { return angle_rad; }
+
         const std::vector<std::unique_ptr<FlatFixture>>& GetFixtures()const { return fixtures_; }
         int GetFixtureCount()const { return fixtures_.size(); }
         FlatFixture* CreateFixture(const FixtureDef& def);
@@ -58,6 +57,8 @@ namespace FlatPhysics {
         const FlatTransform& GetTransform();
 
 
+        const Vector2& GetPosition() const { return position; }
+        float GetAngle()const { return angle_rad; }
         const Vector2& GetLinearVelocity() { return linear_velocity; }
         float GetAngularVelocity() { return angular_velocity; }
         float GetMass() { return mass; }
@@ -70,13 +71,9 @@ namespace FlatPhysics {
         Vector2 LocalToWorld(const Vector2& local_point);
         std::vector<Vector2> WorldToLocal(const std::vector<Vector2>& world_point);
         std::vector<Vector2> LocalToWorld(const std::vector<Vector2>& local_point);
+        bool IsStatic() { return is_static; }
 
-        void AddForce(const Vector2& amount);
-        void AddTorque(float amount);
-        void SetLinearVelocity(const Vector2& velocity) { if (is_static) return; linear_velocity = velocity; }
-        void SetAngularVelocity(float velocity) { if (is_static)return; angular_velocity = velocity; }
-        void AddLinearVelocity(const Vector2& delta) { SetLinearVelocity(linear_velocity + delta); }
-        void AddAngularVelocity(float delta) { SetAngularVelocity(angular_velocity + delta); }
+
 
         void   SetGravityScale(float s) { gravity_scale = s; }
         float  GetGravityScale() const { return gravity_scale; }
@@ -89,12 +86,17 @@ namespace FlatPhysics {
         void Move(const Vector2& amount);
         void MoveTo(const Vector2& position);
         void Rotate(float amount);
-        void Step(float time, const Vector2& gravity);
+
+        void AddForce(const Vector2& amount);
+        void AddTorque(float amount);
+        void ApplyImpulse(const Vector2& impulse, const Vector2& point);
+        void SetLinearVelocity(const Vector2& velocity) { if (is_static) return; linear_velocity = velocity; }
+        void SetAngularVelocity(float velocity) { if (is_static)return; angular_velocity = velocity; }
+        void AddLinearVelocity(const Vector2& delta) { SetLinearVelocity(linear_velocity + delta); }
+        void AddAngularVelocity(float delta) { SetAngularVelocity(angular_velocity + delta); }
     public:
         void IntegrateForces(float time, const Vector2& gravity);
         void IntegrateVelocities(float time);
-        void IntegrateLinear(float time, const Vector2& gravity);
-        void IntegrateAngular(float time);
 
     private:
         void ResetMassData();

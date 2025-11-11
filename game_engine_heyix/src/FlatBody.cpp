@@ -79,12 +79,12 @@ Vector2 FlatPhysics::FlatBody::GetEffectiveGravity(const Vector2& world_gravity)
 }
 
 void FlatBody::Move(const Vector2& amount) {
-    if (is_static) return;
+    if (IsStatic()) return;
     MoveTo(this->position + amount);
 }
 
 void FlatBody::MoveTo(const Vector2& p) {
-    if (is_static)return;
+    if (IsStatic())return;
     this->position = p;
     need_update_transform = true;
     MarkFixturesDirty();
@@ -92,49 +92,37 @@ void FlatBody::MoveTo(const Vector2& p) {
 
 void FlatPhysics::FlatBody::Rotate(float amount)
 {
-    if (is_static)return;
+    if (IsStatic())return;
     this->angle_rad += amount;
     need_update_transform = true;
     MarkFixturesDirty();
 }
 
-void FlatPhysics::FlatBody::Step(float time, const Vector2& gravity)
-{
-    IntegrateLinear(time, gravity);
-    IntegrateAngular(time);
-
-}
 
 void FlatPhysics::FlatBody::IntegrateForces(float time, const Vector2& gravity)
 {
+    if (IsStatic())return;
+
+    const Vector2 effective_g = GetEffectiveGravity(gravity);
+    Vector2 acceleration = effective_g;
+    if (GetInverseMass() > 0.0f) {
+        acceleration += force * GetInverseMass();
+    }
+    AddLinearVelocity(acceleration * time);
+    force = Vector2::Zero();
+
+    float angular_acceleration = torque * GetInverseInertia();
+    AddAngularVelocity(angular_acceleration * time);
+    torque = 0;
 }
 
 void FlatPhysics::FlatBody::IntegrateVelocities(float time)
 {
-}
-
-void FlatPhysics::FlatBody::IntegrateLinear(float time, const Vector2& gravity)
-{
-    if (is_static) return;
-    const Vector2 effective_g = GetEffectiveGravity(gravity);
-    Vector2 acceleration = effective_g;
-
-    if (inverse_mass > 0.0f) {
-        acceleration += force * inverse_mass;
-    }
-    AddLinearVelocity(acceleration * time);
+    if (IsStatic())return;
     Move(linear_velocity * time);
-    force = Vector2::Zero();
+    Rotate(angular_velocity * time);
 }
 
-void FlatPhysics::FlatBody::IntegrateAngular(float time)
-{
-    if (is_static) return;
-    float angular_acceleration = torque * GetInverseInertia();
-    AddAngularVelocity(angular_acceleration * time);
-    Rotate(angular_velocity * time);
-    torque = 0;
-}
 
 Vector2 FlatPhysics::FlatBody::WorldToLocal(const Vector2& world_point)
 {
@@ -160,19 +148,26 @@ std::vector<Vector2> FlatPhysics::FlatBody::LocalToWorld(const std::vector<Vecto
 
 void FlatPhysics::FlatBody::AddForce(const Vector2& amount)
 {
-    if (is_static) return;
+    if (IsStatic()) return;
     force += amount;
 }
 
 void FlatPhysics::FlatBody::AddTorque(float amount)
 {
-    if (is_static) return;
+    if (IsStatic()) return;
     torque += amount;
+}
+
+void FlatPhysics::FlatBody::ApplyImpulse(const Vector2& impulse, const Vector2& point)
+{
+    if (IsStatic())return;
+    AddLinearVelocity(impulse * GetInverseMass());
+    AddAngularVelocity(Vector2::Cross(point, impulse) * GetInverseInertia());
 }
 
 void FlatPhysics::FlatBody::ResetMassData()
 {
-    if (is_static) {
+    if (IsStatic()) {
         mass = 0.0f;
         inverse_mass = 0.0f;
         inertia = 0.0f;
