@@ -2,7 +2,10 @@
 #include <algorithm>
 
 namespace FlatPhysics {
-
+    MatMN::MatMN()
+        :M(0),N(0)
+    {
+    }
     MatMN::MatMN(int m, int n) : M(m), N(n) {
         data.resize((size_t)M * N, 0.0f);
     }
@@ -35,9 +38,9 @@ namespace FlatPhysics {
         for (int i = 0; i < M; ++i) {
             float sum = 0.0f;
             for (int j = 0; j < N; ++j) {
-                sum += (*this)(i, j) * v[j];
+                sum += (*this)(i, j) * v(j);
             }
-            out[i] = sum;
+            out(i) = sum;
         }
         return out;
     }

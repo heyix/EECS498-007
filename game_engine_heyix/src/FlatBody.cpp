@@ -72,7 +72,7 @@ void FlatBody::MarkFixturesDirty()
     }
 }
 
-const Vector2& FlatPhysics::FlatBody::GetEffectiveGravity(const Vector2& world_gravity) const
+Vector2 FlatPhysics::FlatBody::GetEffectiveGravity(const Vector2& world_gravity) const
 {
     const Vector2 g = has_custom_gravity ? custom_gravity : world_gravity;
     return g * gravity_scale;
@@ -114,6 +114,17 @@ void FlatPhysics::FlatBody::Step(float time, const Vector2& gravity)
     Rotate(angular_velocity * time);
 
     force = Vector2::Zero();
+}
+
+Vector2 FlatPhysics::FlatBody::WorldToLocal(const Vector2& world_point)
+{
+    const FlatTransform inverse = FlatTransform::Invert(GetTransform());
+    return FlatTransform::TransformVector(world_point, inverse);
+}
+
+Vector2 FlatPhysics::FlatBody::LocalToWorld(const Vector2& local_point)
+{
+    return FlatTransform::TransformVector(local_point, GetTransform());
 }
 
 void FlatPhysics::FlatBody::AddForce(const Vector2& amount)

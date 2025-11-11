@@ -4,8 +4,12 @@ namespace FlatPhysics {
 	class FlatBody;
 	class FlatConstraint {
 	public:
-		void Solve()const;
+		virtual ~FlatConstraint() = default;
+	public:
 		MatMN GetInverseM()const;
+		VecN GetVelocities()const;
+	public:
+		virtual void Solve()const;
 	public:
 		FlatBody* a;
 		FlatBody* b;

@@ -30,6 +30,7 @@
     <ClCompile Include="src\ComponentDB.cpp" />
     <ClCompile Include="src\ContactListener.cpp" />
     <ClCompile Include="src\CppComponent.cpp" />
+    <ClCompile Include="src\JointConstraint.cpp" />
     <ClCompile Include="src\DrawBodyComponent.cpp" />
     <ClCompile Include="src\EventBus.cpp" />
     <ClCompile Include="src\FlatAABB.cpp" />
@@ -164,6 +165,7 @@
     <ClInclude Include="src\ComponentGroup.h" />
     <ClInclude Include="src\ContactListener.h" />
     <ClInclude Include="src\CppComponent.h" />
+    <ClInclude Include="src\JointConstraint.h" />
     <ClInclude Include="src\DrawBodyComponent.h" />
     <ClInclude Include="src\EventBus.h" />
     <ClInclude Include="src\FlatAABB.h" />

@@ -1,11 +1,12 @@
 #pragma once
-#include <vector>;
+#include <vector>
 namespace FlatPhysics {
 	class VecN {
 	public:
 		VecN();
 		VecN(int N);
 		VecN(const VecN& v);
+		VecN(int N, float value);
 		~VecN();
 	public:
 		VecN operator+(const VecN& v);
@@ -14,8 +15,8 @@ namespace FlatPhysics {
 		const VecN& operator+= (const VecN& v);
 		const VecN& operator-= (const VecN& v);
 		const VecN& operator*= (const float v);
-		float operator[](const int index)const;
-		float& operator[](const int index);
+		float operator()(const int index)const;
+		float& operator()(const int index);
 		float Dot(const VecN& v)const;
 	public:
 		void Zero();

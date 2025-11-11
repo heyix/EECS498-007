@@ -64,7 +64,9 @@ namespace FlatPhysics {
         float GetInertia() { return inertia; }
         float GetInverseInertia() { return inverse_inertia; }
         const Vector2& GetMassCenter() { return center_of_mass; }
-        Vector2 GetMassCenterWorld() { return FlatTransform::TransformVector(GetMassCenter(), GetTransform()); }
+        Vector2 GetMassCenterWorld() { return LocalToWorld(GetMassCenter()); }
+        Vector2 WorldToLocal(const Vector2& world_point);
+        Vector2 LocalToWorld(const Vector2& local_point);
 
         void AddForce(const Vector2& amount);
         void SetLinearVelocity(const Vector2& velocity) { if (is_static) return; linear_velocity = velocity; }
@@ -77,7 +79,7 @@ namespace FlatPhysics {
         void   SetCustomGravity(const Vector2& g) { custom_gravity = g; has_custom_gravity = true; }
         void   ClearCustomGravity() { has_custom_gravity = false; custom_gravity = Vector2::Zero(); }
         bool   HasCustomGravity() const { return has_custom_gravity; }
-        const Vector2& GetEffectiveGravity(const Vector2& world_gravity) const;
+        Vector2 GetEffectiveGravity(const Vector2& world_gravity) const;
     public:
 
         void Move(const Vector2& amount);

@@ -17,6 +17,7 @@ namespace FlatPhysics {
 		static FlatTransform Zero() { return FlatTransform(0.0f, 0.0f,0.0f); }
 		static Vector2 TransformVector(const Vector2& vec, const FlatTransform& transform);
 		static std::vector<Vector2> TransformVectors(const std::vector<Vector2>& vectors, const FlatTransform& transform);
+		static FlatTransform Invert(const FlatTransform& transform);
 	public:
 		Vector2 position;
 		float sin;

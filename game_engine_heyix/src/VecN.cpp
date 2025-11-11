@@ -18,6 +18,10 @@ namespace FlatPhysics {
 	{
 	}
 
+	VecN::VecN(int n, float value) 
+		: N(n), data(n, value)
+	{}
+
 	VecN::~VecN() = default;
 
 	VecN VecN::operator+(const VecN& v)
@@ -71,12 +75,12 @@ namespace FlatPhysics {
 		return *this;
 	}
 
-	float VecN::operator[](int index) const
+	float VecN::operator()(int index) const
 	{
 		return data[index];
 	}
 
-	float& VecN::operator[](int index)
+	float& VecN::operator()(int index)
 	{
 		return data[index];
 	}

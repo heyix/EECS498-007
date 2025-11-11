@@ -139,6 +139,12 @@
     <Filter Include="Source Files\FlatPhysics\Math">
       <UniqueIdentifier>{77451d45-6c72-4726-8486-bcd7d2ab91d2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\FlatPhysics\Math\Constraints">
+      <UniqueIdentifier>{5e8b6e72-f5a9-4b11-b6ff-ad56c5412709}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\FlatPhysics\Math\Constraints">
+      <UniqueIdentifier>{31a2247d-0abe-43fc-99f5-60ad62f2000d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ThirdParty\lua\lapi.c">
@@ -532,7 +538,10 @@
       <Filter>Source Files\FlatPhysics\Math</Filter>
     </ClCompile>
     <ClCompile Include="src\FlatConstraint.cpp">
-      <Filter>Source Files\FlatPhysics\Math</Filter>
+      <Filter>Source Files\FlatPhysics\Math\Constraints</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JointConstraint.cpp">
+      <Filter>Source Files\FlatPhysics\Math\Constraints</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -927,7 +936,10 @@
       <Filter>Header Files\FlatPhysics\Math</Filter>
     </ClInclude>
     <ClInclude Include="src\FlatConstraint.h">
-      <Filter>Header Files\FlatPhysics\Math</Filter>
+      <Filter>Header Files\FlatPhysics\Math\Constraints</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JointConstraint.h">
+      <Filter>Header Files\FlatPhysics\Math\Constraints</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

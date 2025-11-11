@@ -49,6 +49,7 @@ namespace FlatPhysics {
         };
 
     public:
+        MatMN();
         MatMN(int M, int N);
         MatMN(int M, int N, float init_value);
         MatMN(const MatMN& m);
