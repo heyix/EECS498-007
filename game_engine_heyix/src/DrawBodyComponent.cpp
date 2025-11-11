@@ -142,6 +142,10 @@ void DrawBodyComponent::On_Start()
         FlatPhysics::FlatBody::CreatePolygonBody(shape->vertices, transform->Get_World_Position(), 2.0f, true, 0.5f, this->body);
     }
 	else if (shape == FlatPhysics::ShapeType::Polygon) {
+        float density = 2.0f;
+        bool is_static = false;
+        if (holder_object->ID == 7)is_static = true;
+        //if (holder_object->ID == 7)density = 9999;
         const float s = 0.2f;
         std::vector<Vector2> poly;
         poly.emplace_back(-s, -s);       // bottom-left
@@ -149,7 +153,7 @@ void DrawBodyComponent::On_Start()
         poly.emplace_back(+s, +s);       // top-right
         //poly.emplace_back(0.0f, +s * 0.3f); // inner dent (makes it concave)
         poly.emplace_back(-s, +s);       // top-left
-        FlatPhysics::FlatBody::CreatePolygonBody(poly, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body);
+        FlatPhysics::FlatBody::CreatePolygonBody(poly, transform->Get_World_Position(), density, is_static, 0.5f, this->body);
     }
 	else {
 		FlatPhysics::FlatBody::CreateCircleBody(0.2f, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body);
@@ -165,7 +169,7 @@ void DrawBodyComponent::On_Start()
     //            nt = ptr->Get_Component("DrawBodyComponent").lock();
     //    }
     //    std::shared_ptr<DrawBodyComponent> body2 = std::dynamic_pointer_cast<DrawBodyComponent>(nt);
-    //    std::unique_ptr<FlatPhysics::JointConstraint> constraint = std::make_unique<FlatPhysics::JointConstraint>(body.get(), body2->body.get(), body->GetPosition());
+    //    std::unique_ptr<FlatPhysics::JointConstraint> constraint = std::make_unique<FlatPhysics::JointConstraint>(body.get(), body2->body.get(), body2->body->GetMassCenterWorld());
     //    PhysicsDB::flat_world->AddConstraint(std::move(constraint));
     //}
 }

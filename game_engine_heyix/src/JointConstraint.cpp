@@ -10,7 +10,6 @@ namespace FlatPhysics {
 		Vector2 pb = b->LocalToWorld(point_b);
 		Vector2 ra = pa - a->GetMassCenterWorld();
 		Vector2 rb = pb - b->GetMassCenterWorld();
-
 		jacobian.Zero();
 
 		Vector2 j1 = (pa - pb) * 2.0f;
@@ -39,7 +38,7 @@ namespace FlatPhysics {
 		VecN lambda = MatMN::SolveGS(lhs, rhs);
 
 		VecN impulses = jt * lambda;
-
+		
 		a->ApplyImpulseLinear({ impulses(0),impulses(1) });
 		a->ApplyImpulseAngular(impulses(2));
 		b->ApplyImpulseLinear({ impulses(3),impulses(4) });
