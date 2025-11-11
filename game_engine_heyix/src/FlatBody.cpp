@@ -127,6 +127,17 @@ Vector2 FlatPhysics::FlatBody::LocalToWorld(const Vector2& local_point)
     return FlatTransform::TransformVector(local_point, GetTransform());
 }
 
+std::vector<Vector2> FlatPhysics::FlatBody::WorldToLocal(const std::vector<Vector2>& world_point)
+{
+    const FlatTransform inverse = FlatTransform::Invert(GetTransform());
+    return FlatTransform::TransformVectors(world_point, inverse);
+}
+
+std::vector<Vector2> FlatPhysics::FlatBody::LocalToWorld(const std::vector<Vector2>& local_point)
+{
+    return FlatTransform::TransformVectors(local_point, GetTransform());
+}
+
 void FlatPhysics::FlatBody::AddForce(const Vector2& amount)
 {
     if (is_static) return;

@@ -1,7 +1,6 @@
 #include "FlatConstraint.h"
-#include "FlatBody.h"
 namespace FlatPhysics {
-	void FlatPhysics::FlatConstraint::Solve() const
+	void FlatPhysics::FlatConstraint::Solve()
 	{
 	}
 

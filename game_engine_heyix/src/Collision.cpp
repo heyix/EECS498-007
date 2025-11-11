@@ -476,25 +476,23 @@ namespace FlatPhysics {
 		auto bodyA = fa->GetBody();
 		auto bodyB = fb->GetBody();
 
-		const auto& transformA = bodyA->GetTransform();
-		const auto& transformB = bodyB->GetTransform();
 
 		switch (fa->GetShapeType()) {
 		case ShapeType::Circle: {
 			auto* ca = fa->GetShape().AsCircle();
-			Vector2 cA = FlatTransform::TransformVector(ca->center, transformA);
+			Vector2 cA = bodyA->LocalToWorld(ca->center);
 			float rA = ca->radius;
 
 			switch (fb->GetShapeType()) {
 			case ShapeType::Circle: {
 				auto* cb = fb->GetShape().AsCircle();
-				Vector2 cB = FlatTransform::TransformVector(cb->center, transformB);
+				Vector2 cB = bodyB->LocalToWorld(cb->center);
 				float rB = cb->radius;
 				return IsCollidingCircleCirle(cA, rA, cB, rB, contact);
 			}
 			case ShapeType::Polygon: {
 				const auto& vertsB_local = fb->GetShape().AsPolygon()->vertices;
-				auto vertsB = FlatTransform::TransformVectors(vertsB_local, transformB);
+				auto vertsB = bodyB->LocalToWorld(vertsB_local);
 				bool hit = IsCollidingPolygonCircle(vertsB, cA, rA, contact);;
 				if (hit)contact[0].normal *= -1;
 				return hit;
@@ -506,18 +504,18 @@ namespace FlatPhysics {
 
 		case ShapeType::Polygon: {
 			const auto& vertsA_local = fa->GetShape().AsPolygon()->vertices;
-			auto vertsA = FlatTransform::TransformVectors(vertsA_local, transformA);
+			auto vertsA = bodyA->LocalToWorld(vertsA_local);
 
 			switch (fb->GetShapeType()) {
 			case ShapeType::Polygon: {
 				const auto& vertsB_local = fb->GetShape().AsPolygon()->vertices;
-				auto vertsB = FlatTransform::TransformVectors(vertsB_local, transformB);
+				auto vertsB = bodyB->LocalToWorld(vertsB_local);
 				bool hit = IsCollidingPolygonPolygon(vertsA, vertsB, contact);
 				return hit;
 			}
 			case ShapeType::Circle: {
 				auto* cb = fb->GetShape().AsCircle();
-				Vector2 cB = FlatTransform::TransformVector(cb->center, transformB);
+				Vector2 cB = bodyB->LocalToWorld(cb->center);
 				float rB = cb->radius;
 				return IsCollidingPolygonCircle(vertsA, cB, rB, contact);
 			}

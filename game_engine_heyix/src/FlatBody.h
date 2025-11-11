@@ -67,6 +67,8 @@ namespace FlatPhysics {
         Vector2 GetMassCenterWorld() { return LocalToWorld(GetMassCenter()); }
         Vector2 WorldToLocal(const Vector2& world_point);
         Vector2 LocalToWorld(const Vector2& local_point);
+        std::vector<Vector2> WorldToLocal(const std::vector<Vector2>& world_point);
+        std::vector<Vector2> LocalToWorld(const std::vector<Vector2>& local_point);
 
         void AddForce(const Vector2& amount);
         void SetLinearVelocity(const Vector2& velocity) { if (is_static) return; linear_velocity = velocity; }
