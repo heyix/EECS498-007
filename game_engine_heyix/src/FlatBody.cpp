@@ -158,11 +158,24 @@ void FlatPhysics::FlatBody::AddTorque(float amount)
     torque += amount;
 }
 
-void FlatPhysics::FlatBody::ApplyImpulse(const Vector2& impulse, const Vector2& point)
+void FlatPhysics::FlatBody::ApplyImpulseLinear(const Vector2& impulse)
 {
     if (IsStatic())return;
     AddLinearVelocity(impulse * GetInverseMass());
-    AddAngularVelocity(Vector2::Cross(point, impulse) * GetInverseInertia());
+}
+
+void FlatPhysics::FlatBody::ApplyImpulseAngular(const float j)
+{
+    if (IsStatic())return;
+    AddAngularVelocity(j * GetInverseInertia());
+}
+
+//r: arm start from mass center
+void FlatPhysics::FlatBody::ApplyImpulseAtPoint(const Vector2& impulse, const Vector2& r)
+{
+    if (IsStatic())return;
+    AddLinearVelocity(impulse * GetInverseMass());
+    AddAngularVelocity(Vector2::Cross(r, impulse) * GetInverseInertia());
 }
 
 void FlatPhysics::FlatBody::ResetMassData()

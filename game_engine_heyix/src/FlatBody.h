@@ -89,7 +89,9 @@ namespace FlatPhysics {
 
         void AddForce(const Vector2& amount);
         void AddTorque(float amount);
-        void ApplyImpulse(const Vector2& impulse, const Vector2& point);
+        void ApplyImpulseLinear(const Vector2& impulse);
+        void ApplyImpulseAngular(const float j);
+        void ApplyImpulseAtPoint(const Vector2& impulse, const Vector2& r);
         void SetLinearVelocity(const Vector2& velocity) { if (is_static) return; linear_velocity = velocity; }
         void SetAngularVelocity(float velocity) { if (is_static)return; angular_velocity = velocity; }
         void AddLinearVelocity(const Vector2& delta) { SetLinearVelocity(linear_velocity + delta); }

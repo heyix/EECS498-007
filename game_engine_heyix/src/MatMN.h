@@ -12,6 +12,8 @@ namespace FlatPhysics {
             float& operator()(int j) {  return p[j]; }
             const float& operator()(int j) const {  return p[j]; }
             int size() const noexcept { return n; }
+            float Dot(const RowView& other) const noexcept;
+            float Dot(const VecN& v) const noexcept;
         private:
             float* p = nullptr;
             int    n = 0;
@@ -21,6 +23,8 @@ namespace FlatPhysics {
             RowViewConst(const float* p, int n) noexcept : p(p), n(n) {}
             const float& operator()(int j) const {  return p[j]; }
             int size() const noexcept { return n; }
+            float Dot(const RowViewConst& other) const noexcept;
+            float Dot(const VecN& v) const noexcept;
         private:
             const float* p = nullptr;
             int          n = 0;
@@ -32,6 +36,8 @@ namespace FlatPhysics {
             float& operator()(int i) {  return base[i * stride]; }
             const float& operator()(int i) const {  return base[i * stride]; }
             int size() const noexcept { return m; }
+            float Dot(const ColumnView& other) const noexcept;
+            float Dot(const VecN& v) const noexcept;
         private:
             float* base = nullptr;
             int    m = 0;
@@ -42,6 +48,8 @@ namespace FlatPhysics {
             ColumnViewConst(const float* base, int m, int stride) noexcept : base(base), m(m), stride(stride) {}
             const float& operator()(int i) const { return base[i * stride]; }
             int size() const noexcept { return m; }
+            float Dot(const ColumnViewConst& other) const noexcept;
+            float Dot(const VecN& v) const noexcept;
         private:
             const float* base = nullptr;
             int          m = 0;
@@ -83,7 +91,8 @@ namespace FlatPhysics {
         ColumnViewConst GetColumn(int j) const {
             return ColumnViewConst(data.data() + j, M, N);
         }
-
+    public:
+        static VecN SolveGS(const MatMN& A, const VecN& b);
     public:
         int M = 0;
         int N = 0;

@@ -73,4 +73,82 @@ namespace FlatPhysics {
         return t;
     }
 
+    VecN MatMN::SolveGS(const MatMN& A, const VecN& b)
+    {
+        int N = b.N;
+        VecN X(N,0);
+        for (int iterations = 0; iterations < N; iterations++) {
+            for (int i = 0; i < N; i++) {
+                if (A(i, i) != 0) {
+                    X(i) += (b(i) / A(i, i)) - (A[i].Dot(X) / A(i, i));
+                }
+            }
+        }
+        return X;
+    }
+
+    float MatMN::RowView::Dot(const RowView& other) const noexcept
+    {
+        float sum = 0.0f;
+        for (int i = 0; i < n; ++i)
+            sum += p[i] * other.p[i];
+        return sum;
+    }
+
+    float MatMN::RowView::Dot(const VecN& v) const noexcept
+    {
+        float sum = 0.0f;
+        for (int i = 0; i < n; ++i)
+            sum += p[i] * v(i);
+        return sum;
+    }
+
+    float MatMN::RowViewConst::Dot(const RowViewConst& other) const noexcept
+    {
+        float sum = 0.0f;
+        for (int i = 0; i < n; ++i)
+            sum += p[i] * other.p[i];
+        return sum;
+    }
+
+    float MatMN::RowViewConst::Dot(const VecN& v) const noexcept
+    {
+        float sum = 0.0f;
+        for (int i = 0; i < n; ++i)
+            sum += p[i] * v(i);
+        return sum;
+    }
+
+    float MatMN::ColumnView::Dot(const ColumnView& other) const noexcept
+    {
+        float sum = 0.0f;
+        for (int i = 0; i < m; ++i)
+            sum += base[i * stride] * other.base[i * other.stride];
+        return sum;
+    }
+
+    float MatMN::ColumnView::Dot(const VecN& v) const noexcept
+    {
+        float sum = 0.0f;
+        for (int i = 0; i < m; ++i)
+            sum += base[i * stride] * v(i);
+        return sum;
+    }
+
+    float MatMN::ColumnViewConst::Dot(const ColumnViewConst& other) const noexcept
+    {
+        float sum = 0.0f;
+        for (int i = 0; i < m; ++i)
+            sum += base[i * stride] * other.base[i * other.stride];
+        return sum;
+    }
+
+    float MatMN::ColumnViewConst::Dot(const VecN& v) const noexcept
+    {
+        float sum = 0.0f;
+        for (int i = 0; i < m; ++i)
+            sum += base[i * stride] * v(i);
+        return sum;
+    }
+
 }

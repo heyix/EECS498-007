@@ -158,6 +158,9 @@ namespace FlatPhysics {
 		for (FlatBody* body : bodies) {
 			body->IntegrateForces(time,gravity);
 		}
+		for (std::unique_ptr<FlatConstraint>& constraint : constraints) {
+			constraint->Solve();
+		}
 		for (FlatBody* body : bodies) {
 			body->IntegrateVelocities(time);
 		}

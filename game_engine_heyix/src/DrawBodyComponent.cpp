@@ -14,6 +14,7 @@
 #include "FlatFixture.h"
 #include "FlatWorld.h"
 #include "MatMN.h"
+#include "JointConstraint.h"
 namespace {
     static inline uint32_t Hash32(uint32_t x) {
         x ^= x >> 16; x *= 0x7feb352d; x ^= x >> 15; x *= 0x846ca68b; x ^= x >> 16;
@@ -154,6 +155,19 @@ void DrawBodyComponent::On_Start()
 		FlatPhysics::FlatBody::CreateCircleBody(0.2f, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body);
 	}
     PhysicsDB::flat_world->AddBody(body.get());
+
+    //if (holder_object->ID == 8) {
+    //    auto sb = Engine::instance->running_game->Find_All_GameObjects_By_Name("Body");
+    //    std::shared_ptr<Component> nt;
+    //    for (auto i : sb) {
+    //        auto ptr = i.lock();
+    //        if (ptr->ID == 7)
+    //            nt = ptr->Get_Component("DrawBodyComponent").lock();
+    //    }
+    //    std::shared_ptr<DrawBodyComponent> body2 = std::dynamic_pointer_cast<DrawBodyComponent>(nt);
+    //    std::unique_ptr<FlatPhysics::JointConstraint> constraint = std::make_unique<FlatPhysics::JointConstraint>(body.get(), body2->body.get(), body->GetPosition());
+    //    PhysicsDB::flat_world->AddConstraint(std::move(constraint));
+    //}
 }
 
 void DrawBodyComponent::On_Fixed_Update()

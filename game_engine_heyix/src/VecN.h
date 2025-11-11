@@ -22,6 +22,7 @@ namespace FlatPhysics {
 		void Zero();
 	public:
 		int N;
+	private:
 		std::vector<float> data;
 	};
 }
