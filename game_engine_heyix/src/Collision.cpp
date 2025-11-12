@@ -343,7 +343,7 @@ namespace FlatPhysics {
 		contact_point.normal = n;
 		contact_point.start = centerB - n * radiusB;
 		contact_point.end = centerA + n * radiusA;
-		contact_point.depth = std::max(0.0f, rSum - dist);
+		contact_point.depth = (contact_point.end - contact_point.start).Length();
 		contact.push_back(contact_point);
 		return true;
 	}

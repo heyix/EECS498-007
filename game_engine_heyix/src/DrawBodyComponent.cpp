@@ -162,7 +162,7 @@ void DrawBodyComponent::On_Start()
 	}
     PhysicsDB::flat_world->AddBody(body.get());
 
-    if (holder_object->ID >= 8) {
+    /*if (holder_object->ID >= 8) {
         auto sb = Engine::instance->running_game->Find_All_GameObjects_By_Name("Body");
         auto sb2 = Engine::instance->running_game->Find_All_GameObjects_By_Name("Body2");
         std::vector<std::weak_ptr<GameObject>> merged;
@@ -177,7 +177,7 @@ void DrawBodyComponent::On_Start()
         std::shared_ptr<DrawBodyComponent> body2 = std::dynamic_pointer_cast<DrawBodyComponent>(nt);
         std::unique_ptr<FlatPhysics::JointConstraint> constraint = std::make_unique<FlatPhysics::JointConstraint>(body.get(), body2->body.get(), body2->body->GetMassCenterWorld());
         PhysicsDB::flat_world->AddConstraint(std::move(constraint));
-    }
+    }*/
 }
 
 void DrawBodyComponent::On_Fixed_Update()

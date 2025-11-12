@@ -7,6 +7,7 @@
 #include "FlatMath.h"
 #include "BroadPhaseNaive.h"
 #include "FlatSolverNaive.h"
+#include "PenetrationConstraint.h"
 
 namespace FlatPhysics {
 	namespace {
@@ -152,22 +153,52 @@ namespace FlatPhysics {
 	}
 	void FlatWorld::Step(float time)
 	{
+		std::vector<PenetrationConstraint> penetrations;
 		/*for (FlatBody* body : bodies) {
 			body->Step(time, gravity);
 		}*/
 		for (FlatBody* body : bodies) {
 			body->IntegrateForces(time,gravity);
 		}
+		contacts.clear();
+		contact_pairs.clear();
+
+		BroadPhase();
+		for (const ContactPair& pair : contact_pairs) {
+			FlatFixture* fa = pair.fixture_a;
+			FlatFixture* fb = pair.fixture_b;
+			if (!fa || !fb || fa->GetBody() == fb->GetBody()) {
+				continue;
+			}
+			std::vector<ContactPoint> contact_points;
+			if (Collision::DetectCollision(fa, fb, contact_points)) {
+				contacts.push_back({ fa, fb, contact_points });
+				for (ContactPoint& contact_point : contact_points) {
+					PenetrationConstraint penetration_constraint = PenetrationConstraint(fa->GetBody(), fb->GetBody(), contact_point.start, contact_point.end, contact_point.normal);
+					penetrations.push_back(penetration_constraint);
+				}
+			}
+		}
+
 		for (auto& constraint : constraints) {
 			constraint->PreSolve(time);
+		}
+		for (auto& constraint : penetrations) {
+			constraint.PreSolve(time);
 		}
 		for (int i = 0; i < 5; i++) {
 			for (std::unique_ptr<FlatConstraint>& constraint : constraints) {
 				constraint->Solve();
 			}
+			for (auto& constraint : penetrations) {
+				constraint.Solve();
+			}
 		}
 		for (auto& constraint : constraints) {
 			constraint->PostSolve();
+		}
+		for (auto& constraint : penetrations) {
+			constraint.PostSolve();
 		}
 		for (FlatBody* body : bodies) {
 			body->IntegrateVelocities(time);
