@@ -6,8 +6,11 @@ namespace FlatPhysics {
 	public:
 		JointConstraint(FlatBody* a, FlatBody* b, const Vector2& anchor_point);
 	public:
+		virtual void PreSolve(float dt)override;
 		virtual void Solve()override;
 	private:
 		MatMN jacobian;
+		VecN cached_lambda;
+		float bias = 0;
 	};
 }

@@ -12,7 +12,9 @@ namespace FlatPhysics {
 		MatMN GetInverseM()const;
 		VecN GetVelocities()const;
 	public:
-		virtual void Solve();
+		virtual void PreSolve(float dt) {}
+		virtual void Solve() {}
+		virtual void PostSolve() {}
 	public:
 		FlatBody* a;
 		FlatBody* b;

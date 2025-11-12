@@ -1,8 +1,5 @@
 #include "FlatConstraint.h"
 namespace FlatPhysics {
-	void FlatPhysics::FlatConstraint::Solve()
-	{
-	}
 
 	MatMN FlatPhysics::FlatConstraint::GetInverseM() const
 	{
