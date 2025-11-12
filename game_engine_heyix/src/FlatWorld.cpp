@@ -172,7 +172,7 @@ namespace FlatPhysics {
 		for (FlatBody* body : bodies) {
 			body->IntegrateVelocities(time);
 		}
-		CollisionDetectionStep(time);
+		//CollisionDetectionStep(time);
 	}
 	void FlatWorld::AddConstraint(std::unique_ptr<FlatConstraint> constraint)
 	{
