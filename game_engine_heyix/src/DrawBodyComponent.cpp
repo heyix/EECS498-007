@@ -160,12 +160,12 @@ void DrawBodyComponent::On_Start()
 	}
     PhysicsDB::flat_world->AddBody(body.get());
 
-    if (holder_object->ID == 8) {
+    if (holder_object->ID >= 8) {
         auto sb = Engine::instance->running_game->Find_All_GameObjects_By_Name("Body");
         std::shared_ptr<Component> nt;
         for (auto i : sb) {
             auto ptr = i.lock();
-            if (ptr->ID == 7)
+            if (ptr->ID == holder_object->ID -1)
                 nt = ptr->Get_Component("DrawBodyComponent").lock();
         }
         std::shared_ptr<DrawBodyComponent> body2 = std::dynamic_pointer_cast<DrawBodyComponent>(nt);

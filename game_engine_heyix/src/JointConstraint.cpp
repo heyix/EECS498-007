@@ -44,6 +44,28 @@ namespace FlatPhysics {
 	void FlatPhysics::JointConstraint::Solve()
 	{
 
+		////6*1
+		//VecN v = GetVelocities();
+		////6*6
+		//MatMN inv_m = GetInverseM();
+
+		////6*1
+		//MatMN jt = jacobian.Transpose();
+		////(1*6 * 6*6)* 6*1 = (1*6 * 6*1) = 1*1 
+		//MatMN lhs = jacobian * inv_m * jt;
+		////(1*6 * 6*1)*-1 = 1*1
+		//VecN rhs = jacobian * v * -1;
+		//rhs(0) -= bias;
+		//VecN lambda = MatMN::SolveGS(lhs, rhs);
+		//cached_lambda += lambda;
+
+		//VecN impulses = jt * lambda;
+		//
+		//a->ApplyImpulseLinear({ impulses(0),impulses(1) });
+		//a->ApplyImpulseAngular(impulses(2));
+		//b->ApplyImpulseLinear({ impulses(3),impulses(4) });
+		//b->ApplyImpulseAngular(impulses(5));
+
 		//6*1
 		VecN v = GetVelocities();
 		//6*6
@@ -52,15 +74,17 @@ namespace FlatPhysics {
 		//6*1
 		MatMN jt = jacobian.Transpose();
 		//(1*6 * 6*6)* 6*1 = (1*6 * 6*1) = 1*1 
-		MatMN lhs = jacobian * inv_m * jt;
+		float lhs = (jacobian * inv_m * jt)(0, 0);
 		//(1*6 * 6*1)*-1 = 1*1
-		VecN rhs = jacobian * v * -1;
-		rhs(0) -= bias;
-		VecN lambda = MatMN::SolveGS(lhs, rhs);
+		float rhs = (jacobian * v * -1)(0);
+		rhs -= bias;
+		float solution = 0;
+		if (lhs > 0)solution = rhs / lhs;
+		VecN lambda = VecN(1, solution);
 		cached_lambda += lambda;
 
 		VecN impulses = jt * lambda;
-		
+
 		a->ApplyImpulseLinear({ impulses(0),impulses(1) });
 		a->ApplyImpulseAngular(impulses(2));
 		b->ApplyImpulseLinear({ impulses(3),impulses(4) });
