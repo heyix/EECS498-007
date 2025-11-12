@@ -79,15 +79,26 @@ namespace FlatPhysics {
 		float rhs = (jacobian * v * -1)(0);
 		rhs -= bias;
 		float solution = 0;
-		if (lhs > 0)solution = rhs / lhs;
-		VecN lambda = VecN(1, solution);
-		cached_lambda += lambda;
+		if (!(lhs > 1e-8f) || !std::isfinite(lhs)) {
+			return;
+		}
+		if (!std::isfinite(rhs)) {
+			return;
+		}
+		solution = rhs / lhs;
+		float max_lambda = 3;
+		float old = cached_lambda(0);
+		cached_lambda(0) += solution;
+		//cached_lambda(0) = std::clamp(cached_lambda(0), -max_lambda, max_lambda);
+		VecN dLambdaClamped = VecN(1, cached_lambda(0) - old);
 
-		VecN impulses = jt * lambda;
+		VecN impulses = jt * dLambdaClamped;
 
+		std::cout << a->GetLinearVelocity();
 		a->ApplyImpulseLinear({ impulses(0),impulses(1) });
 		a->ApplyImpulseAngular(impulses(2));
 		b->ApplyImpulseLinear({ impulses(3),impulses(4) });
 		b->ApplyImpulseAngular(impulses(5));
+
 	}
 }

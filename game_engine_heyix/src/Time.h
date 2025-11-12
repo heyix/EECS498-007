@@ -9,7 +9,7 @@ private:
 	float unscaled_time = 0;
 	float time_scale = 1.0f;
 
-	float fixed_delta_time = 0.02f;
+	float fixed_delta_time = 1.0f/50;
 	float fixed_time = 0;
 
 	double accumulator = 0.0f;
