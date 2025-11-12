@@ -160,8 +160,7 @@ namespace FlatPhysics {
 		for (FlatBody* body : bodies) {
 			body->IntegrateForces(time,gravity);
 		}
-		contacts.clear();
-		contact_pairs.clear();
+
 
 		BroadPhase();
 		for (const ContactPair& pair : contact_pairs) {
@@ -174,7 +173,12 @@ namespace FlatPhysics {
 			if (Collision::DetectCollision(fa, fb, contact_points)) {
 				contacts.push_back({ fa, fb, contact_points });
 				for (ContactPoint& contact_point : contact_points) {
-					PenetrationConstraint penetration_constraint = PenetrationConstraint(fa->GetBody(), fb->GetBody(), contact_point.start, contact_point.end, contact_point.normal);
+					Vector2 start = contact_point.start;
+					Vector2 end = contact_point.end;
+					if (fa->GetShapeType() == ShapeType::Circle && fb->GetShapeType() == ShapeType::Polygon) {
+						std::swap(start, end);
+					}
+					PenetrationConstraint penetration_constraint = PenetrationConstraint(fa->GetBody(), fb->GetBody(), start, end, contact_point.normal, std::max(fa->GetFriction(),fb->GetFriction()));
 					penetrations.push_back(penetration_constraint);
 				}
 			}
@@ -235,6 +239,8 @@ namespace FlatPhysics {
 		if (!broadphase_) {
 			return;
 		}
+		contacts.clear();
+		contact_pairs.clear();
 		SynchronizeFixtures();
 		BroadphasePairCollector collector(contact_pairs);
 		broadphase_->UpdatePairs(&collector);

@@ -1,8 +1,8 @@
 #include "PenetrationConstraint.h"
 
 namespace FlatPhysics {
-	PenetrationConstraint::PenetrationConstraint(FlatBody* a, FlatBody* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal)
-		:FlatConstraint(a,b,a->WorldToLocal(collision_point_a), b->WorldToLocal(collision_point_b)), normal(a->WorldToLocal(normal)), bias(0), jacobian(1, 6), cached_lambda(1, 0)
+	PenetrationConstraint::PenetrationConstraint(FlatBody* a, FlatBody* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal, float friction_)
+		:FlatConstraint(a,b,a->WorldToLocal(collision_point_a), b->WorldToLocal(collision_point_b)), normal(a->WorldToLocal(normal)), bias(0), jacobian(2, 6, 0), cached_lambda(2, 0),friction(friction_)
 	{
 	}
 	void FlatPhysics::PenetrationConstraint::PreSolve(float dt)
@@ -29,13 +29,24 @@ namespace FlatPhysics {
 		float j4 = Vector2::Cross(rb, n);
 		jacobian(0, 5) = j4;
 
-		//MatMN jt = jacobian.Transpose();
-		////warm start
-		//VecN impulses = jt * cached_lambda;
-		//a->ApplyImpulseLinear({ impulses(0),impulses(1) });
-		//a->ApplyImpulseAngular(impulses(2));
-		//b->ApplyImpulseLinear({ impulses(3),impulses(4) });
-		//b->ApplyImpulseAngular(impulses(5));
+		if (friction > 0) {
+			Vector2 t = n.NormalDirection().Normalized();
+			jacobian(1, 0) = -t.x();
+			jacobian(1, 1) = -t.y();
+			jacobian(1, 2) = Vector2::Cross(-ra, t);
+
+			jacobian(1, 3) = t.x();
+			jacobian(1, 4) = t.y();
+			jacobian(1, 5) = Vector2::Cross(rb, t);
+		}
+
+		MatMN jt = jacobian.Transpose();
+		//warm start
+		VecN impulses = jt * cached_lambda;
+		a->ApplyImpulseLinear({ impulses(0),impulses(1) });
+		a->ApplyImpulseAngular(impulses(2));
+		b->ApplyImpulseLinear({ impulses(3),impulses(4) });
+		b->ApplyImpulseAngular(impulses(5));
 
 		float beta = 0.2f;
 		float C = Vector2::Dot(pb - pa, -n);
@@ -45,19 +56,18 @@ namespace FlatPhysics {
 
 	void FlatPhysics::PenetrationConstraint::Solve()
 	{
-		//6*1
 		VecN v = GetVelocities();
-		//6*6
 		MatMN inv_m = GetInverseM();
 
-		//6*1
 		MatMN jt = jacobian.Transpose();
-		//(1*6 * 6*6)* 6*1 = (1*6 * 6*1) = 1*1 
 		MatMN lhs = jacobian * inv_m * jt;
-		//(1*6 * 6*1)*-1 = 1*1
 		VecN rhs = jacobian * v * -1;
 		rhs(0) -= bias;
 		VecN lambda = MatMN::SolveGS(lhs, rhs);
+		VecN old_lambda = cached_lambda;
+		cached_lambda += lambda;
+		cached_lambda(0) = (cached_lambda(0) < 0) ? 0 : cached_lambda(0);
+		lambda = cached_lambda - old_lambda;
 
 		VecN impulses = jt * lambda;
 		a->ApplyImpulseLinear({ impulses(0),impulses(1) });
