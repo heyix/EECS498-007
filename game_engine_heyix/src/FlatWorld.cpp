@@ -198,15 +198,20 @@ namespace FlatPhysics {
 				constraint.Solve();
 			}
 		}
-		for (auto& constraint : constraints) {
-			constraint->PostSolve();
-		}
-		for (auto& constraint : penetrations) {
-			constraint.PostSolve();
-		}
+
 		for (FlatBody* body : bodies) {
 			body->IntegrateVelocities(time);
 		}
+
+		for (int i = 0; i < 3; i++) {
+			for (auto& constraint : constraints) {
+				constraint->PostSolve();
+			}
+			for (auto& constraint : penetrations) {
+				constraint.PostSolve();
+			}
+		}
+
 		//CollisionDetectionStep(time);
 	}
 	void FlatWorld::AddConstraint(std::unique_ptr<FlatConstraint> constraint)

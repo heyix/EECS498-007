@@ -162,22 +162,22 @@ void DrawBodyComponent::On_Start()
 	}
     PhysicsDB::flat_world->AddBody(body.get());
 
-    /*if (holder_object->ID >= 8) {
-        auto sb = Engine::instance->running_game->Find_All_GameObjects_By_Name("Body");
-        auto sb2 = Engine::instance->running_game->Find_All_GameObjects_By_Name("Body2");
-        std::vector<std::weak_ptr<GameObject>> merged;
-        merged.insert(merged.end(), sb.begin(), sb.end());
-        merged.insert(merged.end(), sb2.begin(), sb2.end());
-        std::shared_ptr<Component> nt;
-        for (auto i : merged) {
-            auto ptr = i.lock();
-            if (ptr->ID == holder_object->ID -1)
-                nt = ptr->Get_Component("DrawBodyComponent").lock();
-        }
-        std::shared_ptr<DrawBodyComponent> body2 = std::dynamic_pointer_cast<DrawBodyComponent>(nt);
-        std::unique_ptr<FlatPhysics::JointConstraint> constraint = std::make_unique<FlatPhysics::JointConstraint>(body.get(), body2->body.get(), body2->body->GetMassCenterWorld());
-        PhysicsDB::flat_world->AddConstraint(std::move(constraint));
-    }*/
+    //if (holder_object->ID >= 8) {
+    //    auto sb = Engine::instance->running_game->Find_All_GameObjects_By_Name("Body");
+    //    auto sb2 = Engine::instance->running_game->Find_All_GameObjects_By_Name("Body2");
+    //    std::vector<std::weak_ptr<GameObject>> merged;
+    //    merged.insert(merged.end(), sb.begin(), sb.end());
+    //    merged.insert(merged.end(), sb2.begin(), sb2.end());
+    //    std::shared_ptr<Component> nt;
+    //    for (auto i : merged) {
+    //        auto ptr = i.lock();
+    //        if (ptr->ID == holder_object->ID -1)
+    //            nt = ptr->Get_Component("DrawBodyComponent").lock();
+    //    }
+    //    std::shared_ptr<DrawBodyComponent> body2 = std::dynamic_pointer_cast<DrawBodyComponent>(nt);
+    //    std::unique_ptr<FlatPhysics::JointConstraint> constraint = std::make_unique<FlatPhysics::JointConstraint>(body->GetFixtures()[0].get(), body2->body->GetFixtures()[0].get(), body2->body->GetMassCenterWorld());
+    //    PhysicsDB::flat_world->AddConstraint(std::move(constraint));
+    //}
 }
 
 void DrawBodyComponent::On_Fixed_Update()

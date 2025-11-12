@@ -8,6 +8,7 @@ namespace FlatPhysics {
 	public:
 		virtual void PreSolve(float dt)override;
 		virtual void Solve()override;
+		virtual void PostSolve()override;
 	private:
 		MatMN jacobian;
 		VecN cached_lambda;
