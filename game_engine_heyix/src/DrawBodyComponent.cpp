@@ -156,14 +156,20 @@ void DrawBodyComponent::On_Start()
         FlatPhysics::FlatBody::CreatePolygonBody(poly, transform->Get_World_Position(), density, is_static, 0.5f, this->body);
     }
 	else {
-		FlatPhysics::FlatBody::CreateCircleBody(0.2f, transform->Get_World_Position(), 2.0f, false, 0.5f, this->body);
+        bool is_static = false;
+        if (holder_object->ID == 7)is_static = true;
+		FlatPhysics::FlatBody::CreateCircleBody(0.2f, transform->Get_World_Position(), 2.0f, is_static, 0.5f, this->body);
 	}
     PhysicsDB::flat_world->AddBody(body.get());
 
     if (holder_object->ID >= 8) {
         auto sb = Engine::instance->running_game->Find_All_GameObjects_By_Name("Body");
+        auto sb2 = Engine::instance->running_game->Find_All_GameObjects_By_Name("Body2");
+        std::vector<std::weak_ptr<GameObject>> merged;
+        merged.insert(merged.end(), sb.begin(), sb.end());
+        merged.insert(merged.end(), sb2.begin(), sb2.end());
         std::shared_ptr<Component> nt;
-        for (auto i : sb) {
+        for (auto i : merged) {
             auto ptr = i.lock();
             if (ptr->ID == holder_object->ID -1)
                 nt = ptr->Get_Component("DrawBodyComponent").lock();
