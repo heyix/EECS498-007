@@ -1,16 +1,18 @@
 #include "JointConstraint.h"
 #include <algorithm>
 namespace FlatPhysics {
-	JointConstraint::JointConstraint(FlatBody* a, FlatBody* b, const Vector2& anchor_point)
-		:FlatConstraint(a,b,a->WorldToLocal(anchor_point),b->WorldToLocal(anchor_point)),jacobian(1,6),cached_lambda(1,0)
+	JointConstraint::JointConstraint(FlatFixture* a, FlatFixture* b, const Vector2& anchor_point)
+		:FlatConstraint(a,b,a->GetBody()->WorldToLocal(anchor_point),b->GetBody()->WorldToLocal(anchor_point)),jacobian(1,6),cached_lambda(1,0)
 	{
 	}
 	void JointConstraint::PreSolve(float dt)
 	{
-		Vector2 pa = a->LocalToWorld(point_a);
-		Vector2 pb = b->LocalToWorld(point_b);
-		Vector2 ra = pa - a->GetMassCenterWorld();
-		Vector2 rb = pb - b->GetMassCenterWorld();
+		FlatBody* bodyA = a->GetBody();
+		FlatBody* bodyB = b->GetBody();
+		Vector2 pa = bodyA->LocalToWorld(point_a);
+		Vector2 pb = bodyB->LocalToWorld(point_b);
+		Vector2 ra = pa - bodyA->GetMassCenterWorld();
+		Vector2 rb = pb - bodyB->GetMassCenterWorld();
 		jacobian.Zero();
 
 		Vector2 j1 = (pa - pb) * 2.0f;
@@ -31,10 +33,10 @@ namespace FlatPhysics {
 		//warm start
 		VecN impulses = jt * cached_lambda;
 
-		a->ApplyImpulseLinear({ impulses(0),impulses(1) });
-		a->ApplyImpulseAngular(impulses(2));
-		b->ApplyImpulseLinear({ impulses(3),impulses(4) });
-		b->ApplyImpulseAngular(impulses(5));
+		bodyA->ApplyImpulseLinear({ impulses(0),impulses(1) });
+		bodyA->ApplyImpulseAngular(impulses(2));
+		bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) });
+		bodyB->ApplyImpulseAngular(impulses(5));
 
 		float beta = 0.01;
 		float C = Vector2::Dot(pb - pa, pb - pa);
@@ -93,11 +95,12 @@ namespace FlatPhysics {
 		VecN dLambdaClamped = VecN(1, cached_lambda(0) - old);
 
 		VecN impulses = jt * dLambdaClamped;
-
-		a->ApplyImpulseLinear({ impulses(0),impulses(1) });
-		a->ApplyImpulseAngular(impulses(2));
-		b->ApplyImpulseLinear({ impulses(3),impulses(4) });
-		b->ApplyImpulseAngular(impulses(5));
+		FlatBody* bodyA = a->GetBody();
+		FlatBody* bodyB = b->GetBody();
+		bodyA->ApplyImpulseLinear({ impulses(0),impulses(1) });
+		bodyA->ApplyImpulseAngular(impulses(2));
+		bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) });
+		bodyB->ApplyImpulseAngular(impulses(5));
 
 	}
 }

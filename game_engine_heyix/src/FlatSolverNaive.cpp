@@ -50,7 +50,7 @@ namespace FlatPhysics {
 		else {
 			contact_points.SetPoints(manifold.contact_points[0].end, manifold.contact_points[1].end);
 		}
-		float e = std::min(bodyA->restitution, bodyB->restitution);
+		float e = std::min(fixture_a->GetRestitution(), fixture_b->GetRestitution());
 		std::vector<Vector2> contact_list{ contact_points.point1, contact_points.point2 };
 
 		std::vector<Vector2> impulse_list;

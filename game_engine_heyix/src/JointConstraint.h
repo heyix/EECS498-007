@@ -4,7 +4,7 @@
 namespace FlatPhysics {
 	class JointConstraint :public FlatConstraint {
 	public:
-		JointConstraint(FlatBody* a, FlatBody* b, const Vector2& anchor_point);
+		JointConstraint(FlatFixture* a, FlatFixture* b, const Vector2& anchor_point);
 	public:
 		virtual void PreSolve(float dt)override;
 		virtual void Solve()override;

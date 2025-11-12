@@ -17,7 +17,6 @@ FlatBody::FlatBody(
     linear_velocity(Vector2::Zero()),
     angle_rad(0.0f),
     angular_velocity(0.0f),
-    restitution(FlatMath::Clamp(restitution_, 0.0f, 1.0f)),
     is_static(is_static_),
     force(Vector2::Zero()),
     inverse_inertia(0),

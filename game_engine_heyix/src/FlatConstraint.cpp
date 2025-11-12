@@ -4,24 +4,28 @@ namespace FlatPhysics {
 	MatMN FlatPhysics::FlatConstraint::GetInverseM() const
 	{
 		MatMN result(6, 6, 0);
-		result(0, 0) = a->GetInverseMass();
-		result(1, 1) = a->GetInverseMass();
-		result(2, 2) = a->GetInverseInertia();
-		result(3, 3) = b->GetInverseMass();
-		result(4, 4) = b->GetInverseMass();
-		result(5, 5) = b->GetInverseInertia();
+		FlatBody* bodyA = a->GetBody();
+		FlatBody* bodyB = b->GetBody();
+		result(0, 0) = bodyA->GetInverseMass();
+		result(1, 1) = bodyA->GetInverseMass();
+		result(2, 2) = bodyA->GetInverseInertia();
+		result(3, 3) = bodyB->GetInverseMass();
+		result(4, 4) = bodyB->GetInverseMass();
+		result(5, 5) = bodyB->GetInverseInertia();
 		return result;
 	}
 
 	VecN FlatConstraint::GetVelocities() const
 	{
 		VecN v(6, 0);
-		v(0) = a->GetLinearVelocity().x();
-		v(1) = a->GetLinearVelocity().y();
-		v(2) = a->GetAngularVelocity();
-		v(3) = b->GetLinearVelocity().x();
-		v(4) = b->GetLinearVelocity().y();
-		v(5) = b->GetAngularVelocity();
+		FlatBody* bodyA = a->GetBody();
+		FlatBody* bodyB = b->GetBody();
+		v(0) = bodyA->GetLinearVelocity().x();
+		v(1) = bodyA->GetLinearVelocity().y();
+		v(2) = bodyA->GetAngularVelocity();
+		v(3) = bodyB->GetLinearVelocity().x();
+		v(4) = bodyB->GetLinearVelocity().y();
+		v(5) = bodyB->GetAngularVelocity();
 		return v;
 	}
 

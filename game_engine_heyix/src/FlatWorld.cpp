@@ -178,7 +178,7 @@ namespace FlatPhysics {
 					if (fa->GetShapeType() == ShapeType::Circle && fb->GetShapeType() == ShapeType::Polygon) {
 						std::swap(start, end);
 					}
-					PenetrationConstraint penetration_constraint = PenetrationConstraint(fa->GetBody(), fb->GetBody(), start, end, contact_point.normal, std::max(fa->GetFriction(),fb->GetFriction()));
+					PenetrationConstraint penetration_constraint = PenetrationConstraint(fa, fb, start, end, contact_point.normal);
 					penetrations.push_back(penetration_constraint);
 				}
 			}

@@ -43,7 +43,6 @@ namespace FlatPhysics {
 
         FlatWorld* world_ = nullptr;
     public:
-        float restitution;
         const bool  is_static;
     public:
         void SetWorld(FlatWorld* world) { world_ = world; }

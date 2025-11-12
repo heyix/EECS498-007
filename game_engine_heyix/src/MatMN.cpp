@@ -1,6 +1,6 @@
 #include "MatMN.h"
 #include <algorithm>
-
+#include <iostream>
 namespace FlatPhysics {
     MatMN::MatMN()
         :M(0),N(0)

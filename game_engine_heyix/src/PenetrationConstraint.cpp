@@ -1,18 +1,20 @@
 #include "PenetrationConstraint.h"
 #include <algorithm>
 namespace FlatPhysics {
-	PenetrationConstraint::PenetrationConstraint(FlatBody* a, FlatBody* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal, float friction_)
-		:FlatConstraint(a,b,a->WorldToLocal(collision_point_a), b->WorldToLocal(collision_point_b)), normal(a->WorldToLocal(normal)), bias(0), jacobian(2, 6, 0), cached_lambda(2, 0),friction(friction_)
+	PenetrationConstraint::PenetrationConstraint(FlatFixture *a, FlatFixture* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal)
+		:FlatConstraint(a,b,a->GetBody()->WorldToLocal(collision_point_a), b->GetBody()->WorldToLocal(collision_point_b)), normal(a->GetBody()->WorldToLocal(normal)), bias(0), jacobian(2, 6, 0), cached_lambda(2, 0),friction(std::max(a->GetFriction(), b->GetFriction()))
 	{
 	}
 	void FlatPhysics::PenetrationConstraint::PreSolve(float dt)
 	{
-		const Vector2 pa = a->LocalToWorld(point_a);
-		const Vector2 pb = b->LocalToWorld(point_b);
-		const Vector2 n = a->LocalToWorld(normal);
+		FlatBody* bodyA = a->GetBody();
+		FlatBody* bodyB = b->GetBody();
+		const Vector2 pa = bodyA->LocalToWorld(point_a);
+		const Vector2 pb = bodyB->LocalToWorld(point_b);
+		const Vector2 n = bodyA->LocalToWorld(normal);
 
-		const Vector2 ra = pa - a->GetMassCenterWorld();
-		const Vector2 rb = pb - b->GetMassCenterWorld();
+		const Vector2 ra = pa - bodyA->GetMassCenterWorld();
+		const Vector2 rb = pb - bodyB->GetMassCenterWorld();
 
 		jacobian.Zero();
 		Vector2 j1 = -n;
@@ -44,20 +46,21 @@ namespace FlatPhysics {
 		MatMN jt = jacobian.Transpose();
 		//warm start
 		VecN impulses = jt * cached_lambda;
-		a->ApplyImpulseLinear({ impulses(0),impulses(1) });
-		a->ApplyImpulseAngular(impulses(2));
-		b->ApplyImpulseLinear({ impulses(3),impulses(4) });
-		b->ApplyImpulseAngular(impulses(5));
+		bodyA->ApplyImpulseLinear({ impulses(0),impulses(1) });
+		bodyA->ApplyImpulseAngular(impulses(2));
+		bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) });
+		bodyB->ApplyImpulseAngular(impulses(5));
 
 		float beta = 0.5f;
 		float C = Vector2::Dot(pb - pa, -n);
 		C = std::min(0.0f, C + 0.01f);
 		
 
-		Vector2 va = a->GetLinearVelocity() + Vector2(-a->GetAngularVelocity() * ra.y(), a->GetAngularVelocity() * ra.x());
-		Vector2 vb = b->GetLinearVelocity() + Vector2(-b->GetAngularVelocity() * rb.y(), b->GetAngularVelocity() * rb.x());
+		Vector2 va = bodyA->GetLinearVelocity() + Vector2(-bodyA->GetAngularVelocity() * ra.y(), bodyA->GetAngularVelocity() * ra.x());
+		Vector2 vb = bodyB->GetLinearVelocity() + Vector2(-bodyB->GetAngularVelocity() * rb.y(), bodyB->GetAngularVelocity() * rb.x());
 		float v_rel_dot_normal = Vector2::Dot((va - vb), n);
-		float e = std::min(a->restitution, b->restitution);
+		float e = std::min(a->GetRestitution(), b->GetRestitution());
+		std::cout << e;
 		bias = (beta / dt) * C ;
 		bias += (e * v_rel_dot_normal);//bounceness
 	}
@@ -81,13 +84,16 @@ namespace FlatPhysics {
 		}
 		lambda = cached_lambda - old_lambda;
 
+		FlatBody* bodyA = a->GetBody();
+		FlatBody* bodyB = b->GetBody();
 		VecN impulses = jt * lambda;
-		a->ApplyImpulseLinear({ impulses(0),impulses(1) });
-		a->ApplyImpulseAngular(impulses(2));
-		b->ApplyImpulseLinear({ impulses(3),impulses(4) });
-		b->ApplyImpulseAngular(impulses(5));
+		bodyA->ApplyImpulseLinear({ impulses(0),impulses(1) });
+		bodyA->ApplyImpulseAngular(impulses(2));
+		bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) });
+		bodyB->ApplyImpulseAngular(impulses(5));
 	}
 	void PenetrationConstraint::PostSolve()
+
 	{
 	}
 }

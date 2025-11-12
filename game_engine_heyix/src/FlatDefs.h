@@ -27,8 +27,8 @@ namespace FlatPhysics {
 	struct FixtureDef {
 		const Shape* shape = nullptr;
 		float density = 1.0f;
-		float friction = 0.1f;
-		float restitution = 0.0f;
+		float friction = 0.2f;
+		float restitution = 0.3f;
 		bool is_trigger = false;
 		Filter filter{};
 		void* user_data = nullptr;
