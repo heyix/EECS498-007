@@ -20,9 +20,9 @@ namespace FlatPhysics {
         manifolds_ = &manifolds;
     }
 
-    void FlatSolverNaive::WarmStart() {}
+    void FlatSolverNaive::PreSolve() {}
 
-    void FlatSolverNaive::SolveVelocity(float /*dt*/, int iterations) {
+    void FlatSolverNaive::Solve(float /*dt*/, int iterations) {
         if (!manifolds_) {
             return;
         }
@@ -153,7 +153,7 @@ namespace FlatPhysics {
 		}
     }
 
-    void FlatSolverNaive::SolvePosition(float /*dt*/, int iterations) {
+    void FlatSolverNaive::PostSolve(float /*dt*/, int iterations) {
         if (!manifolds_) {
             return;
         }

@@ -232,9 +232,9 @@ namespace FlatPhysics {
 
 		if (!contacts.empty() && solver_) {
 			solver_->Initialize(contacts);
-			solver_->WarmStart();
-			solver_->SolveVelocity(dt, velocity_iterations_);
-			solver_->SolvePosition(dt, position_iterations_);
+			solver_->PreSolve();
+			solver_->Solve(dt, velocity_iterations_);
+			solver_->PostSolve(dt, position_iterations_);
 			solver_->StoreImpulses();
 		}
 	}
@@ -308,7 +308,7 @@ namespace FlatPhysics {
 		SynchronizeFixtures();
 	}
 
-	void FlatWorld::SetSolver(std::unique_ptr<IContactSolver> solver)
+	void FlatWorld::SetSolver(std::unique_ptr<IFlatSolver> solver)
 	{
 		solver_ = std::move(solver);
 	}

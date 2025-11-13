@@ -26,7 +26,7 @@ namespace FlatPhysics {
 	public:
 		void DrawContactPoints();
 		void SetBroadPhase(std::unique_ptr<IBroadPhase> bp);
-		void SetSolver(std::unique_ptr<IContactSolver> solver);
+		void SetSolver(std::unique_ptr<IFlatSolver> solver);
 
 
 	private:
@@ -44,7 +44,7 @@ namespace FlatPhysics {
 		std::vector<FlatManifold> contacts;
 		std::vector<ContactPair> contact_pairs;
 		std::unique_ptr<IBroadPhase>    broadphase_;
-		std::unique_ptr<IContactSolver> solver_;
+		std::unique_ptr<IFlatSolver> solver_;
 		std::vector<std::unique_ptr<FlatConstraint>> constraints;
 		int velocity_iterations_{ 1 };
 		int position_iterations_{ 1 };

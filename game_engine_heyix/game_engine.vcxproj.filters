@@ -546,6 +546,12 @@
     <ClCompile Include="src\PenetrationConstraint.cpp">
       <Filter>Source Files\FlatPhysics\Math\Constraints</Filter>
     </ClCompile>
+    <ClCompile Include="src\BroadPhaseQuadTree.cpp">
+      <Filter>Source Files\FlatPhysics\BroadPhase</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FlatSolverPGS.cpp">
+      <Filter>Source Files\FlatPhysics\Solver</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThirdParty\lua\lapi.h">
@@ -946,6 +952,12 @@
     </ClInclude>
     <ClInclude Include="src\PenetrationConstraint.h">
       <Filter>Header Files\FlatPhysics\Math\Constraints</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BroadPhaseQuadTree.h">
+      <Filter>Header Files\FlatPhysics\BroadPhase</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatSolverPGS.h">
+      <Filter>Header Files\FlatPhysics\Solver</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

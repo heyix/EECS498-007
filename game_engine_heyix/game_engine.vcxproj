@@ -22,6 +22,7 @@
     <ClCompile Include="src\AudioDB.cpp" />
     <ClCompile Include="src\BoxCollider.cpp" />
     <ClCompile Include="src\BroadPhaseNaive.cpp" />
+    <ClCompile Include="src\BroadPhaseQuadTree.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\CircleCollider.cpp" />
     <ClCompile Include="src\ColliderBase.cpp" />
@@ -30,6 +31,7 @@
     <ClCompile Include="src\ComponentDB.cpp" />
     <ClCompile Include="src\ContactListener.cpp" />
     <ClCompile Include="src\CppComponent.cpp" />
+    <ClCompile Include="src\FlatSolverPGS.cpp" />
     <ClCompile Include="src\JointConstraint.cpp" />
     <ClCompile Include="src\DrawBodyComponent.cpp" />
     <ClCompile Include="src\EventBus.cpp" />
@@ -157,6 +159,7 @@
     <ClInclude Include="src\AudioDB.h" />
     <ClInclude Include="src\BoxCollider.h" />
     <ClInclude Include="src\BroadPhaseNaive.h" />
+    <ClInclude Include="src\BroadPhaseQuadTree.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\CircleCollider.h" />
     <ClInclude Include="src\ColliderBase.h" />
@@ -166,6 +169,7 @@
     <ClInclude Include="src\ComponentGroup.h" />
     <ClInclude Include="src\ContactListener.h" />
     <ClInclude Include="src\CppComponent.h" />
+    <ClInclude Include="src\FlatSolverPGS.h" />
     <ClInclude Include="src\JointConstraint.h" />
     <ClInclude Include="src\DrawBodyComponent.h" />
     <ClInclude Include="src\EventBus.h" />
