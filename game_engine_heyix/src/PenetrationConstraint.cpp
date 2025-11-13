@@ -51,7 +51,7 @@ namespace FlatPhysics {
 		bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) });
 		bodyB->ApplyImpulseAngular(impulses(5));
 
-		float beta = 0.5f;
+		float beta = 0.3f;
 		float C = Vector2::Dot(pb - pa, -n);
 		C = std::min(0.0f, C + 0.01f);
 		

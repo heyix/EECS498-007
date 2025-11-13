@@ -163,11 +163,11 @@ namespace FlatPhysics {
 		NarrowPhase();
 		solver_->Initialize(contacts,constraints);
 		solver_->PreSolve(time);
-		solver_->Solve(time, 10);
+		solver_->Solve(time, 20);
 		for (FlatBody* body : bodies) {
 			body->IntegrateVelocities(time);
 		}
-		solver_->PostSolve(time, 3);
+		solver_->PostSolve(time, 5);
 
 		//CollisionDetectionStep(time);
 	}
