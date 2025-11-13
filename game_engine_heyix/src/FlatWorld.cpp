@@ -230,7 +230,7 @@ namespace FlatPhysics {
 			}
 			std::vector<ContactPoint> contact_points;
 			if (Collision::DetectCollision(fa, fb, contact_points)) {
-				contacts.push_back({ fa, fb, contact_points });
+				contacts.emplace_back(fa, fb, std::move(contact_points));
 			}
 		}
 	}
