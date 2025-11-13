@@ -167,7 +167,7 @@ namespace FlatPhysics {
 		for (FlatBody* body : bodies) {
 			body->IntegrateVelocities(time);
 		}
-		solver_->PostSolve(time, 5);
+		solver_->PostSolve(time, 3);
 
 		//CollisionDetectionStep(time);
 	}
