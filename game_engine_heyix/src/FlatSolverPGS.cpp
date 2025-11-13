@@ -47,7 +47,7 @@ namespace FlatPhysics {
 
 	void FlatPhysics::FlatSolverPGS::PostSolve(float dt, int iterations)
 	{
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < iterations; i++) {
 			for (auto& constraint : *constraints_) {
 				constraint->PostSolve();
 			}

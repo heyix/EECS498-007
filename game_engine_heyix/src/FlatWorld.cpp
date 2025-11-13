@@ -153,26 +153,20 @@ namespace FlatPhysics {
 	}
 	void FlatWorld::Step(float time)
 	{
-		std::vector<PenetrationConstraint> penetrations;
 		/*for (FlatBody* body : bodies) {
 			body->Step(time, gravity);
 		}*/
 		for (FlatBody* body : bodies) {
 			body->IntegrateForces(time,gravity);
 		}
-
-
 		BroadPhase();
 		NarrowPhase();
-
 		solver_->Initialize(contacts,constraints);
 		solver_->PreSolve(time);
 		solver_->Solve(time, 5);
-
 		for (FlatBody* body : bodies) {
 			body->IntegrateVelocities(time);
 		}
-
 		solver_->PostSolve(time, 3);
 
 		//CollisionDetectionStep(time);
