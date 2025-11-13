@@ -16,11 +16,11 @@ namespace FlatPhysics {
         constexpr float kPositionPercent = 0.8f;
     } // namespace
 
-    void FlatSolverNaive::Initialize(const std::vector<FlatManifold>& manifolds) {
+    void FlatSolverNaive::Initialize(const std::vector<FlatManifold>& manifolds, const std::vector<std::unique_ptr<FlatConstraint>>& constraints) {
         manifolds_ = &manifolds;
     }
 
-    void FlatSolverNaive::PreSolve() {}
+    void FlatSolverNaive::PreSolve(float dt) {}
 
     void FlatSolverNaive::Solve(float /*dt*/, int iterations) {
         if (!manifolds_) {

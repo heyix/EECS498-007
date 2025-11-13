@@ -6,8 +6,8 @@ namespace FlatPhysics {
     public:
         FlatSolverNaive() = default;
 
-        void Initialize(const std::vector<FlatManifold>& manifolds) override;
-        void PreSolve() override;
+        virtual void Initialize(const std::vector<FlatManifold>& manifolds, const std::vector<std::unique_ptr<FlatConstraint>>& constraints) override;
+        void PreSolve(float dt) override;
         void Solve(float dt, int iterations) override;
         void PostSolve(float dt, int iterations) override;
         void StoreImpulses() override;

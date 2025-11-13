@@ -8,7 +8,7 @@
 #include "BroadPhaseNaive.h"
 #include "FlatSolverNaive.h"
 #include "PenetrationConstraint.h"
-
+#include "FlatSolverPGS.h"
 namespace FlatPhysics {
 	namespace {
 		class BroadphasePairCollector : public FlatPhysics::IPairCallback {
@@ -30,7 +30,7 @@ namespace FlatPhysics {
 		: gravity({ 0.0f, 9.81f })
 	{
 		SetBroadPhase(std::make_unique<BroadphaseNaive>());
-		SetSolver(std::make_unique<FlatSolverNaive>());
+		SetSolver(std::make_unique<FlatSolverPGS>());
 	}
 	void FlatWorld::AddBody(FlatBody* body)
 	{
@@ -163,54 +163,17 @@ namespace FlatPhysics {
 
 
 		BroadPhase();
-		for (const ContactPair& pair : contact_pairs) {
-			FlatFixture* fa = pair.fixture_a;
-			FlatFixture* fb = pair.fixture_b;
-			if (!fa || !fb || fa->GetBody() == fb->GetBody()) {
-				continue;
-			}
-			std::vector<ContactPoint> contact_points;
-			if (Collision::DetectCollision(fa, fb, contact_points)) {
-				contacts.push_back({ fa, fb, contact_points });
-				for (ContactPoint& contact_point : contact_points) {
-					Vector2 start = contact_point.start;
-					Vector2 end = contact_point.end;
-					if (fa->GetShapeType() == ShapeType::Circle && fb->GetShapeType() == ShapeType::Polygon) {
-						std::swap(start, end);
-					}
-					PenetrationConstraint penetration_constraint = PenetrationConstraint(fa, fb, start, end, contact_point.normal);
-					penetrations.push_back(penetration_constraint);
-				}
-			}
-		}
+		NarrowPhase();
 
-		for (auto& constraint : constraints) {
-			constraint->PreSolve(time);
-		}
-		for (auto& constraint : penetrations) {
-			constraint.PreSolve(time);
-		}
-		for (int i = 0; i < 5; i++) {
-			for (std::unique_ptr<FlatConstraint>& constraint : constraints) {
-				constraint->Solve();
-			}
-			for (auto& constraint : penetrations) {
-				constraint.Solve();
-			}
-		}
+		solver_->Initialize(contacts,constraints);
+		solver_->PreSolve(time);
+		solver_->Solve(time, 5);
 
 		for (FlatBody* body : bodies) {
 			body->IntegrateVelocities(time);
 		}
 
-		for (int i = 0; i < 3; i++) {
-			for (auto& constraint : constraints) {
-				constraint->PostSolve();
-			}
-			for (auto& constraint : penetrations) {
-				constraint.PostSolve();
-			}
-		}
+		solver_->PostSolve(time, 3);
 
 		//CollisionDetectionStep(time);
 	}
@@ -222,22 +185,22 @@ namespace FlatPhysics {
 	{
 		return constraints;
 	}
-	void FlatWorld::CollisionDetectionStep(float dt)
-	{
-		contacts.clear();
-		contact_pairs.clear();
+	//void FlatWorld::CollisionDetectionStep(float dt)
+	//{
+	//	contacts.clear();
+	//	contact_pairs.clear();
 
-		BroadPhase();
-		NarrowPhase();
+	//	BroadPhase();
+	//	NarrowPhase();
 
-		if (!contacts.empty() && solver_) {
-			solver_->Initialize(contacts);
-			solver_->PreSolve();
-			solver_->Solve(dt, velocity_iterations_);
-			solver_->PostSolve(dt, position_iterations_);
-			solver_->StoreImpulses();
-		}
-	}
+	//	if (!contacts.empty() && solver_) {
+	//		solver_->Initialize(contacts);
+	//		solver_->PreSolve();
+	//		solver_->Solve(dt, velocity_iterations_);
+	//		solver_->PostSolve(dt, position_iterations_);
+	//		solver_->StoreImpulses();
+	//	}
+	//}
 
 	void FlatWorld::BroadPhase()
 	{
@@ -252,6 +215,19 @@ namespace FlatPhysics {
 	}
 	void FlatWorld::NarrowPhase()
 	{
+		//for (const ContactPair& pair : contact_pairs) {
+		//	FlatFixture* fa = pair.fixture_a;
+		//	FlatFixture* fb = pair.fixture_b;
+		//	if (!fa || !fb || fa->GetBody() == fb->GetBody()) {
+		//		continue;
+		//	}
+		//	std::vector<ContactPoint> contact_points;
+		//	if (Collision::DetectCollision(fa, fb, contact_points)) {
+		//		contacts.push_back({ fa, fb, contact_points });
+
+		//		//ContactPointsOld contact_points = Collision::FindContactPointsOld(fa, fb);
+		//	}
+		//}
 		for (const ContactPair& pair : contact_pairs) {
 			FlatFixture* fa = pair.fixture_a;
 			FlatFixture* fb = pair.fixture_b;
@@ -261,8 +237,6 @@ namespace FlatPhysics {
 			std::vector<ContactPoint> contact_points;
 			if (Collision::DetectCollision(fa, fb, contact_points)) {
 				contacts.push_back({ fa, fb, contact_points });
-
-				//ContactPointsOld contact_points = Collision::FindContactPointsOld(fa, fb);
 			}
 		}
 	}

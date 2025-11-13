@@ -8,14 +8,13 @@ namespace FlatPhysics {
 		FlatSolverPGS() = default;
 
 
-		void Initialize(const std::vector<FlatManifold>& manifolds) override;
-		void PreSolve() override;
+		virtual void Initialize(const std::vector<FlatManifold>& manifolds, const std::vector<std::unique_ptr<FlatConstraint>>& constraints) override;
+		void PreSolve(float dt) override;
 		void Solve(float dt, int iterations) override;
 		void PostSolve(float dt, int iterations) override;
 		void StoreImpulses() override;
 	private:
-		const std::vector<FlatManifold>* manifolds_{ nullptr };
-		const std::vector<FlatConstraint>* constraints_{ nullptr };
-		const std::vector<PenetrationConstraint>* penetration_constraints_{ nullptr };
+		const std::vector<std::unique_ptr<FlatConstraint>>* constraints_{ nullptr };
+		std::vector<PenetrationConstraint> penetration_constraints_;
 	};
 }
