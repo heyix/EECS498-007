@@ -22,12 +22,12 @@ Vector2& Vector2::Normalized()
 	return *this;
 }
 
-float Vector2::Length()
+float Vector2::Length()const
 {
 	return vector2.Length();
 }
 
-float Vector2::LengthSquared()
+float Vector2::LengthSquared()const
 {
 	return vector2.LengthSquared();
 }

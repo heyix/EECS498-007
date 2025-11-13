@@ -77,8 +77,8 @@ public:
 	float Normalize();
 	Vector2 NormalizedVector()const;//return normalized new vector
 	Vector2& Normalized();//return normalized self
-	float Length();
-	float LengthSquared();
+	float Length()const ;
+	float LengthSquared()const ;
 	Vector2 NormalDirection() const;//clockwise 90, polygons are counterclockwise
 
 public:
