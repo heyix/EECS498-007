@@ -15,6 +15,7 @@
 #include "FlatWorld.h"
 #include "MatMN.h"
 #include "JointConstraint.h"
+#include "FlatBody.h"
 namespace {
     static inline uint32_t Hash32(uint32_t x) {
         x ^= x >> 16; x *= 0x7feb352d; x ^= x >> 15; x *= 0x846ca68b; x ^= x >> 16;
@@ -139,7 +140,7 @@ void DrawBodyComponent::On_Start()
     if (holder_object->ID == 4 || holder_object->ID == 5 || holder_object->ID == 6) {
         std::unique_ptr<FlatPhysics::PolygonShape> shape = std::make_unique<FlatPhysics::PolygonShape>();
         shape->SetAsBox(width, height);
-        FlatPhysics::FlatBody::CreatePolygonBody(shape->vertices, transform->Get_World_Position(), 2.0f, true, 0.5f, this->body);
+        FlatPhysics::FlatBody::CreatePolygonBody(shape->vertices, transform->Get_World_Position(), 2.0f, true, 0.5f, 1, this->body);
     }
 	else if (shape == FlatPhysics::ShapeType::Polygon) {
         float density = 2.0f;
@@ -153,12 +154,12 @@ void DrawBodyComponent::On_Start()
         poly.emplace_back(+s, +s);       // top-right
         //poly.emplace_back(0.0f, +s * 0.3f); // inner dent (makes it concave)
         poly.emplace_back(-s, +s);       // top-left
-        FlatPhysics::FlatBody::CreatePolygonBody(poly, transform->Get_World_Position(), density, is_static, 0.5f, this->body);
+        FlatPhysics::FlatBody::CreatePolygonBody(poly, transform->Get_World_Position(), density, is_static, 0.5f, 1, this->body);
     }
 	else {
         bool is_static = false;
         if (holder_object->ID == 7)is_static = true;
-		FlatPhysics::FlatBody::CreateCircleBody(0.2f, transform->Get_World_Position(), 2.0f, is_static, 0.5f, this->body);
+        FlatPhysics::FlatBody::CreateCircleBody(0.2f, transform->Get_World_Position(), 2.0f, is_static, 0.5f, 1, this->body);
 	}
     PhysicsDB::flat_world->AddBody(body.get());
 

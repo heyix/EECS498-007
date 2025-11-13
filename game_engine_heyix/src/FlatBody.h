@@ -105,9 +105,9 @@ namespace FlatPhysics {
 
     public:
         static bool CreateCircleBody(float radius, const Vector2& position, float density, bool is_static,
-            float restitution, std::unique_ptr<FlatBody>& out_body);
+            float restitution, float friction, std::unique_ptr<FlatBody>& out_body);
 
         static bool CreatePolygonBody(const std::vector<Vector2>& vertices, const Vector2& position, float density, bool is_static,
-            float restitution, std::unique_ptr<FlatBody>& out_body);
+            float restitution, float friction, std::unique_ptr<FlatBody>& out_body);
     };
 }

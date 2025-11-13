@@ -223,13 +223,14 @@ void FlatPhysics::FlatBody::ResetMassData()
 }
 
 bool FlatBody::CreateCircleBody(float r, const Vector2& pos, float density, bool is_static,
-    float restitution, std::unique_ptr<FlatBody>& out_body)
+    float restitution, float friction, std::unique_ptr<FlatBody>& out_body)
 {
     out_body = nullptr;
 
     FixtureDef fd;
     fd.density = density;
-    fd.restitution = restitution;
+    fd.restitution = 0;
+    fd.friction = friction;
     std::unique_ptr<Shape> shape = std::make_unique<CircleShape>(Vector2::Zero(), r);
     fd.shape = shape.get();
 
@@ -247,7 +248,7 @@ bool FlatBody::CreateCircleBody(float r, const Vector2& pos, float density, bool
 }
 
 
-bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2>& vertices, const Vector2& position, float density, bool is_static, float restitution, std::unique_ptr<FlatBody>& out_body)
+bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2>& vertices, const Vector2& position, float density, bool is_static, float restitution, float friction, std::unique_ptr<FlatBody>& out_body)
 {
     out_body = nullptr;
 
@@ -262,7 +263,8 @@ bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2>& vertic
     );
     FixtureDef fd;
     fd.density = density;
-    fd.restitution = restitution;
+    fd.restitution = 0;
+    fd.friction = friction;
     std::unique_ptr<Shape> shape = std::make_unique<PolygonShape>(vertices);
     fd.shape = shape.get();
     FlatFixture* sb = body->CreateFixture(fd);
