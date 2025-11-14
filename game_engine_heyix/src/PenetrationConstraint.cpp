@@ -255,7 +255,7 @@ namespace FlatPhysics {
 		float K = invMassA + invMassB + rnA * rnA * invIA + rnB * rnB * invIB;
 		if (K <= 0.0f) return; 
 
-		const float linearSlop = 0.01f;
+		const float linearSlop = 0.015f;
 		const float percent = 0.2f;
 		const float maxCorr = 0.02f; 
 		
