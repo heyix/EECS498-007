@@ -212,7 +212,8 @@ namespace FlatPhysics {
 
 		MatMN<6,2> jt = jacobian.Transpose();
 		MatMN<2,2> lhs = jacobian * inv_m * jt;
-		VecN<2> rhs = jacobian * v * -1;
+		VecN<2> rhs = jacobian * v;
+		rhs *= -1;
 		rhs(0) -= bias;
 		VecN<2> lambda = MatMN<2,2>::SolveGS(lhs, rhs);
 		VecN<2> old_lambda = cached_lambda;
