@@ -51,7 +51,7 @@ namespace FlatPhysics {
 		bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) });
 		bodyB->ApplyImpulseAngular(impulses(5));
 
-		float beta = 0.2f;
+		float beta = 0.25f;
 		float C = Vector2::Dot(pb - pa, -n);
 		C = std::min(0.0f, C + 0.01f);
 		
@@ -118,9 +118,9 @@ namespace FlatPhysics {
 		const float maxCorr = 0.02f; 
 
 		float C = Vector2::Dot(pb - pa, -n);    
-		float error = std::max(C - linearSlop, 0.0f);
-		float impulseN = std::min(percent * error / K, maxCorr / std::max(K, 1e-8f));
-
+		float error = std::max(-C - linearSlop, 0.0f);
+		float correction = std::min(percent * error, maxCorr);
+		float impulseN = correction / std::max(K, 1e-8f);
 		Vector2 P = impulseN * n;
 		bodyA->Move(-invMassA * P);
 		bodyA->Rotate(-invIA * rnA * impulseN);

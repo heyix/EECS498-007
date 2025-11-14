@@ -105,40 +105,5 @@ namespace FlatPhysics {
 	}
 	void JointConstraint::PostSolve()
 	{
-		FlatBody* bodyA = a->GetBody();
-		FlatBody* bodyB = b->GetBody();
-		const Vector2 pa = bodyA->LocalToWorld(point_a);
-		const Vector2 pb = bodyB->LocalToWorld(point_b);
-		Vector2 n = (pb - pa).Normalized();
-		const Vector2 ra = pa - bodyA->GetMassCenterWorld();
-		const Vector2 rb = pb - bodyB->GetMassCenterWorld();
-
-		const float invMassA = bodyA->GetInverseMass();
-		const float invMassB = bodyB->GetInverseMass();
-		const float invIA = bodyA->GetInverseInertia();
-		const float invIB = bodyB->GetInverseInertia();
-
-		// rotational contribution: (r x n)^2 * invI
-		const float rnA = Vector2::Cross(ra, n);
-		const float rnB = Vector2::Cross(rb, n);
-
-		float K = invMassA + invMassB + rnA * rnA * invIA + rnB * rnB * invIB;
-		if (K <= 0.0f) return;
-
-		const float linearSlop = 0.005f;
-		const float percent = 0.2f;
-		const float maxCorr = 0.2f;
-
-		float C = Vector2::Dot(pb - pa, -n);
-		std::cout << C << std::endl;
-		float error = std::max(C - linearSlop, 0.0f);
-		float impulseN = std::min(percent * error / K, maxCorr / std::max(K, 1e-8f));
-
-		Vector2 P = impulseN * n;
-		bodyA->Move(-invMassA * P);
-		bodyA->Rotate(-invIA * rnA * impulseN);
-		bodyB->Move(+invMassB * P);
-		bodyB->Rotate(+invIB * rnB * impulseN);
-
 	}
 }

@@ -481,7 +481,7 @@ namespace FlatPhysics {
 		}
 		return true;
 	}
-
+	//a->b collision, start is inside a, end is at the surface of a
 	bool Collision::DetectCollision(const FlatFixture* fa, const FlatFixture* fb, FixedSizeContainer<ContactPoint, 2>& contact)
 	{
 		auto bodyA = fa->GetBody();
