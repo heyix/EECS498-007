@@ -2,11 +2,12 @@
 #include "IBroadPhase.h"
 #include <memory>
 #include <array>
-#include<functional>
+#include <functional>
+#include <algorithm>
 namespace FlatPhysics {
 	class BroadPhaseQuadTree : public IBroadPhase {
     public:
-        BroadPhaseQuadTree(int max_depth = 6, int max_leaf_capacity = 4);
+        BroadPhaseQuadTree(int max_depth = 6, int max_leaf_capacity = 4, float loose_factor = 0.2f);
 	public:
         ProxyID CreateProxy(const FlatAABB& aabb, void* user_data) override;
         void DestroyProxy(ProxyID id) override;
@@ -18,6 +19,8 @@ namespace FlatPhysics {
     public:
         void SetLooseFactor(float factor);
         float GetLooseFactor()const;
+        void SetRootExpandFactor(float factor) { root_expand_factor_ = std::max(factor, 1.01f); }
+        float GetRootExpandFactor() { return root_expand_factor_; }
     private:
         struct Node {
             FlatAABB bounds;
@@ -59,7 +62,7 @@ namespace FlatPhysics {
         int max_leaf_capacity_;
         float loose_factor_;
         bool tree_dirty_{ false };
-
+        float root_expand_factor_ = 2.0f;
 	};
 
 }
