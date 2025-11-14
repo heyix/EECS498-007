@@ -1,8 +1,8 @@
 #pragma once
-#include "MatMN.h"
 #include "Vector2.h"
 #include "FlatFixture.h"
 #include "FlatBody.h"
+#include "MatMN.h"
 namespace FlatPhysics {
 	class FlatConstraint {
 	public:
@@ -10,8 +10,8 @@ namespace FlatPhysics {
 		FlatConstraint(FlatFixture* a, FlatFixture* b, const Vector2& pa, const Vector2& pb) :a(a), b(b),point_a(pa),point_b(pb) {}
 		virtual ~FlatConstraint() = default;
 	public:
-		MatMN GetInverseM()const;
-		VecN GetVelocities()const;
+		MatMN<6,6> GetInverseM()const;
+		VecN<6> GetVelocities()const;
 	public:
 		virtual void PreSolve(float dt) {}
 		virtual void Solve() {}

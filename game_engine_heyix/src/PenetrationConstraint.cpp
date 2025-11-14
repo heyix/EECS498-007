@@ -2,7 +2,7 @@
 #include <algorithm>
 namespace FlatPhysics {
 	PenetrationConstraint::PenetrationConstraint(FlatFixture *a, FlatFixture* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal)
-		:FlatConstraint(a,b,a->GetBody()->WorldToLocal(collision_point_a), b->GetBody()->WorldToLocal(collision_point_b)), normal(a->GetBody()->WorldToLocal(normal)), bias(0), jacobian(2, 6, 0), cached_lambda(2, 0),friction(std::max(a->GetFriction(), b->GetFriction()))
+		:FlatConstraint(a,b,a->GetBody()->WorldToLocal(collision_point_a), b->GetBody()->WorldToLocal(collision_point_b)), normal(a->GetBody()->WorldToLocal(normal)), bias(0), jacobian(0), cached_lambda(0),friction(std::max(a->GetFriction(), b->GetFriction()))
 	{
 	}
 	void FlatPhysics::PenetrationConstraint::PreSolve(float dt)
@@ -43,9 +43,9 @@ namespace FlatPhysics {
 			jacobian(1, 5) = Vector2::Cross(rb, t);
 		}
 
-		MatMN jt = jacobian.Transpose();
+		MatMN<6,2> jt = jacobian.Transpose();
 		//warm start
-		VecN impulses = jt * cached_lambda;
+		VecN<6> impulses = jt * cached_lambda;
 		bodyA->ApplyImpulseLinear({ impulses(0),impulses(1) });
 		bodyA->ApplyImpulseAngular(impulses(2));
 		bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) });
@@ -66,15 +66,15 @@ namespace FlatPhysics {
 
 	void FlatPhysics::PenetrationConstraint::Solve()
 	{
-		VecN v = GetVelocities();
-		MatMN inv_m = GetInverseM();
+		VecN<6> v = GetVelocities();
+		MatMN<6,6> inv_m = GetInverseM();
 
-		MatMN jt = jacobian.Transpose();
-		MatMN lhs = jacobian * inv_m * jt;
-		VecN rhs = jacobian * v * -1;
+		MatMN<6,2> jt = jacobian.Transpose();
+		MatMN<2,2> lhs = jacobian * inv_m * jt;
+		VecN<2> rhs = jacobian * v * -1;
 		rhs(0) -= bias;
-		VecN lambda = MatMN::SolveGS(lhs, rhs);
-		VecN old_lambda = cached_lambda;
+		VecN<2> lambda = MatMN<2,2>::SolveGS(lhs, rhs);
+		VecN<2> old_lambda = cached_lambda;
 		cached_lambda += lambda;
 		cached_lambda(0) = (cached_lambda(0) < 0) ? 0 : cached_lambda(0);
 		if (friction > 0.0f) {
@@ -85,7 +85,7 @@ namespace FlatPhysics {
 
 		FlatBody* bodyA = a->GetBody();
 		FlatBody* bodyB = b->GetBody();
-		VecN impulses = jt * lambda;
+		VecN<6> impulses = jt * lambda;
 		bodyA->ApplyImpulseLinear({ impulses(0),impulses(1) });
 		bodyA->ApplyImpulseAngular(impulses(2));
 		bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) });

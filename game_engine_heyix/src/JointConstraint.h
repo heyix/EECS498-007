@@ -10,8 +10,8 @@ namespace FlatPhysics {
 		virtual void Solve()override;
 		virtual void PostSolve()override;
 	private:
-		MatMN jacobian;
-		VecN cached_lambda;
+		MatMN<1,6> jacobian;
+		VecN<1> cached_lambda;
 		float bias = 0;
 	};
 }

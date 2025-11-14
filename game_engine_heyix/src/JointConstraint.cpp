@@ -2,7 +2,7 @@
 #include <algorithm>
 namespace FlatPhysics {
 	JointConstraint::JointConstraint(FlatFixture* a, FlatFixture* b, const Vector2& anchor_point)
-		:FlatConstraint(a,b,a->GetBody()->WorldToLocal(anchor_point),b->GetBody()->WorldToLocal(anchor_point)),jacobian(1,6),cached_lambda(1,0)
+		:FlatConstraint(a,b,a->GetBody()->WorldToLocal(anchor_point),b->GetBody()->WorldToLocal(anchor_point)),jacobian(0), cached_lambda(0)
 	{
 	}
 	void JointConstraint::PreSolve(float dt)
@@ -69,12 +69,12 @@ namespace FlatPhysics {
 		//b->ApplyImpulseAngular(impulses(5));
 
 		//6*1
-		VecN v = GetVelocities();
+		VecN<6> v = GetVelocities();
 		//6*6
-		MatMN inv_m = GetInverseM();
+		MatMN<6,6> inv_m = GetInverseM();
 
 		//6*1
-		MatMN jt = jacobian.Transpose();
+		MatMN<6,1> jt = jacobian.Transpose();
 		//(1*6 * 6*6)* 6*1 = (1*6 * 6*1) = 1*1 
 		float lhs = (jacobian * inv_m * jt)(0, 0);
 		//(1*6 * 6*1)*-1 = 1*1
@@ -92,9 +92,9 @@ namespace FlatPhysics {
 		float old = cached_lambda(0);
 		cached_lambda(0) += solution;
 		//cached_lambda(0) = std::clamp(cached_lambda(0), -max_lambda, max_lambda);
-		VecN dLambdaClamped = VecN(1, cached_lambda(0) - old);
+		VecN<1> dLambdaClamped = VecN<1>(cached_lambda(0) - old);
 
-		VecN impulses = jt * dLambdaClamped;
+		VecN<6> impulses = jt * dLambdaClamped;
 		FlatBody* bodyA = a->GetBody();
 		FlatBody* bodyB = b->GetBody();
 		bodyA->ApplyImpulseLinear({ impulses(0),impulses(1) });

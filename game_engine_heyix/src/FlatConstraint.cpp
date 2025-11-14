@@ -1,9 +1,9 @@
 #include "FlatConstraint.h"
 namespace FlatPhysics {
 
-	MatMN FlatPhysics::FlatConstraint::GetInverseM() const
+	MatMN<6, 6> FlatPhysics::FlatConstraint::GetInverseM() const
 	{
-		MatMN result(6, 6, 0);
+		MatMN<6,6> result(0);
 		FlatBody* bodyA = a->GetBody();
 		FlatBody* bodyB = b->GetBody();
 		result(0, 0) = bodyA->GetInverseMass();
@@ -15,9 +15,9 @@ namespace FlatPhysics {
 		return result;
 	}
 
-	VecN FlatConstraint::GetVelocities() const
+	VecN<6> FlatConstraint::GetVelocities() const
 	{
-		VecN v(6, 0);
+		VecN<6> v(0);
 		FlatBody* bodyA = a->GetBody();
 		FlatBody* bodyB = b->GetBody();
 		v(0) = bodyA->GetLinearVelocity().x();

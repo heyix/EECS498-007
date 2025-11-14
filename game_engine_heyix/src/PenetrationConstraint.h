@@ -9,8 +9,8 @@ namespace FlatPhysics {
 		virtual void Solve()override;
 		virtual void PostSolve()override;
 	private:
-		MatMN jacobian;
-		VecN cached_lambda;
+		MatMN<2,6> jacobian;
+		VecN<2> cached_lambda;
 		float bias;
 		Vector2 normal;
 		float friction = 0.0f;
