@@ -175,8 +175,8 @@ namespace FlatPhysics {
 			}
 			case ShapeType::Polygon: {
 				const PolygonShape* polygon_shapeB = fb->GetShape().AsPolygon();
-				const auto& vertsB_local = polygon_shapeB->GetVertices();
-				auto& vertsB = polygon_shapeB->GetVerticesSizedBuffer();
+				const std::vector<Vector2>& vertsB_local = polygon_shapeB->GetVertices();
+				std::vector<Vector2>& vertsB = polygon_shapeB->GetVerticesSizedBuffer();
 				 FlatTransform::TransformVectors(vertsB_local, vertsB, transformB);
 				return Collision::IntersectCirclePolygonOld(cA, rA, vertsB, normal, depth);
 			}
@@ -187,15 +187,15 @@ namespace FlatPhysics {
 
 		case ShapeType::Polygon: {
 			const PolygonShape* polygon_shapeA = fa->GetShape().AsPolygon();
-			const auto& vertsA_local = polygon_shapeA->GetVertices();
-			auto vertsA = polygon_shapeA->GetVerticesSizedBuffer();
+			const std::vector<Vector2>& vertsA_local = polygon_shapeA->GetVertices();
+			std::vector<Vector2>& vertsA = polygon_shapeA->GetVerticesSizedBuffer();
 			FlatTransform::TransformVectors(vertsA_local, vertsA, transformA);
 
 			switch (fb->GetShapeType()) {
 			case ShapeType::Polygon: {
 				const PolygonShape* polygon_shapeB = fb->GetShape().AsPolygon();
-				const auto& vertsB_local = polygon_shapeB->GetVertices();
-				auto vertsB = polygon_shapeB->GetVerticesSizedBuffer();
+				const std::vector<Vector2>& vertsB_local = polygon_shapeB->GetVertices();
+				std::vector<Vector2>& vertsB = polygon_shapeB->GetVerticesSizedBuffer();
 				FlatTransform::TransformVectors(vertsB_local, vertsB, transformB);
 				return Collision::IntersectPolygonsOld(vertsA, vertsB, normal, depth);
 			}
@@ -298,7 +298,7 @@ namespace FlatPhysics {
 			}
 			case ShapeType::Polygon: {
 				const PolygonShape* polygonB = fb->GetShape().AsPolygon();
-				auto& vertsB = polygonB->GetVerticesSizedBuffer();
+				std::vector<Vector2>& vertsB = polygonB->GetVerticesSizedBuffer();
 				fb->GetBody()->LocalToWorld(polygonB->GetVertices(), vertsB);
 				return FindCirclePolygonContactPointOld(centerA, circleA->radius, vertsB);
 			}
@@ -314,7 +314,7 @@ namespace FlatPhysics {
 			switch (fb->GetShapeType()) {
 			case ShapeType::Polygon: {
 				const PolygonShape* polygonB = fb->GetShape().AsPolygon();
-				auto& vertsB = polygonB->GetVerticesSizedBuffer();
+				std::vector<Vector2>& vertsB = polygonB->GetVerticesSizedBuffer();
 				fb->GetBody()->LocalToWorld(polygonB->GetVertices(), vertsB);
 				return FindPolygonPolygonContactPointOld(transformed_a, vertsB);
 			}
@@ -503,8 +503,8 @@ namespace FlatPhysics {
 			}
 			case ShapeType::Polygon: {
 				const PolygonShape* polygonB = fb->GetShape().AsPolygon();
-				const auto& vertsB_local = polygonB->GetVertices();
-				auto vertsB = polygonB->GetVerticesSizedBuffer();
+				const std::vector<Vector2>& vertsB_local = polygonB->GetVertices();
+				std::vector<Vector2>& vertsB = polygonB->GetVerticesSizedBuffer();
 				bodyB->LocalToWorld(vertsB_local, vertsB);
 				bool hit = IsCollidingPolygonCircle(vertsB, cA, rA, contact);;
 				if (hit)contact[0].normal *= -1;
@@ -517,15 +517,15 @@ namespace FlatPhysics {
 
 		case ShapeType::Polygon: {
 			const PolygonShape* polygonA = fa->GetShape().AsPolygon();
-			const auto& vertsA_local = polygonA->GetVertices();
-			auto vertsA = polygonA->GetVerticesSizedBuffer();
+			const std::vector<Vector2>& vertsA_local = polygonA->GetVertices();
+			std::vector<Vector2>& vertsA = polygonA->GetVerticesSizedBuffer();
 			bodyA->LocalToWorld(vertsA_local,vertsA);
 
 			switch (fb->GetShapeType()) {
 			case ShapeType::Polygon: {
 				const PolygonShape* polygonB = fb->GetShape().AsPolygon();
-				const auto& vertsB_local = polygonB->GetVertices();
-				auto vertsB = polygonB->GetVerticesSizedBuffer();
+				const std::vector<Vector2>& vertsB_local = polygonB->GetVertices();
+				std::vector<Vector2>& vertsB = polygonB->GetVerticesSizedBuffer();
 				bodyB->LocalToWorld(vertsB_local, vertsB);
 				bool hit = IsCollidingPolygonPolygon(vertsA, vertsB, contact);
 				return hit;
