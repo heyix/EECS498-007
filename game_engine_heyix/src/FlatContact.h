@@ -1,5 +1,6 @@
 #pragma once
 #include "Vector2.h"
+#include <array>
 namespace FlatPhysics {
 	class FlatBody;
 	class FlatFixture;
@@ -34,12 +35,69 @@ namespace FlatPhysics {
 		int points_num = 0;
 	};
 
+
+
+
+
+
 	struct ContactPoint {
 		Vector2 start;
 		Vector2 end;
 		float depth = 0;
 		Vector2 normal;
 	};
+
+
+
+
+
+
+	template <typename T, std::size_t Capacity>
+	class FixedSizeContainer {
+	public:
+		FixedSizeContainer() = default;
+
+		FixedSizeContainer(std::initializer_list<T> init) {
+			count_ = static_cast<int>(std::min(init.size(), Capacity));
+			std::copy_n(init.begin(), count_, data_.begin());
+		}
+
+		bool Empty() const { return count_ == 0; }
+		int  Size()  const { return count_; }
+		constexpr std::size_t MaxSize() const { return Capacity; }
+
+		void Clear() { count_ = 0; }
+
+		bool Push_Back(const T& value) {
+			if (count_ >= static_cast<int>(Capacity)) return false;
+			data_[count_++] = value;
+			return true;
+		}
+
+		T& operator[](int idx) { return data_[idx]; }
+		const T& operator[](int idx) const { return data_[idx]; }
+
+		T* begin() { return data_.data(); }
+		T* end() { return data_.data() + count_; }
+		const T* begin() const { return data_.data(); }
+		const T* end()   const { return data_.data() + count_; }
+
+	private:
+		std::array<T, Capacity> data_{};
+		int count_{ 0 };
+	};
+
+
+
+
+
+
+
+
+
+
+
+
 	class IContactFilter {
 	public:
 		virtual ~IContactFilter() {}
@@ -50,6 +108,17 @@ namespace FlatPhysics {
 		FlatFixture* fixture_a;
 		FlatFixture* fixture_b;
 	};
+
+
+
+
+
+
+
+
+
+
+
 
 	class IContactListener {
 	public:

@@ -44,7 +44,7 @@ namespace FlatPhysics {
 		Vector2 world_mass_center_a = bodyA->GetMassCenterWorld();
 		Vector2 world_mass_center_b = bodyB->GetMassCenterWorld();
 		ContactPointsOld contact_points;
-		if (manifold.contact_points.size() == 1) {
+		if (manifold.contact_points.Size() == 1) {
 			contact_points.SetPoint(manifold.contact_points[0].end);
 		}
 		else {
@@ -188,7 +188,7 @@ namespace FlatPhysics {
 			return;
 		}
 
-		const int pointCount = static_cast<int>(manifold.contact_points.size());
+		const int pointCount = static_cast<int>(manifold.contact_points.Size());
 		if (pointCount == 0) {
 			return;
 		}

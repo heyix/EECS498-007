@@ -7,13 +7,13 @@
 namespace FlatPhysics {
 	class FlatManifold {
 	public:
-		FlatManifold(FlatFixture* fixtureA_, FlatFixture* fixtureB_, std::vector<ContactPoint>&& contact_point)
-			:fixtureA(fixtureA_), fixtureB(fixtureB_), contact_points(std::move(contact_point))
+		FlatManifold(FlatFixture* fixtureA_, FlatFixture* fixtureB_, const FixedSizeContainer<ContactPoint, 2>& contact_point)
+			:fixtureA(fixtureA_), fixtureB(fixtureB_), contact_points(contact_point)
 		{
 		}
 	public:
 		FlatFixture* fixtureA;
 		FlatFixture* fixtureB;
-		std::vector<ContactPoint> contact_points;
+		FixedSizeContainer<ContactPoint, 2> contact_points;
 	};
 }

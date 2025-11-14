@@ -21,10 +21,10 @@ namespace FlatPhysics {
 
 
 	public:
-		static bool IsCollidingCircleCirle(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, std::vector<ContactPoint>& contact);
-		static bool IsCollidingPolygonCircle(const std::vector<Vector2>& vertices, const Vector2& center, float radius,  std::vector<ContactPoint>& contact);
-		static bool IsCollidingPolygonPolygon(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB, std::vector<ContactPoint>& contact);
-		static bool DetectCollision(const FlatFixture* fa, const FlatFixture* fb, std::vector<ContactPoint>& contact);
+		static bool IsCollidingCircleCirle(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, FixedSizeContainer<ContactPoint, 2>& contact);
+		static bool IsCollidingPolygonCircle(const std::vector<Vector2>& vertices, const Vector2& center, float radius, FixedSizeContainer<ContactPoint, 2>& contact);
+		static bool IsCollidingPolygonPolygon(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB, FixedSizeContainer<ContactPoint, 2>& contact);
+		static bool DetectCollision(const FlatFixture* fa, const FlatFixture* fb, FixedSizeContainer<ContactPoint, 2>& contact);
 
 
 	private:

@@ -332,7 +332,7 @@ namespace FlatPhysics {
 		return {};
 	}
 
-	bool Collision::IsCollidingCircleCirle(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, std::vector<ContactPoint>& contact)
+	bool Collision::IsCollidingCircleCirle(const Vector2& centerA, float radiusA, const Vector2& centerB, float radiusB, FixedSizeContainer<ContactPoint, 2>& contact)
 	{
 		Vector2 d = centerB - centerA;
 		float rSum = radiusA + radiusB;
@@ -355,11 +355,11 @@ namespace FlatPhysics {
 		contact_point.start = centerB - n * radiusB;
 		contact_point.end = centerA + n * radiusA;
 		contact_point.depth = (contact_point.end - contact_point.start).Length();
-		contact.push_back(contact_point);
+		contact.Push_Back(contact_point);
 		return true;
 	}
 
-	bool Collision::IsCollidingPolygonCircle(const std::vector<Vector2>& vertices, const Vector2& center, float radius,  std::vector<ContactPoint>& contact)
+	bool Collision::IsCollidingPolygonCircle(const std::vector<Vector2>& vertices, const Vector2& center, float radius, FixedSizeContainer<ContactPoint, 2>& contact)
 	{
 		Vector2 min_cur_vertex;
 		Vector2 min_next_vertex;
@@ -407,11 +407,11 @@ namespace FlatPhysics {
 			contact_point.start = center - contact_point.normal * radius;
 			contact_point.end = contact_point.start + (contact_point.normal * contact_point.depth);
 		}
-		contact.push_back(contact_point);
+		contact.Push_Back(contact_point);
 		return true;
 	}
 
-	bool Collision::IsCollidingPolygonPolygon(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB, std::vector<ContactPoint>& contact)
+	bool Collision::IsCollidingPolygonPolygon(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB, FixedSizeContainer<ContactPoint, 2>& contact)
 	{
 		int a_reference_edge_index, b_reference_edge_index;
 		Vector2 a_support_point, b_support_point;
@@ -476,13 +476,13 @@ namespace FlatPhysics {
 					std::swap(contact_point.start, contact_point.end);
 				}
 				contact_point.depth = -separation;
-				contact.push_back(contact_point);
+				contact.Push_Back(contact_point);
 			}
 		}
 		return true;
 	}
 
-	bool Collision::DetectCollision(const FlatFixture* fa, const FlatFixture* fb, std::vector<ContactPoint>& contact)
+	bool Collision::DetectCollision(const FlatFixture* fa, const FlatFixture* fb, FixedSizeContainer<ContactPoint, 2>& contact)
 	{
 		auto bodyA = fa->GetBody();
 		auto bodyB = fb->GetBody();
