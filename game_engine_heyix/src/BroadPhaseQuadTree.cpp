@@ -1,5 +1,8 @@
 #include "BroadPhaseQuadTree.h"
 namespace FlatPhysics {
+	namespace {
+		constexpr float K_MIN_EXTENT = 0.5f;
+	}
 	BroadPhaseQuadTree::BroadPhaseQuadTree(int max_depth, int max_leaf_capacity)
 	{
 	}

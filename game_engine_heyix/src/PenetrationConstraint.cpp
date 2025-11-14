@@ -43,15 +43,15 @@ namespace FlatPhysics {
 			jacobian(1, 5) = Vector2::Cross(rb, t);
 		}
 
-		MatMN<6,2> jt = jacobian.Transpose();
-		//warm start
-		VecN<6> impulses = jt * cached_lambda;
-		bodyA->ApplyImpulseLinear({ impulses(0),impulses(1) });
-		bodyA->ApplyImpulseAngular(impulses(2));
-		bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) });
-		bodyB->ApplyImpulseAngular(impulses(5));
+		//MatMN<6,2> jt = jacobian.Transpose();
+		////warm start
+		//VecN<6> impulses = jt * cached_lambda;
+		//bodyA->ApplyImpulseLinear({ impulses(0),impulses(1) });
+		//bodyA->ApplyImpulseAngular(impulses(2));
+		//bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) });
+		//bodyB->ApplyImpulseAngular(impulses(5));
 
-		float beta = 0.25f;
+		float beta = 0.5f;
 		float C = Vector2::Dot(pb - pa, -n);
 		C = std::min(0.0f, C + 0.01f);
 		
