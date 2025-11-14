@@ -9,13 +9,15 @@ namespace FlatPhysics {
 		return Vector2{rx,ry} + transform.position;
 	}
 
-	std::vector<Vector2> FlatPhysics::FlatTransform::TransformVectors(const std::vector<Vector2>& vectors, const FlatTransform& transform)
+	void FlatPhysics::FlatTransform::TransformVectors(const std::vector<Vector2>& vectors, std::vector<Vector2>& out, const FlatTransform& transform)
 	{
-		std::vector<Vector2> result;
-		for (auto& vec : vectors) {
-			result.emplace_back(TransformVector(vec, transform));
+		if (out.size() != vectors.size()) {
+			out.resize(vectors.size());
 		}
-		return result;
+		for (int i = 0; i < vectors.size(); i++) {
+			auto& vec = vectors[i];
+			out[i] = TransformVector(vec, transform);
+		}
 	}
 
 	FlatTransform FlatPhysics::FlatTransform::Invert(const FlatTransform& transform)

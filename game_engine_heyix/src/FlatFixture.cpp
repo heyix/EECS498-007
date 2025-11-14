@@ -61,7 +61,7 @@ namespace FlatPhysics {
         }
         case ShapeType::Polygon: {
             const auto* polygon = shape_->AsPolygon();
-            for (const auto& local : polygon->vertices) {
+            for (const auto& local : polygon->GetVertices()) {
                 Vector2 world = FlatTransform::TransformVector(local, transform);
                 minX = std::min(minX, world.x());
                 minY = std::min(minY, world.y());
@@ -96,7 +96,7 @@ namespace FlatPhysics {
         case ShapeType::Polygon: {
             const PolygonShape* poly = shape_->AsPolygon();
             if (!poly) return 0.0f;
-            return std::abs(PolygonArea(poly->vertices));
+            return std::abs(PolygonArea(poly->GetVertices()));
         }
         default:
             return 0.0f;
@@ -126,9 +126,9 @@ namespace FlatPhysics {
         }
         case ShapeType::Polygon: {
             const PolygonShape* poly = shape_->AsPolygon();
-            if (!poly || poly->vertices.size() < 3) return 0.0f;
+            if (!poly || poly->GetVertices().size() < 3) return 0.0f;
 
-            const auto& verts = poly->vertices;
+            const auto& verts = poly->GetVertices();
             double area_sum = 0.0;
             double inertia_sum = 0.0;
 
@@ -167,11 +167,11 @@ namespace FlatPhysics {
 
         case ShapeType::Polygon: {
             const PolygonShape* poly = shape_->AsPolygon();
-            if (!poly || poly->vertices.size() < 3) {
+            if (!poly || poly->GetVertices().size() < 3) {
                 return Vector2::Zero();
             }
 
-            const auto& verts = poly->vertices;
+            const auto& verts = poly->GetVertices();
             double area2 = 0.0;
             Vector2 centroid = Vector2::Zero();
 

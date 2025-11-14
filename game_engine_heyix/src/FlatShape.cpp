@@ -34,7 +34,7 @@ namespace FlatPhysics {
 			Vector2(-width / 2,  height / 2)
 		};
 		FlatTransform transform = FlatTransform(center, angle);
-		vertices = FlatTransform::TransformVectors(local, transform);
+		FlatTransform::TransformVectors(local, vertices, transform);
 	}
 }
 

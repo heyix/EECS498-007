@@ -16,6 +16,7 @@
 #include "MatMN.h"
 #include "JointConstraint.h"
 #include "FlatBody.h"
+#include "FlatShape.h"
 namespace {
     static inline uint32_t Hash32(uint32_t x) {
         x ^= x >> 16; x *= 0x7feb352d; x ^= x >> 15; x *= 0x846ca68b; x ^= x >> 16;
@@ -140,7 +141,7 @@ void DrawBodyComponent::On_Start()
     if (holder_object->ID == 4 || holder_object->ID == 5 || holder_object->ID == 6) {
         std::unique_ptr<FlatPhysics::PolygonShape> shape = std::make_unique<FlatPhysics::PolygonShape>();
         shape->SetAsBox(width, height);
-        FlatPhysics::FlatBody::CreatePolygonBody(shape->vertices, transform->Get_World_Position(), 2.0f, true, 0.5f, 1, this->body);
+        FlatPhysics::FlatBody::CreatePolygonBody(shape->GetVertices(), transform->Get_World_Position(), 2.0f, true, 0.5f, 1, this->body);
     }
 	else if (shape == FlatPhysics::ShapeType::Polygon) {
         float density = 2.0f;
@@ -260,11 +261,13 @@ void DrawBodyComponent::DrawBody()
             break;
         }
         case FlatPhysics::ShapeType::Polygon: {
-            auto& vertices = fixture->GetShape().AsPolygon()->vertices;
+            const FlatPhysics::PolygonShape* polygon = fixture->GetShape().AsPolygon();
+            auto& vertices = polygon->GetVertices();
             int r, g, b;
             PastelColorFromID(holder_object->ID, r, g, b);
-
-            Engine::instance->renderer->draw_polygon_world(FlatPhysics::FlatTransform::TransformVectors(vertices, body->GetTransform()), r, g, b, 255, true);
+            std::vector<Vector2>& verts = polygon->GetVerticesSizedBuffer();
+            body->LocalToWorld(vertices, verts);
+            Engine::instance->renderer->draw_polygon_world(verts, r, g, b, 255, true);
             break;
         }
         }
