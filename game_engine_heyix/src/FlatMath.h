@@ -10,12 +10,12 @@ namespace FlatPhysics {
 		{
 			return (value < min) ? min : (value > max ? max : value);
 		}
-		static float RadToDeg(float radians)
+		constexpr static float RadToDeg(float radians)
 		{
 			return radians * (180.0 / kPi);
 		}
 
-		static float DegToRad(float degrees)
+		constexpr static float DegToRad(float degrees)
 		{
 			return degrees * (kPi / 180.0);
 		}

@@ -84,6 +84,10 @@ void FlatBody::Move(const Vector2& amount) {
 
 void FlatBody::MoveTo(const Vector2& p) {
     if (IsStatic())return;
+    constexpr float kLinearSleepEpsSq = 1e-6f;
+    if ((p - this->position).LengthSquared() < kLinearSleepEpsSq) {
+        return;
+    }
     if (p != this->position)MarkFixturesDirty();
     this->position = p;
     need_update_transform = true;
@@ -92,6 +96,10 @@ void FlatBody::MoveTo(const Vector2& p) {
 void FlatPhysics::FlatBody::Rotate(float amount)
 {
     if (IsStatic())return;
+    constexpr float kAngularSleepEps = FlatMath::DegToRad(0.01);
+    if (std::fabs(amount) < kAngularSleepEps) {
+        return;
+    }
     this->angle_rad += amount;
     need_update_transform = true;
     if (amount != 0)MarkFixturesDirty();
@@ -118,17 +126,6 @@ void FlatPhysics::FlatBody::IntegrateForces(float time, const Vector2& gravity)
 void FlatPhysics::FlatBody::IntegrateVelocities(float time)
 {
     if (IsStatic()) return;
-
-    constexpr float kLinearSleepEpsSq = 1e-6f;
-    constexpr float kAngularSleepEps = 1e-6f;
-
-    if (linear_velocity.LengthSquared() < kLinearSleepEpsSq) {
-        linear_velocity = Vector2::Zero();
-    }
-    if (std::fabs(angular_velocity) < kAngularSleepEps) {
-        angular_velocity = 0.0f;
-    }
-
     Move(linear_velocity * time);
     Rotate(angular_velocity * time);
 }
