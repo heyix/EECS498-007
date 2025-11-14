@@ -15,10 +15,22 @@ namespace FlatPhysics {
 		public:
 			explicit BroadphasePairCollector(std::vector<ContactPair>& out) : pairs_(out) {}
 			void AddPair(void* user_data_a, void* user_data_b) override {
-				auto* fa = static_cast<FlatFixture*>(user_data_a);
-				auto* fb = static_cast<FlatFixture*>(user_data_b);
-				if (fa && fb) {
-					pairs_.push_back({ fa, fb });
+				auto* fixtureA = static_cast<FlatFixture*>(user_data_a);
+				auto* fixtureB = static_cast<FlatFixture*>(user_data_b);
+				if (!fixtureA || !fixtureB) {
+					return;
+				}
+
+				FlatBody* bodyA = fixtureA->GetBody();
+				FlatBody* bodyB = fixtureB->GetBody();
+				if (bodyA == bodyB) {
+					return;
+				}
+				if (bodyA && bodyB && bodyA->is_static && bodyB->is_static) {
+					return;
+				}
+				if (fixtureA && fixtureB) {
+					pairs_.push_back({ fixtureA, fixtureB });
 				}
 			}
 		private:

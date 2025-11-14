@@ -1,7 +1,4 @@
 #include "BroadphaseNaive.h"
-
-#include "FlatBody.h"
-#include "FlatFixture.h"
 #include <algorithm>
 
 namespace FlatPhysics {
@@ -73,22 +70,6 @@ namespace FlatPhysics {
                 if (!FlatAABB::IntersectAABB(proxyA.aabb, proxyB.aabb)) {
                     continue;
                 }
-
-                auto* fixtureA = static_cast<FlatFixture*>(proxyA.user_data);
-                auto* fixtureB = static_cast<FlatFixture*>(proxyB.user_data);
-                if (!fixtureA || !fixtureB) {
-                    continue;
-                }
-
-                FlatBody* bodyA = fixtureA->GetBody();
-                FlatBody* bodyB = fixtureB->GetBody();
-                if (bodyA == bodyB) {
-                    continue;
-                }
-                if (bodyA && bodyB && bodyA->is_static && bodyB->is_static) {
-                    continue;
-                }
-
                 callback->AddPair(proxyA.user_data, proxyB.user_data);
             }
         }

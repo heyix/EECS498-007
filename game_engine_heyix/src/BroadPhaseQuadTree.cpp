@@ -1,7 +1,5 @@
 #include "BroadPhaseQuadTree.h"
 #include <algorithm>
-#include "FlatFixture.h"
-#include "FlatBody.h"
 namespace FlatPhysics {
 	namespace {
 		constexpr float K_MIN_EXTENT = 0.5f;
@@ -112,19 +110,6 @@ namespace FlatPhysics {
 				}
 				Proxy& proxyB = proxies_[otherId];
 				if (!FlatAABB::IntersectAABB(proxyA.tight_aabb, proxyB.tight_aabb)) {
-					return true;
-				}
-				FlatFixture* fixture_a = static_cast<FlatFixture*>(proxyA.user_data);
-				FlatFixture* fixture_b = static_cast<FlatFixture*>(proxyB.user_data);
-				if (!fixture_a || !fixture_b) {
-					return true;
-				}
-				FlatBody* bodyA = fixture_a->GetBody();
-				FlatBody* bodyB = fixture_b->GetBody();
-				if (bodyA == bodyB) {
-					return true;
-				}
-				if (bodyA && bodyB && bodyA->IsStatic() && bodyB->IsStatic()) {
 					return true;
 				}
 				callback->AddPair(proxyA.user_data, proxyB.user_data);
