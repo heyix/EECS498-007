@@ -3,6 +3,9 @@
 namespace FlatPhysics {
 	class FlatAABB {
 	public:
+		FlatAABB()
+			:min(Vector2::Zero()),max(Vector2::Zero())
+		{}
 		FlatAABB(const Vector2& min, const Vector2& max)
 			:min(min), max(max)
 		{
