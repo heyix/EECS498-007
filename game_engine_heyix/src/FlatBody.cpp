@@ -84,9 +84,9 @@ void FlatBody::Move(const Vector2& amount) {
 
 void FlatBody::MoveTo(const Vector2& p) {
     if (IsStatic())return;
+    if (p != this->position)MarkFixturesDirty();
     this->position = p;
     need_update_transform = true;
-    MarkFixturesDirty();
 }
 
 void FlatPhysics::FlatBody::Rotate(float amount)
@@ -94,7 +94,7 @@ void FlatPhysics::FlatBody::Rotate(float amount)
     if (IsStatic())return;
     this->angle_rad += amount;
     need_update_transform = true;
-    MarkFixturesDirty();
+    if (amount != 0)MarkFixturesDirty();
 }
 
 
