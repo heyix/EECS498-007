@@ -117,7 +117,18 @@ void FlatPhysics::FlatBody::IntegrateForces(float time, const Vector2& gravity)
 
 void FlatPhysics::FlatBody::IntegrateVelocities(float time)
 {
-    if (IsStatic())return;
+    if (IsStatic()) return;
+
+    constexpr float kLinearSleepEpsSq = 1e-6f;
+    constexpr float kAngularSleepEps = 1e-6f;
+
+    if (linear_velocity.LengthSquared() < kLinearSleepEpsSq) {
+        linear_velocity = Vector2::Zero();
+    }
+    if (std::fabs(angular_velocity) < kAngularSleepEps) {
+        angular_velocity = 0.0f;
+    }
+
     Move(linear_velocity * time);
     Rotate(angular_velocity * time);
 }

@@ -447,8 +447,8 @@ namespace FlatPhysics {
 		Vector2 v0 = (*incident_vertices)[incident_edge_index];
 		Vector2 v1 = (*incident_vertices)[incident_next_index];
 
-		std::vector<Vector2> contact_points = { v0,v1 };
-		std::vector<Vector2> clipped_points = contact_points;
+		FixedSizeContainer<Vector2,2> contact_points = { v0,v1 };
+		FixedSizeContainer<Vector2, 2> clipped_points = contact_points;
 		for (int i = 0; i < reference_vertices->size(); i++) {
 			if (i == reference_edge_index) {
 				continue;
@@ -647,7 +647,7 @@ namespace FlatPhysics {
 		return vertices[(index + 1) % vertices.size()] - vertices[index];
 	}
 
-	int Collision::ClipSegmentToLine(const std::vector<Vector2>& vertices, std::vector<Vector2>& contacts_in, std::vector<Vector2>& contacts_out, const Vector2& c0, const Vector2& c1)
+	int Collision::ClipSegmentToLine(const std::vector<Vector2>& vertices, FixedSizeContainer<Vector2, 2>& contacts_in, FixedSizeContainer<Vector2, 2>& contacts_out, const Vector2& c0, const Vector2& c1)
 	{
 		int num_out = 0;
 		Vector2 edge = (c1 - c0).Normalized();

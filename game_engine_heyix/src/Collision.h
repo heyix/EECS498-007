@@ -35,6 +35,6 @@ namespace FlatPhysics {
 		static float FindMinSeperation(const std::vector<Vector2>& verticesA, const std::vector<Vector2>& verticesB, int& reference_edge_index, Vector2& support_point);
 		static int FindIncidentEdgeIndex(const std::vector<Vector2>& vertices, const Vector2& normal);
 		static Vector2 EdgeAt(const std::vector<Vector2>& vertices, int index);
-		static int ClipSegmentToLine(const std::vector<Vector2>& vertices, std::vector<Vector2>& contacts_in, std::vector<Vector2>& contacts_out, const Vector2& c0, const Vector2& c1);
+		static int ClipSegmentToLine(const std::vector<Vector2>& vertices, FixedSizeContainer<Vector2, 2>& contacts_in, FixedSizeContainer<Vector2, 2>& contacts_out, const Vector2& c0, const Vector2& c1);
 	};
 }

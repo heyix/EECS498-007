@@ -156,6 +156,7 @@ void DrawBodyComponent::On_Start()
         //poly.emplace_back(0.0f, +s * 0.3f); // inner dent (makes it concave)
         poly.emplace_back(-s, +s);       // top-left
         FlatPhysics::FlatBody::CreatePolygonBody(poly, transform->Get_World_Position(), density, is_static, 0.5f, 1, this->body);
+        //this->body->Rotate(FlatPhysics::FlatMath::DegToRad(45));
     }
 	else {
         bool is_static = false;
