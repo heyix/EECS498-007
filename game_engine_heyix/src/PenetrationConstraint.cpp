@@ -65,7 +65,148 @@ namespace FlatPhysics {
 	}
 
 	void FlatPhysics::PenetrationConstraint::Solve()
-	{
+	{ 
+#pragma region DirectComputeVersion
+		//{
+		//	//direct compute
+		//	// v = [vAx, vAy, wA, vBx, vBy, wB]
+		//	VecN<6> v = GetVelocities();
+		//	MatMN<6, 6> inv_m = GetInverseM();
+		//	// Extract Jacobian entries (2 x 6)
+		//	const float j00 = jacobian(0, 0);
+		//	const float j01 = jacobian(0, 1);
+		//	const float j02 = jacobian(0, 2);
+		//	const float j03 = jacobian(0, 3);
+		//	const float j04 = jacobian(0, 4);
+		//	const float j05 = jacobian(0, 5);
+
+		//	const float j10 = jacobian(1, 0);
+		//	const float j11 = jacobian(1, 1);
+		//	const float j12 = jacobian(1, 2);
+		//	const float j13 = jacobian(1, 3);
+		//	const float j14 = jacobian(1, 4);
+		//	const float j15 = jacobian(1, 5);
+
+		//	// Inverse mass matrix is diagonal: inv_m(i,i)
+		//	const float m0 = inv_m(0, 0);
+		//	const float m1 = inv_m(1, 1);
+		//	const float m2 = inv_m(2, 2);
+		//	const float m3 = inv_m(3, 3);
+		//	const float m4 = inv_m(4, 4);
+		//	const float m5 = inv_m(5, 5);
+
+		//	// Build lhs = J * M^-1 * J^T (2x2)
+
+		//	// lhs(0,0)
+		//	float lhs00 =
+		//		j00 * j00 * m0 +
+		//		j01 * j01 * m1 +
+		//		j02 * j02 * m2 +
+		//		j03 * j03 * m3 +
+		//		j04 * j04 * m4 +
+		//		j05 * j05 * m5;
+
+		//	// lhs(0,1) and lhs(1,0)
+		//	float lhs01 =
+		//		j00 * j10 * m0 +
+		//		j01 * j11 * m1 +
+		//		j02 * j12 * m2 +
+		//		j03 * j13 * m3 +
+		//		j04 * j14 * m4 +
+		//		j05 * j15 * m5;
+
+		//	float lhs10 = lhs01;
+
+		//	// lhs(1,1)
+		//	float lhs11 =
+		//		j10 * j10 * m0 +
+		//		j11 * j11 * m1 +
+		//		j12 * j12 * m2 +
+		//		j13 * j13 * m3 +
+		//		j14 * j14 * m4 +
+		//		j15 * j15 * m5;
+
+		//	// rhs = -J * v
+		//	const float v0 = v(0);
+		//	const float v1 = v(1);
+		//	const float v2 = v(2);
+		//	const float v3 = v(3);
+		//	const float v4 = v(4);
+		//	const float v5 = v(5);
+
+		//	float rhs0 =
+		//		-(j00 * v0 + j01 * v1 + j02 * v2 +
+		//			j03 * v3 + j04 * v4 + j05 * v5);
+		//	float rhs1 =
+		//		-(j10 * v0 + j11 * v1 + j12 * v2 +
+		//			j13 * v3 + j14 * v4 + j15 * v5);
+
+		//	// bias only affects the normal row (0)
+		//	rhs0 -= bias;
+
+		//	// Solve 2x2 system lhs * lambda = rhs directly
+		//	float det = lhs00 * lhs11 - lhs01 * lhs10;
+
+		//	float lambda0 = 0.0f;
+		//	float lambda1 = 0.0f;
+
+		//	if (std::fabs(det) > 1e-6f)
+		//	{
+		//		float invDet = 1.0f / det;
+
+		//		lambda0 = (rhs0 * lhs11 - rhs1 * lhs01) * invDet; // normal
+		//		lambda1 = (-rhs0 * lhs10 + rhs1 * lhs00) * invDet; // tangent
+		//	}
+		//	else
+		//	{
+		//		// Singular / degenerate – just no new impulse
+		//		lambda0 = 0.0f;
+		//		lambda1 = 0.0f;
+		//	}
+
+		//	VecN<2> lambda;
+		//	lambda(0) = lambda0;
+		//	lambda(1) = lambda1;
+
+		//	VecN<2> old_lambda = cached_lambda;
+		//	cached_lambda += lambda;
+
+		//	// Clamp normal >= 0
+		//	if (cached_lambda(0) < 0.0f)
+		//		cached_lambda(0) = 0.0f;
+
+		//	// Coulomb friction clamp
+		//	if (friction > 0.0f)
+		//	{
+		//		float max_friction = cached_lambda(0) * friction;
+		//		cached_lambda(1) = std::clamp(cached_lambda(1), -max_friction, max_friction);
+		//	}
+
+		//	// Incremental lambda to apply this step
+		//	lambda = cached_lambda - old_lambda;
+		//	lambda0 = lambda(0);
+		//	lambda1 = lambda(1);
+
+		//	// Impulses = J^T * lambda  (6x1)
+		//	float i0 = j00 * lambda0 + j10 * lambda1;
+		//	float i1 = j01 * lambda0 + j11 * lambda1;
+		//	float i2 = j02 * lambda0 + j12 * lambda1;
+		//	float i3 = j03 * lambda0 + j13 * lambda1;
+		//	float i4 = j04 * lambda0 + j14 * lambda1;
+		//	float i5 = j05 * lambda0 + j15 * lambda1;
+
+		//	FlatBody* bodyA = a->GetBody();
+		//	FlatBody* bodyB = b->GetBody();
+
+		//	bodyA->ApplyImpulseLinear({ i0, i1 });
+		//	bodyA->ApplyImpulseAngular(i2);
+		//	bodyB->ApplyImpulseLinear({ i3, i4 });
+		//	bodyB->ApplyImpulseAngular(i5);
+		//}
+#pragma endregion
+
+
+
 		VecN<6> v = GetVelocities();
 		MatMN<6,6> inv_m = GetInverseM();
 
