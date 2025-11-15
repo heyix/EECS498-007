@@ -60,6 +60,7 @@ namespace FlatPhysics {
         void SetRootPaddingFactor(float f) { root_padding_factor_ = std::max(f, 1.0f); }
         float GetRootPaddingFactor() const { return root_padding_factor_; }
         int GetMaxDepth(const Node* node);
+        void PrintLevelItemCounts() const;
     private:
        
 

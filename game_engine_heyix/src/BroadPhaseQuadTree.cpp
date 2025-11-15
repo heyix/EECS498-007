@@ -181,6 +181,57 @@ namespace FlatPhysics {
 		}
 		return maxDepth;
 	}
+	void BroadPhaseQuadTree::PrintLevelItemCounts() const
+	{
+		if (!root_) {
+			printf("Tree is empty.\n");
+			return;
+		}
+
+		struct LevelInfo {
+			int nodes_with_items = 0;
+			int total_items = 0;
+		};
+
+		std::unordered_map<int, LevelInfo> levelInfo;
+
+		std::deque<const Node*> q;
+		q.push_back(root_);
+
+		while (!q.empty()) {
+			const Node* node = q.front();
+			q.pop_front();
+
+			int itemCount = static_cast<int>(node->items.size());
+			if (itemCount > 0) {
+				LevelInfo& info = levelInfo[node->depth];
+				info.nodes_with_items++;   // only count nodes that have ≥1 item
+				info.total_items += itemCount;
+			}
+
+			if (!node->IsLeaf()) {
+				for (int i = 0; i < 4; ++i) {
+					if (node->children[i]) {
+						q.push_back(node->children[i]);
+					}
+				}
+			}
+		}
+
+		// Sort depths
+		std::vector<int> depths;
+		depths.reserve(levelInfo.size());
+		for (auto& p : levelInfo) depths.push_back(p.first);
+		std::sort(depths.begin(), depths.end());
+
+		printf("===== QuadTree Nodes With Items =====\n");
+		for (int d : depths) {
+			const LevelInfo& info = levelInfo[d];
+			printf("Depth %d : nodes=%d  total_items=%d\n",
+				d, info.nodes_with_items, info.total_items);
+		}
+		printf("=====================================\n");
+	}
 	bool BroadPhaseQuadTree::Node::IsLeaf() const
 	{
 		return !children[0];
