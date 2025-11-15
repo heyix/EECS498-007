@@ -76,7 +76,9 @@ namespace FlatPhysics {
         int SelectChild(const Node* node, const FlatAABB& aabb)const;
         FlatAABB ChildBounds(const FlatAABB& parent, int child_index)const;
         FlatAABB MakeFatAABB(const FlatAABB& tight)const;
-
+        int GetActiveCount() const;
+        int ComputeTargetMaxDepth() const;
+        int ComputeTargetLeafCapacity() const;
     private:
         Node* root_ = nullptr;
         NodePool node_pool_;

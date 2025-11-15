@@ -8,7 +8,7 @@
 		"4": {
 			"type": "DrawBodyComponent",
 			"width": 20,
-			"height": 1,
+			"height": 2,
 			"shape":"box",
 			"is_static":true
 		},

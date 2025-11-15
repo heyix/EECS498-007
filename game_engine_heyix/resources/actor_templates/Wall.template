@@ -7,7 +7,7 @@
 		},
 		"4": {
 			"type": "DrawBodyComponent",
-			"width": 1,
+			"width": 2,
 			"height": 20,
 			"shape":"box",
 			"is_static":true

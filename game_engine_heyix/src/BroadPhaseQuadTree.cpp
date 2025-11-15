@@ -65,7 +65,7 @@ namespace FlatPhysics {
 		destroyed_since_rebuild_++;
 		int total_slots = proxies_.size();
 		int free_slots = free_list_.size();
-		int active_count = total_slots - free_slots;
+		int active_count = GetActiveCount();
 
 		int total_count = active_count + destroyed_since_rebuild_;
 		if (total_count > 0 &&
@@ -107,10 +107,21 @@ namespace FlatPhysics {
 		if (!callback) {
 			return;
 		}
+		int target_capacity = ComputeTargetLeafCapacity();
+		if (target_capacity != max_leaf_capacity_) {
+			max_leaf_capacity_ = target_capacity;
+			tree_dirty_ = true;
+		}
+		int target_depth = ComputeTargetMaxDepth();
+		if (target_depth != max_depth_) {
+			max_depth_ = target_depth;
+			tree_dirty_ = true;
+		}
 		FlushDirty();
 		if (!root_) {
 			return;
 		}
+		//PrintLevelItemCounts();
 		const ProxyID count = static_cast<ProxyID>(proxies_.size());
 		for (ProxyID i = 0; i < count; i++) {
 			if (!IsActive(i)) {
@@ -484,5 +495,48 @@ namespace FlatPhysics {
 			center.x() + half.x(), center.y() + half.y()
 		);
 	}
+	int BroadPhaseQuadTree::GetActiveCount() const
+	{
+		int total_slots = static_cast<int>(proxies_.size());
+		int free_slots = static_cast<int>(free_list_.size());
+		return total_slots - free_slots;
+	}
+
+	int BroadPhaseQuadTree::ComputeTargetMaxDepth() const
+	{
+		int active = GetActiveCount();
+		if (active <= 0) {
+			return max_depth_;
+		}
+
+		if (active < 1000) {
+			return 8; 
+		}
+		else if (active < 3000) {
+			return 9;
+		}
+		else if (active < 10000) {
+			return 10;
+		}
+		else {
+			return 11;
+		}
+	}
+
+	int BroadPhaseQuadTree::ComputeTargetLeafCapacity() const
+	{
+		int active = GetActiveCount();
+
+		if (active < 1000) {
+			return 8; 
+		}
+		else if (active < 5000) {
+			return 12;
+		}
+		else {
+			return 14;
+		}
+	}
+
 }
 
