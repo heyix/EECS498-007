@@ -134,6 +134,7 @@ GameManager = {
 
 			Debug.Log("Left wall ID:  " .. tostring(left_wall:GetID()))
 			Debug.Log("Right wall ID: " .. tostring(right_wall:GetID()))
+			Debug.Log("Up wall ID: " .. tostring(up_wall:GetID()))
 		end
 
 		-- build an N × N grid
@@ -151,6 +152,7 @@ GameManager = {
 				else
 					ground = Actor.Instantiate("Ground")
 					ground:GetComponent("Transform"):SetWorldPosition(Vector2(gx, gy))
+					Debug.Log("Ground ID: " .. tostring(ground:GetID()))
 				end
 
 				SpawnWallsAroundBox(gx, gy)
