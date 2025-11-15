@@ -1,7 +1,6 @@
 #pragma once
 #include "IBroadPhase.h"
 #include <array>
-#include <functional>
 #include <algorithm>
 #include <deque>
 namespace FlatPhysics {
@@ -72,7 +71,8 @@ namespace FlatPhysics {
         void FlushDirty();
         void InsertIntoNode(Node* node, ProxyID id);
         void RemoveFromOwner(ProxyID id);
-        void QueryNode(const Node* node, const FlatAABB& aabb, const std::function<bool(ProxyID)>& visitor)const;
+        template<typename Visitor>
+        void QueryNode(const Node* node, const FlatAABB& aabb, Visitor&& visitor) const;
         int SelectChild(const Node* node, const FlatAABB& aabb)const;
         FlatAABB ChildBounds(const FlatAABB& parent, int child_index)const;
         FlatAABB MakeFatAABB(const FlatAABB& tight)const;
@@ -95,5 +95,26 @@ namespace FlatPhysics {
         int destroyed_since_rebuild_ = 0;
         float proportion_detroyed_objects_needed_to_build = 0.5f;
 	};
+    template<typename Visitor>
+    void BroadPhaseQuadTree::QueryNode(const Node* node, const FlatAABB& aabb, Visitor&& visitor) const
+    {
+        if (!node || !FlatAABB::IntersectAABB(node->bounds, aabb)) {
+            return;
+        }
 
+        for (ProxyID id : node->items) {
+            if (!visitor(id)) {
+                return;
+            }
+        }
+
+        if (node->IsLeaf()) {
+            return;
+        }
+
+        for (const Node* child : node->children) {
+            if (!child) continue;
+            QueryNode(child, aabb, std::forward<Visitor>(visitor));
+        }
+    }
 }

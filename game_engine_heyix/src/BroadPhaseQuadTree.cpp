@@ -427,26 +427,6 @@ namespace FlatPhysics {
 		}
 		proxy.owner = nullptr;
 	}
-	void BroadPhaseQuadTree::QueryNode(const Node* node, const FlatAABB& aabb, const std::function<bool(ProxyID)>& visitor) const
-	{
-		if (!node || !FlatAABB::IntersectAABB(node->bounds, aabb)) {
-			return;
-		}
-		for (ProxyID id : node->items) {
-			if (!visitor(id)) {
-				return;
-			}
-		}
-		if (node->IsLeaf()) {
-			return;
-		}
-		for (const auto& child : node->children) {
-			if (!child) {
-				continue;
-			}
-			QueryNode(child, aabb, visitor);
-		}
-	}
 	int BroadPhaseQuadTree::SelectChild(const Node* node, const FlatAABB& aabb) const
 	{
 		for (int i = 0; i < 4; i++) {
