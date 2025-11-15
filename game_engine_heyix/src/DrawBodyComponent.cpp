@@ -306,6 +306,6 @@ void DrawBodyComponent::DrawAABB()
             {aabb.max.x(), aabb.max.y()},
             {aabb.min.x(), aabb.max.y()}
         };
-        Engine::instance->renderer->draw_polygon_world(corners, 0, 128, 0, 128, false);
+        Engine::instance->renderer->draw_polygon_world(std::move(corners), 0, 128, 0, 128, false);
     }
 }

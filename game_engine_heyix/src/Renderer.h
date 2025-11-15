@@ -89,10 +89,15 @@ public:
 	PolygonDrawRequest(const std::vector<Vector2>& vertices,
 		const Vector2& position,
 		float r, float g, float b, float a, bool fill_color)
-		: vertices(vertices), position(position), r(r), g(g), b(b), a(a),fill_color(fill_color) {}
+		: vertices(&vertices), position(position), r(r), g(g), b(b), a(a),fill_color(fill_color) {}
+	PolygonDrawRequest(std::vector<Vector2>&& vertices,
+		const Vector2& position,
+		float r, float g, float b, float a, bool fill_color)
+		: owned_vertices(vertices), vertices(&owned_vertices), position(position), r(r), g(g), b(b), a(a), fill_color(fill_color) {}
 
 public:
-	std::vector<Vector2> vertices;
+	std::vector<Vector2> owned_vertices;
+	const std::vector<Vector2>* vertices;
 	Vector2 position;
 	float r, g, b, a;
 	bool fill_color;
@@ -112,8 +117,7 @@ public:
 	void draw_text(const std::string& font_name, const std::string& text_content, int font_size, const SDL_Color& font_color, float x, float y,float zoom_factor = 1.0f);
 	void draw_frect(float zoom_factor, SDL_FRect& rect);
 	void draw_pixel(float x, float y, float r, float g, float b, float a);
-	void draw_polygon(const std::vector<Vector2>& vertices, const Vector2& position, float r, float g, float b, float a, bool fill_color = true);
-	void draw_polygon_world(const std::vector<Vector2>& worldVertices,float r, float g, float b, float a, bool fill_color = true);
+
 	void clear_all_request_queues();
 
 	template<typename T>
@@ -135,6 +139,14 @@ public:
 	void draw_ex(T&& image_name, float x, float y, float rotation_degrees, float scale_x, float scale_y, float pivot_x, float pivot_y, float r, float g, float b, float a, int sorting_order)
 	{
 		scene_space_image_request_queue.emplace_back( std::forward<T>(image_name), x, y, rotation_degrees,scale_x, scale_y, pivot_x, pivot_y,  r,  g,  b,  a, sorting_order );
+	}
+	template<typename T>
+	void draw_polygon(T&& vertices, const Vector2& position, float r, float g, float b, float a, bool fill_color = true) {
+		polygon_draw_request_queue.emplace_back(std::forward<T>(vertices), position, r, g, b, a, fill_color);
+	}
+	template<typename T>
+	void draw_polygon_world(T&& worldVertices, float r, float g, float b, float a, bool fill_color = true) {
+		draw_polygon(std::forward<T>(worldVertices), { 0,0 }, r, g, b, a, fill_color);
 	}
 private:
 	void Render_All_Scene_Space_Image_Requests();

@@ -51,16 +51,6 @@ void Renderer::draw_pixel(float x, float y, float r, float g, float b, float a)
 {
 	pixels_request_queue.push_back({ x,y,r,g,b,a });
 }
-void Renderer::draw_polygon(const std::vector<Vector2>& vertices,
-	const Vector2& position,
-	float r, float g, float b, float a, bool fill_color)
-{
-	polygon_draw_request_queue.emplace_back(vertices, position, r, g, b, a, fill_color);
-}
-void Renderer::draw_polygon_world(const std::vector<Vector2>& worldVertices, float r, float g, float b, float a, bool fill_color)
-{
-	draw_polygon(worldVertices, { 0,0 }, r, g, b, a, fill_color);
-}
 void Renderer::clear_all_request_queues()
 {
 	pixels_request_queue.clear();
@@ -198,7 +188,7 @@ void Renderer::Render_All_Polygon_Requests()
 		);
 
 		const auto& verts = req.vertices;
-		const size_t n = verts.size();
+		const size_t n = verts->size();
 		if (n == 0) continue;
 
 		// Build screen-space points once
@@ -206,8 +196,8 @@ void Renderer::Render_All_Polygon_Requests()
 		screenPts.reserve(n);
 		for (size_t i = 0; i < n; ++i) {
 			// local → world (translate by req.position; your vertices are already rotated/scaled if needed)
-			const float wx = verts[i].x() + req.position.x();
-			const float wy = verts[i].y() + req.position.y();
+			const float wx = (*verts)[i].x() + req.position.x();
+			const float wy = (*verts)[i].y() + req.position.y();
 			// world → screen
 			const float sx = (wx - cam_pos.x) * ppm + ox;
 			const float sy = (wy - cam_pos.y) * ppm + oy;

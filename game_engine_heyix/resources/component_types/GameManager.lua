@@ -5,31 +5,8 @@ GameManager = {
 	-- 1 : Static box
 	-- 2 : player
 
-	-- stage1 = {
-	-- 	{1, 0, 0, 0, 0, 4, 4, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, -- 20x20
-	-- 	{1, 0, 0, 0, 0, 4, 4, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	-- 	{1, 0, 0, 0, 0, 4, 4, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	-- 	{1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	-- 	{1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1},
-	-- 	{1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1},
-	-- 	{1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1},
-	-- 	{1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1},
-	-- 	{1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1},
-	-- 	{1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1},
-	-- 	{1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1},
-	-- 	{1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1},
-	-- 	{1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1},
-	-- 	{1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1},
-	-- 	{1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 3, 3, 1, 1, 1, 0, 0, 1},
-	-- 	{1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1},
-	-- 	{1, 0, 2, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1},
-	-- 	{1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
-	-- 	{1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1},
-	-- 	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1},
-	-- },
 	stage1 = {
-		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		-- 40x40 all zeros, last row has one "2" as player
 		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -67,10 +44,38 @@ GameManager = {
 		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 	},
+
+	-- internal state for click vs hold
+	_leftPressTime  = nil,
+	_leftHoldMode   = false,
+	_rightPressTime = nil,
+	_rightHoldMode  = false,
+
+	_holdThreshold = 0.5,   -- seconds
+
+	SpawnAtMouse = function(self, prefabName)
+		local mouse_pos = Input.GetMousePosition()
+		local pixels_per_meter = 100.0
+		local zoom = Camera.GetZoom()
+		local cam_dim = Camera.GetCameraDimension()
+		local x = Camera.GetPositionX()
+		local y = Camera.GetPositionY()
+
+		local world_x = (mouse_pos.x - cam_dim.x * 0.5 * (1.0 / zoom)) / pixels_per_meter + x
+		local world_y = (mouse_pos.y - cam_dim.y * 0.5 * (1.0 / zoom)) / pixels_per_meter + y
+
+		local new_body = Actor.Instantiate(prefabName)
+		local new_body_rb = new_body:GetComponent("Rigidbody")
+		new_body_rb.x = world_x
+		new_body_rb.y = world_y
+
+		Debug.Log("Spawned " .. prefabName .. " with ID: " .. tostring(new_body:GetID()))
+	end,
+
 	OnStart = function(self)
 		-- Spawn stage
-		for y=1,#self.stage1 do 
-			for x = 1,#self.stage1[1] do
+		for y = 1, #self.stage1 do
+			for x = 1, #self.stage1[1] do
 				local tile_code = self.stage1[y][x]
 				local tile_pos = Vector2(x, y)
 
@@ -80,101 +85,94 @@ GameManager = {
 					new_player_rb.x = tile_pos.x
 					new_player_rb.y = tile_pos.y
 
-				
 				elseif tile_code == 1 then
 					local new_box = Actor.Instantiate("KinematicBox")
 					local new_box_rb = new_box:GetComponent("Rigidbody")
 					new_box_rb.x = tile_pos.x
 					new_box_rb.y = tile_pos.y
-
-
-				-- elseif tile_code == 3 then
-				-- 	local new_box = Actor.Instantiate("BouncyBox")
-				-- 	local new_box_rb = new_box:GetComponent("Rigidbody")
-				-- 	new_box_rb.x = tile_pos.x
-				-- 	new_box_rb.y = tile_pos.y
-				
-				-- elseif tile_code == 4 then
-				-- 	local new_box = Actor.Instantiate("VictoryBox")
-				-- 	local new_box_rb = new_box:GetComponent("Rigidbody")
-				-- 	new_box_rb.x = tile_pos.x
-				-- 	new_box_rb.y = tile_pos.y
 				end
 			end
 		end
-		
+
 		local new_body = Actor.Instantiate("Ground")
 		Debug.Log("Spawned body with ID: " .. tostring(new_body:GetID()))
 
-
-
-
-		
 		local GROUND_WIDTH  = 40
 		local GROUND_HEIGHT = 2
 
 		local WALL_WIDTH    = 2     -- fixed wall thickness
 		local WALL_HEIGHT   = 40    -- fixed wall height
 
-		-- === FETCH GROUND WORLD POSITION ===
 		local ground_tf = new_body:GetComponent("Transform")
 		local gx = ground_tf:GetWorldPosition().x
 		local gy = ground_tf:GetWorldPosition().y
 
-		-- === HALF-SIZES FOR POSITIONING ===
 		local half_ground_w = GROUND_WIDTH * 0.5
 		local half_wall_w   = WALL_WIDTH   * 0.5
 
-		-- === FINAL WALL POSITIONS ===
 		local left_wall_x  = gx - half_ground_w - half_wall_w
 		local right_wall_x = gx + half_ground_w + half_wall_w
-		local wall_y = gy  -- same vertical center
+		local wall_y = gy
 
-		-- === INSTANTIATE WALLS ===
 		local left_wall = Actor.Instantiate("Wall")
 		local right_wall = Actor.Instantiate("Wall")
 
-		-- Set transform for walls
 		left_wall:GetComponent("Transform"):SetWorldPosition(Vector2(left_wall_x, wall_y))
 		right_wall:GetComponent("Transform"):SetWorldPosition(Vector2(right_wall_x, wall_y))
 
 		Debug.Log("Left wall ID:  " .. tostring(left_wall:GetID()))
 		Debug.Log("Right wall ID: " .. tostring(right_wall:GetID()))
 	end,
-	spawn = function(self)
+
+	OnUpdate = function(self)
+		local now = Time.CurrentTime()
+
 		if Input.GetMouseButtonDown(1) then
-			local mouse_pos = Input.GetMousePosition()
-			local pixels_per_meter = 100.0
-			local zoom = Camera.GetZoom()
-			local cam_dim = Camera.GetCameraDimension()
-			local x = Camera.GetPositionX()
-			local y = Camera.GetPositionY()
-			local world_x = (mouse_pos.x - cam_dim.x * 0.5 * (1.0 / zoom)) / pixels_per_meter + x
-			local world_y = (mouse_pos.y - cam_dim.y * 0.5 * (1.0 / zoom)) / pixels_per_meter + y
-			local new_body = Actor.Instantiate("Body")
-			local new_body_rb = new_body:GetComponent("Rigidbody")
-			new_body_rb.x = world_x
-			new_body_rb.y = world_y
-			Debug.Log("Spawned body with ID: " .. tostring(new_body:GetID()))
+			self._leftPressTime = now
+			self._leftHoldMode = false
 		end
+
+		if Input.GetMouseButton(1) and self._leftPressTime ~= nil and not self._leftHoldMode then
+			if now - self._leftPressTime >= self._holdThreshold then
+				self._leftHoldMode = true
+			end
+		end
+
+		if Input.GetMouseButtonUp(1) and self._leftPressTime ~= nil then
+			if not self._leftHoldMode then
+				self:SpawnAtMouse("Body")
+			end
+			self._leftPressTime = nil
+			self._leftHoldMode = false
+		end
+
 		if Input.GetMouseButtonDown(3) then
-			local mouse_pos = Input.GetMousePosition()
-			local pixels_per_meter = 100.0
-			local zoom = Camera.GetZoom()
-			local cam_dim = Camera.GetCameraDimension()
-			local x = Camera.GetPositionX()
-			local y = Camera.GetPositionY()
-			local world_x = (mouse_pos.x - cam_dim.x * 0.5 * (1.0 / zoom)) / pixels_per_meter + x
-			local world_y = (mouse_pos.y - cam_dim.y * 0.5 * (1.0 / zoom)) / pixels_per_meter + y
-			local new_body = Actor.Instantiate("Body2")
-			local new_body_rb = new_body:GetComponent("Rigidbody")
-			new_body_rb.x = world_x
-			new_body_rb.y = world_y
-			Debug.Log("Spawned body with ID: " .. tostring(new_body:GetID()))
+			self._rightPressTime = now
+			self._rightHoldMode = false
+		end
+
+		if Input.GetMouseButton(3) and self._rightPressTime ~= nil and not self._rightHoldMode then
+			if now - self._rightPressTime >= self._holdThreshold then
+				self._rightHoldMode = true
+			end
+		end
+
+		if Input.GetMouseButtonUp(3) and self._rightPressTime ~= nil then
+			if not self._rightHoldMode then
+				self:SpawnAtMouse("Body2")
+			end
+			self._rightPressTime = nil
+			self._rightHoldMode = false
 		end
 	end,
-	OnUpdate = function(self)
-		self:spawn()
+
+	OnFixedUpdate = function(self)
+		if self._leftHoldMode and Input.GetMouseButton(1) then
+			self:SpawnAtMouse("Body")
+		end
+
+		if self._rightHoldMode and Input.GetMouseButton(3) then
+			self:SpawnAtMouse("Body2")
+		end
 	end
 }
-
