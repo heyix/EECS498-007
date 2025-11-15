@@ -1,17 +1,17 @@
 #pragma once
 #include "IBroadPhase.h"
-#include <memory>
 #include <array>
 #include <functional>
 #include <algorithm>
+#include <deque>
 namespace FlatPhysics {
-	class BroadPhaseQuadTree : public IBroadPhase {
+    class BroadPhaseQuadTree : public IBroadPhase {
     public:
         BroadPhaseQuadTree(int max_depth = 8, int max_leaf_capacity = 4, float loose_factor = 0.2f);
     private:
         struct Node {
             FlatAABB bounds;
-            std::array<std::unique_ptr<Node>, 4> children{};
+            std::array<Node*, 4> children{};
             std::vector<ProxyID> items;
             int depth = 0;
             bool IsLeaf()const;
@@ -23,6 +23,26 @@ namespace FlatPhysics {
             Node* owner{ nullptr };
             bool dirty = false;
             bool active = false;
+        };
+        struct NodePool {
+            std::deque<Node> nodes;
+            std::size_t used = 0;
+            void Reset() {
+                used = 0;
+            }
+            Node* Allocate() {
+                if (used == nodes.size()){
+                    nodes.emplace_back();
+                }
+                Node* node = &nodes[used++];
+                node->bounds = FlatAABB{ 0,0,0,0 };
+                node->items.clear();
+                node->depth = 0;
+                for (int i = 0; i < node->children.size(); i++) {
+                    node->children[i] = nullptr;
+                }
+                return node;
+            }
         };
 	public:
         ProxyID CreateProxy(const FlatAABB& aabb, void* user_data) override;
@@ -57,7 +77,8 @@ namespace FlatPhysics {
         FlatAABB MakeFatAABB(const FlatAABB& tight)const;
 
     private:
-        std::unique_ptr<Node> root_;
+        Node* root_ = nullptr;
+        NodePool node_pool_;
         std::vector<Proxy> proxies_;
         std::vector<ProxyID> free_list_;
         std::vector<ProxyID> dirty_list_;

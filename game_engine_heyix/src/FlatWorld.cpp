@@ -42,7 +42,7 @@ namespace FlatPhysics {
 	FlatWorld::FlatWorld()
 		: gravity({ 0.0f, 9.81f })
 	{
-		SetBroadPhase(std::make_unique<BroadPhaseQuadTree>());
+		SetBroadPhase(std::make_unique<BroadphaseNaive>());
 		SetSolver(std::make_unique<FlatSolverPGS>());
 	}
 	void FlatWorld::AddBody(FlatBody* body)
@@ -172,7 +172,13 @@ namespace FlatPhysics {
 		for (FlatBody* body : bodies) {
 			body->IntegrateForces(time,gravity);
 		}
+		//std::chrono::steady_clock::time_point step_start;
+		//step_start = std::chrono::steady_clock::now();
 		BroadPhase();
+		//if (bodies.size() % 100 == 0) {
+		//	const double physics_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - step_start).count();
+		//	std::cout << physics_ms << " ms" << std::endl;
+		//}
 		NarrowPhase();
 		solver_->Initialize(contacts,constraints);
 		solver_->PreSolve(time);

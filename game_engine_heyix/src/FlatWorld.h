@@ -30,7 +30,6 @@ namespace FlatPhysics {
 
 
 	private:
-		void CollisionDetectionStep(float dt);
 		void SynchronizeFixtures();
 		void BroadPhase();
 		void NarrowPhase();

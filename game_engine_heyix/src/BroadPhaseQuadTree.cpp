@@ -22,7 +22,10 @@ namespace FlatPhysics {
 		}
 	}
 	BroadPhaseQuadTree::BroadPhaseQuadTree(int max_depth, int max_leaf_capacity, float loose_factor)
-		:max_depth_(max_depth),max_leaf_capacity_(max_leaf_capacity),loose_factor_(std::max(loose_factor,0.0f))
+		: max_depth_(max_depth)
+		, max_leaf_capacity_(max_leaf_capacity)
+		, loose_factor_(std::max(loose_factor, 0.0f))
+		, root_(nullptr)
 	{
 	}
 	ProxyID FlatPhysics::BroadPhaseQuadTree::CreateProxy(const FlatAABB& aabb, void* user_data)
@@ -114,7 +117,7 @@ namespace FlatPhysics {
 				continue;
 			}
 			Proxy& proxyA = proxies_[i];
-			QueryNode(root_.get(), proxyA.fat_aabb, [&](ProxyID otherId) {
+			QueryNode(root_, proxyA.fat_aabb, [&](ProxyID otherId) {
 				if (otherId <= i || !IsActive(otherId)) {
 					return true;
 				}
@@ -136,7 +139,7 @@ namespace FlatPhysics {
 			return;
 		}
 		bool continue_search = true;
-		QueryNode(root_.get(), aabb, [&](ProxyID id) {
+		QueryNode(root_, aabb, [&](ProxyID id) {
 			if (!IsActive(id)) {
 				return true;
 			}
@@ -170,7 +173,7 @@ namespace FlatPhysics {
 
 		for (int i = 0; i < 4; ++i) {
 			if (node->children[i]) {
-				int childDepth = GetMaxDepth(node->children[i].get());
+				int childDepth = GetMaxDepth(node->children[i]);
 				if (childDepth > maxDepth) {
 					maxDepth = childDepth;
 				}
@@ -193,11 +196,12 @@ namespace FlatPhysics {
 	void BroadPhaseQuadTree::EnsureRoot(const FlatAABB& aabb)
 	{
 		if (!root_) {
-			root_ = std::make_unique<Node>();
+			Node* root = node_pool_.Allocate();
 			FlatAABB base = NormalizedBounds(aabb);
 			FlatAABB expanded = FlatAABB::ExpandAroundCenter(base, root_padding_factor_);
-			root_->bounds = NormalizedBounds(expanded);
-			root_->depth = 0;
+			root->bounds = NormalizedBounds(expanded);
+			root->depth = 0;
+			root_ = root;
 			tree_dirty_ = true;
 			return;
 		}
@@ -242,6 +246,8 @@ namespace FlatPhysics {
 	}
 	void BroadPhaseQuadTree::RebuildTree()
 	{
+		node_pool_.Reset();
+
 		FlatAABB combined;
 		bool has_proxy = false;
 		for (Proxy& proxy : proxies_) {
@@ -258,14 +264,16 @@ namespace FlatPhysics {
 			}
 		}
 		if (!has_proxy) {
-			root_.reset();
+			root_ = nullptr; 
 			destroyed_since_rebuild_ = 0;
 			return;
 		}
-		root_ = std::make_unique<Node>();
+
+		Node* root = node_pool_.Allocate(); 
 		FlatAABB expanded = FlatAABB::ExpandAroundCenter(combined, root_padding_factor_);
-		root_->bounds = NormalizedBounds(expanded);
-		root_->depth = 0;
+		root->bounds = NormalizedBounds(expanded);
+		root->depth = 0;
+		root_ = root; 
 
 		for (ProxyID id = 0; id < static_cast<ProxyID>(proxies_.size()); id++) {
 			if (!IsActive(id)) {
@@ -274,7 +282,7 @@ namespace FlatPhysics {
 			Proxy& proxy = proxies_[id];
 			proxy.owner = nullptr;
 			proxy.dirty = false;
-			InsertIntoNode(root_.get(), id);
+			InsertIntoNode(root_, id);  
 		}
 		destroyed_since_rebuild_ = 0;
 	}
@@ -300,7 +308,7 @@ namespace FlatPhysics {
 			}
 			RemoveFromOwner(id);
 			proxy.dirty = false;
-			InsertIntoNode(root_.get(), id);
+			InsertIntoNode(root_, id);
 		}
 		dirty_list_.clear();
 	}
@@ -317,9 +325,10 @@ namespace FlatPhysics {
 				return;
 			}
 			for (int i = 0; i < 4; i++) {
-				node->children[i] = std::make_unique<Node>();
-				node->children[i]->bounds = ChildBounds(node->bounds, i);
-				node->children[i]->depth = node->depth + 1;
+				Node* child = node_pool_.Allocate();
+				child->bounds = ChildBounds(node->bounds, i);
+				child->depth = node->depth + 1;
+				node->children[i] = child;
 			}
 			std::vector<ProxyID> to_reinsert = std::move(node->items);
 			node->items.clear();
@@ -334,7 +343,7 @@ namespace FlatPhysics {
 			proxy.owner = node;
 		}
 		else {
-			InsertIntoNode(node->children[child_index].get(), id);
+			InsertIntoNode(node->children[child_index], id);
 		}
 
 	}
@@ -373,7 +382,7 @@ namespace FlatPhysics {
 			if (!child) {
 				continue;
 			}
-			QueryNode(child.get(), aabb, visitor);
+			QueryNode(child, aabb, visitor);
 		}
 	}
 	int BroadPhaseQuadTree::SelectChild(const Node* node, const FlatAABB& aabb) const
