@@ -42,7 +42,7 @@ namespace FlatPhysics {
 	FlatWorld::FlatWorld()
 		: gravity({ 0.0f, 9.81f })
 	{
-		SetBroadPhase(std::make_unique<BroadphaseNaive>());
+		SetBroadPhase(std::make_unique<BroadPhaseQuadTree>());
 		SetSolver(std::make_unique<FlatSolverPGS>());
 	}
 	void FlatWorld::AddBody(FlatBody* body)
