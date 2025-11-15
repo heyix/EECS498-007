@@ -18,15 +18,17 @@ public:
     void On_Fixed_Update()override;
     void Add_Int_Property(const std::string& key, int new_property) override;
     void Add_Float_Property(const std::string& key, float new_property) override;
-    void Add_String_Property(const std::string& key, const std::string& new_property);
+    void Add_String_Property(const std::string& key, const std::string& new_property)override;
+    void Add_Bool_Property(const std::string& key, bool new_property)override;
 public:
-    FlatPhysics::ShapeType shape = FlatPhysics::ShapeType::Polygon;
+    std::string shape = "Polygon";
 private:
     std::unique_ptr<FlatPhysics::FlatBody> body = nullptr;
     Vector2 move_dir{ 0,0 };
     float width = 1.0f;
     float height = 1.0f;
     float radius = 1.0f;
+    bool is_static = true;
     std::vector<Vector2> AABB = std::vector<Vector2>(4);
 private:
     void DrawBody();

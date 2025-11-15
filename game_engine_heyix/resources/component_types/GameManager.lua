@@ -97,31 +97,66 @@ GameManager = {
 		local new_body = Actor.Instantiate("Ground")
 		Debug.Log("Spawned body with ID: " .. tostring(new_body:GetID()))
 
-		local GROUND_WIDTH  = 40
-		local GROUND_HEIGHT = 2
+		local GROUND_WIDTH  = 20
+		local GROUND_HEIGHT = 1
 
-		local WALL_WIDTH    = 2     -- fixed wall thickness
-		local WALL_HEIGHT   = 40    -- fixed wall height
+		local WALL_WIDTH    = 1 
+		local WALL_HEIGHT   = 20
 
 		local ground_tf = new_body:GetComponent("Transform")
-		local gx = ground_tf:GetWorldPosition().x
-		local gy = ground_tf:GetWorldPosition().y
+		local gx0 = ground_tf:GetWorldPosition().x    
+		local gy0 = ground_tf:GetWorldPosition().y  
 
 		local half_ground_w = GROUND_WIDTH * 0.5
 		local half_wall_w   = WALL_WIDTH   * 0.5
+		local half_wall_h   = WALL_HEIGHT  * 0.5
 
-		local left_wall_x  = gx - half_ground_w - half_wall_w
-		local right_wall_x = gx + half_ground_w + half_wall_w
-		local wall_y = gy
+		local cell_dx = GROUND_WIDTH + WALL_WIDTH  
+		local cell_dy = WALL_HEIGHT             
 
-		local left_wall = Actor.Instantiate("Wall")
-		local right_wall = Actor.Instantiate("Wall")
+		local function SpawnWallsAroundBox(gx, gy)
+			local left_wall_x  = gx - half_ground_w - half_wall_w
+			local right_wall_x = gx + half_ground_w + half_wall_w
+			local wall_y       = gy - half_wall_h      
+			local top_y        = gy - WALL_HEIGHT      
 
-		left_wall:GetComponent("Transform"):SetWorldPosition(Vector2(left_wall_x, wall_y))
-		right_wall:GetComponent("Transform"):SetWorldPosition(Vector2(right_wall_x, wall_y))
+			local left_wall  = Actor.Instantiate("Wall")
+			local right_wall = Actor.Instantiate("Wall")
+			local up_wall    = Actor.Instantiate("Ground") 
 
-		Debug.Log("Left wall ID:  " .. tostring(left_wall:GetID()))
-		Debug.Log("Right wall ID: " .. tostring(right_wall:GetID()))
+			left_wall:GetComponent("Transform"):SetWorldPosition(Vector2(left_wall_x, wall_y))
+			right_wall:GetComponent("Transform"):SetWorldPosition(Vector2(right_wall_x, wall_y))
+			up_wall:GetComponent("Transform"):SetWorldPosition(Vector2(gx, top_y))
+
+			Debug.Log("Left wall ID:  " .. tostring(left_wall:GetID()))
+			Debug.Log("Right wall ID: " .. tostring(right_wall:GetID()))
+		end
+
+		SpawnWallsAroundBox(gx0, gy0)
+
+		do
+			local gx = gx0 + cell_dx
+			local gy = gy0
+			local ground = Actor.Instantiate("Ground")
+			ground:GetComponent("Transform"):SetWorldPosition(Vector2(gx, gy))
+			SpawnWallsAroundBox(gx, gy)
+		end
+
+		do
+			local gx = gx0
+			local gy = gy0 + cell_dy
+			local ground = Actor.Instantiate("Ground")
+			ground:GetComponent("Transform"):SetWorldPosition(Vector2(gx, gy))
+			SpawnWallsAroundBox(gx, gy)
+		end
+
+		do
+			local gx = gx0 + cell_dx
+			local gy = gy0 + cell_dy
+			local ground = Actor.Instantiate("Ground")
+			ground:GetComponent("Transform"):SetWorldPosition(Vector2(gx, gy))
+			SpawnWallsAroundBox(gx, gy)
+		end
 	end,
 
 	OnUpdate = function(self)

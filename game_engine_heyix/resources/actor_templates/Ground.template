@@ -7,8 +7,10 @@
 		},
 		"4": {
 			"type": "DrawBodyComponent",
-			"width": 40,
-			"height": 2
+			"width": 20,
+			"height": 1,
+			"shape":"box",
+			"is_static":true
 		},
 		"5":{
 			"type":"Transform",

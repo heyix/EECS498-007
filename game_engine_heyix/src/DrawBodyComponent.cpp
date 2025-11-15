@@ -138,12 +138,12 @@ void DrawBodyComponent::On_Update()
 void DrawBodyComponent::On_Start()
 {
 	auto transform = this->holder_object->Get_Transform().lock();
-    if (holder_object->ID == 4 || holder_object->ID == 5 || holder_object->ID == 6) {
+    if (shape == "Box") {
         std::unique_ptr<FlatPhysics::PolygonShape> shape = std::make_unique<FlatPhysics::PolygonShape>();
         shape->SetAsBox(width, height);
-        FlatPhysics::FlatBody::CreatePolygonBody(shape->GetVertices(), transform->Get_World_Position(), 2.0f, true, 0.5f, 1, this->body);
+        FlatPhysics::FlatBody::CreatePolygonBody(shape->GetVertices(), transform->Get_World_Position(), 2.0f, is_static, 0.5f, 1, this->body);
     }
-	else if (shape == FlatPhysics::ShapeType::Polygon) {
+	else if (shape == "Polygon") {
         float density = 2.0f;
         bool is_static = false;
         if (holder_object->ID == 7)is_static = true;
@@ -224,14 +224,27 @@ void DrawBodyComponent::Add_String_Property(const std::string& key, const std::s
 {
     if (key == "shape") {
         if (new_property == "circle") {
-            shape = FlatPhysics::ShapeType::Circle;
+            shape = "Circle";
         }
         else if (new_property == "polygon") {
-            shape = FlatPhysics::ShapeType::Polygon;
+            shape = "Polygon";
+        }
+        else if (new_property == "box") {
+            shape = "Box";
         }
         else {
             std::cout << "unknown shape: " << new_property << std::endl;
         }
+    }
+    else {
+        std::cout << "undefined property: " << key << std::endl;
+    }
+}
+
+void DrawBodyComponent::Add_Bool_Property(const std::string& key, bool new_property)
+{
+    if (key == "is_static") {
+        is_static = new_property;
     }
     else {
         std::cout << "undefined property: " << key << std::endl;
