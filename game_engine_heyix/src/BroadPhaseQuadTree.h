@@ -37,6 +37,8 @@ namespace FlatPhysics {
         float GetLooseFactor()const;
         void SetRootExpandFactor(float factor) { root_expand_factor_ = std::max(factor, 1.01f); }
         float GetRootExpandFactor() { return root_expand_factor_; }
+        void SetRootPaddingFactor(float f) { root_padding_factor_ = std::max(f, 1.0f); }
+        float GetRootPaddingFactor() const { return root_padding_factor_; }
         int GetMaxDepth(const Node* node);
     private:
        
@@ -65,6 +67,9 @@ namespace FlatPhysics {
         float loose_factor_;
         bool tree_dirty_{ false };
         float root_expand_factor_ = 2.0f;
+        float root_padding_factor_ = 1.5f;
+        int destroyed_since_rebuild_ = 0;
+        float proportion_detroyed_objects_needed_to_build = 0.5f;
 	};
 
 }

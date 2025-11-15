@@ -17,9 +17,11 @@ namespace FlatPhysics {
 	public:
 		bool Overlaps(const FlatAABB& other)const;
 		bool Contains(const FlatAABB& inner)const;
+		void UnionWith(const FlatAABB& other);
 	public:
 		static bool IntersectAABB(const FlatAABB& a, const FlatAABB& b);
 		static FlatAABB Union(const FlatAABB& a, const FlatAABB& b);
+		static FlatAABB ExpandAroundCenter(const FlatAABB& src, float factor);
 	public:
 		Vector2 min;
 		Vector2 max;

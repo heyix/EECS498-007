@@ -58,7 +58,17 @@ namespace FlatPhysics {
 		proxies_[id] = Proxy{};
 		proxies_[id].active = false;
 		free_list_.push_back(id);
-		tree_dirty_ = true;
+
+		destroyed_since_rebuild_++;
+		int total_slots = proxies_.size();
+		int free_slots = free_list_.size();
+		int active_count = total_slots - free_slots;
+
+		int total_count = active_count + destroyed_since_rebuild_;
+		if (total_count > 0 &&
+			destroyed_since_rebuild_ >= proportion_detroyed_objects_needed_to_build * total_count) {
+			tree_dirty_ = true;
+		}
 	}
 
 	void FlatPhysics::BroadPhaseQuadTree::MoveProxy(ProxyID id, const FlatAABB& aabb, const Vector2& displacement)
@@ -184,7 +194,9 @@ namespace FlatPhysics {
 	{
 		if (!root_) {
 			root_ = std::make_unique<Node>();
-			root_->bounds = NormalizedBounds(aabb);
+			FlatAABB base = NormalizedBounds(aabb);
+			FlatAABB expanded = FlatAABB::ExpandAroundCenter(base, root_padding_factor_);
+			root_->bounds = NormalizedBounds(expanded);
 			root_->depth = 0;
 			tree_dirty_ = true;
 			return;
@@ -242,15 +254,17 @@ namespace FlatPhysics {
 				has_proxy = true;
 			}
 			else {
-				combined = FlatAABB::Union(combined, proxy.fat_aabb);
+				combined.UnionWith(proxy.fat_aabb);
 			}
 		}
 		if (!has_proxy) {
 			root_.reset();
+			destroyed_since_rebuild_ = 0;
 			return;
 		}
 		root_ = std::make_unique<Node>();
-		root_->bounds = NormalizedBounds(combined);
+		FlatAABB expanded = FlatAABB::ExpandAroundCenter(combined, root_padding_factor_);
+		root_->bounds = NormalizedBounds(expanded);
 		root_->depth = 0;
 
 		for (ProxyID id = 0; id < static_cast<ProxyID>(proxies_.size()); id++) {
@@ -262,6 +276,7 @@ namespace FlatPhysics {
 			proxy.dirty = false;
 			InsertIntoNode(root_.get(), id);
 		}
+		destroyed_since_rebuild_ = 0;
 	}
 	void BroadPhaseQuadTree::FlushDirty()
 	{
