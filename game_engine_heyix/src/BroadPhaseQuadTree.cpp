@@ -66,7 +66,7 @@ namespace FlatPhysics {
 		if (!IsActive(id))return;
 		Proxy& proxy = proxies_[id];
 		proxy.tight_aabb = aabb;
-		if (Contains(proxy.fat_aabb, proxy.tight_aabb)) {
+		if (proxy.fat_aabb.Contains(proxy.tight_aabb)) {
 			return;
 		}
 		proxy.fat_aabb = MakeFatAABB(proxy.tight_aabb);
@@ -148,6 +148,26 @@ namespace FlatPhysics {
 	{
 		return loose_factor_;
 	}
+	int BroadPhaseQuadTree::GetMaxDepth(const Node* node)
+	{
+		if (!node) return 0;
+
+		int maxDepth = node->depth;
+
+		if (node->IsLeaf()) {
+			return maxDepth;
+		}
+
+		for (int i = 0; i < 4; ++i) {
+			if (node->children[i]) {
+				int childDepth = GetMaxDepth(node->children[i].get());
+				if (childDepth > maxDepth) {
+					maxDepth = childDepth;
+				}
+			}
+		}
+		return maxDepth;
+	}
 	bool BroadPhaseQuadTree::Node::IsLeaf() const
 	{
 		return !children[0];
@@ -169,14 +189,14 @@ namespace FlatPhysics {
 			tree_dirty_ = true;
 			return;
 		}
-
-		if (Contains(root_->bounds, aabb)) {
+		
+		if (root_->bounds.Contains(aabb)) {
 			return;
 		}
 
 		FlatAABB b = root_->bounds;
 
-		while (!Contains(b, aabb)) {
+		while (!b.Contains(aabb)) {
 			const float width = b.max.x() - b.min.x();
 			const float height = b.max.y() - b.min.y();
 
@@ -210,30 +230,164 @@ namespace FlatPhysics {
 	}
 	void BroadPhaseQuadTree::RebuildTree()
 	{
+		FlatAABB combined;
+		bool has_proxy = false;
+		for (Proxy& proxy : proxies_) {
+			if (!proxy.active) {
+				continue;
+			}
+			proxy.fat_aabb = MakeFatAABB(proxy.tight_aabb);
+			if (!has_proxy) {
+				combined = proxy.fat_aabb;
+				has_proxy = true;
+			}
+			else {
+				combined = FlatAABB::Union(combined, proxy.fat_aabb);
+			}
+		}
+		if (!has_proxy) {
+			root_.reset();
+			return;
+		}
+		root_ = std::make_unique<Node>();
+		root_->bounds = NormalizedBounds(combined);
+		root_->depth = 0;
+
+		for (ProxyID id = 0; id < static_cast<ProxyID>(proxies_.size()); id++) {
+			if (!IsActive(id)) {
+				continue;
+			}
+			Proxy& proxy = proxies_[id];
+			proxy.owner = nullptr;
+			proxy.dirty = false;
+			InsertIntoNode(root_.get(), id);
+		}
 	}
 	void BroadPhaseQuadTree::FlushDirty()
 	{
+		if (tree_dirty_) {
+			RebuildTree();
+			tree_dirty_ = false;
+			dirty_list_.clear();
+			return;
+		}
+		if (!root_) {
+			dirty_list_.clear();
+			return;
+		}
+		for (ProxyID id : dirty_list_) {
+			if (!IsActive(id)) {
+				continue;
+			}
+			Proxy& proxy = proxies_[id];
+			if (!proxy.dirty) {//it's possible: mark dirty->destroy->reused->mark dirty, then two copies of same id will exist in the dirty list
+				continue;
+			}
+			RemoveFromOwner(id);
+			proxy.dirty = false;
+			InsertIntoNode(root_.get(), id);
+		}
+		dirty_list_.clear();
 	}
 	void BroadPhaseQuadTree::InsertIntoNode(Node* node, ProxyID id)
 	{
+		if (!node) {
+			return;
+		}
+		Proxy& proxy = proxies_[id];
+		if (node->IsLeaf()) {
+			if (node->items.size() < static_cast<size_t>(max_leaf_capacity_) || node->depth >= max_depth_) {
+				node->items.push_back(id);
+				proxy.owner = node;
+				return;
+			}
+			for (int i = 0; i < 4; i++) {
+				node->children[i] = std::make_unique<Node>();
+				node->children[i]->bounds = ChildBounds(node->bounds, i);
+				node->children[i]->depth = node->depth + 1;
+			}
+			std::vector<ProxyID> to_reinsert = std::move(node->items);
+			node->items.clear();
+			for (ProxyID stored_id : to_reinsert) {
+				proxies_[stored_id].owner = nullptr;
+				InsertIntoNode(node, stored_id);
+			}
+		}
+		int child_index = SelectChild(node, proxy.fat_aabb);
+		if (child_index == -1) {
+			node->items.push_back(id);
+			proxy.owner = node;
+		}
+		else {
+			InsertIntoNode(node->children[child_index].get(), id);
+		}
+
 	}
 	void BroadPhaseQuadTree::RemoveFromOwner(ProxyID id)
 	{
+		if (!IsActive(id)) {
+			return;
+		}
+		Proxy& proxy = proxies_[id];
+		Node* owner = proxy.owner;
+		if (!owner) {
+			return;
+		}
+		auto& items = owner->items;
+		auto it = std::find(items.begin(), items.end(), id);
+		if (it != items.end()) {
+			*it = items.back();
+			items.pop_back();
+		}
+		proxy.owner = nullptr;
 	}
 	void BroadPhaseQuadTree::QueryNode(const Node* node, const FlatAABB& aabb, const std::function<bool(ProxyID)>& visitor) const
 	{
+		if (!node || !FlatAABB::IntersectAABB(node->bounds, aabb)) {
+			return;
+		}
+		for (ProxyID id : node->items) {
+			if (!visitor(id)) {
+				return;
+			}
+		}
+		if (node->IsLeaf()) {
+			return;
+		}
+		for (const auto& child : node->children) {
+			if (!child) {
+				continue;
+			}
+			QueryNode(child.get(), aabb, visitor);
+		}
 	}
 	int BroadPhaseQuadTree::SelectChild(const Node* node, const FlatAABB& aabb) const
 	{
-		return 0;
-	}
-	bool BroadPhaseQuadTree::Contains(const FlatAABB& outer, const FlatAABB& inner) const
-	{
-		return false;
+		for (int i = 0; i < 4; i++) {
+			const FlatAABB child_bounds = ChildBounds(node->bounds, i);
+			if (child_bounds.Contains(aabb)) {
+				return i;
+			}
+		}
+		return -1;
 	}
 	FlatAABB BroadPhaseQuadTree::ChildBounds(const FlatAABB& parent, int child_index) const
 	{
-		return FlatAABB();
+		const Vector2 center{
+			(parent.min.x() + parent.max.x()) * 0.5f,
+			(parent.min.y() + parent.max.y()) * 0.5f
+		};
+
+		switch (child_index) {
+		case 0:
+			return FlatAABB(parent.min.x(), center.y(), center.x(), parent.max.y());
+		case 1:
+			return FlatAABB(center.x(), center.y(), parent.max.x(), parent.max.y());
+		case 2:
+			return FlatAABB(parent.min.x(), parent.min.y(), center.x(), center.y());
+		default:
+			return FlatAABB(center.x(), parent.min.y(), parent.max.x(), center.y());
+		}
 	}
 	FlatAABB BroadPhaseQuadTree::MakeFatAABB(const FlatAABB& tight) const
 	{

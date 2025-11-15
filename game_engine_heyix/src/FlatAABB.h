@@ -16,6 +16,7 @@ namespace FlatPhysics {
 		}
 	public:
 		bool Overlaps(const FlatAABB& other)const;
+		bool Contains(const FlatAABB& inner)const;
 	public:
 		static bool IntersectAABB(const FlatAABB& a, const FlatAABB& b);
 		static FlatAABB Union(const FlatAABB& a, const FlatAABB& b);

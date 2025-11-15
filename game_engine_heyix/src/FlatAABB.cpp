@@ -5,6 +5,14 @@ namespace FlatPhysics {
 		return IntersectAABB(*this, other);
 	}
 
+	bool FlatAABB::Contains(const FlatAABB& inner) const
+	{
+		return min.x() <= inner.min.x() &&
+			min.y() <= inner.min.y() &&
+			max.x() >= inner.max.x() &&
+			max.y() >= inner.max.y();
+	}
+
 	bool FlatAABB::IntersectAABB(const FlatAABB& a, const FlatAABB& b)
 	{
 		if (a.max.x() <= b.min.x() || b.max.x() <= a.min.x() ||

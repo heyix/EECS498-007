@@ -7,20 +7,7 @@
 namespace FlatPhysics {
 	class BroadPhaseQuadTree : public IBroadPhase {
     public:
-        BroadPhaseQuadTree(int max_depth = 6, int max_leaf_capacity = 4, float loose_factor = 0.2f);
-	public:
-        ProxyID CreateProxy(const FlatAABB& aabb, void* user_data) override;
-        void DestroyProxy(ProxyID id) override;
-        void MoveProxy(ProxyID id, const FlatAABB& aabb, const Vector2& displacement) override;
-        void TouchProxy(ProxyID id) override;
-        void UpdatePairs(IPairCallback* callback) override;
-        void Query(const FlatAABB& aabb, IQueryCallback& callback) override;
-
-    public:
-        void SetLooseFactor(float factor);
-        float GetLooseFactor()const;
-        void SetRootExpandFactor(float factor) { root_expand_factor_ = std::max(factor, 1.01f); }
-        float GetRootExpandFactor() { return root_expand_factor_; }
+        BroadPhaseQuadTree(int max_depth = 8, int max_leaf_capacity = 4, float loose_factor = 0.2f);
     private:
         struct Node {
             FlatAABB bounds;
@@ -37,6 +24,22 @@ namespace FlatPhysics {
             bool dirty = false;
             bool active = false;
         };
+	public:
+        ProxyID CreateProxy(const FlatAABB& aabb, void* user_data) override;
+        void DestroyProxy(ProxyID id) override;
+        void MoveProxy(ProxyID id, const FlatAABB& aabb, const Vector2& displacement) override;
+        void TouchProxy(ProxyID id) override;
+        void UpdatePairs(IPairCallback* callback) override;
+        void Query(const FlatAABB& aabb, IQueryCallback& callback) override;
+
+    public:
+        void SetLooseFactor(float factor);
+        float GetLooseFactor()const;
+        void SetRootExpandFactor(float factor) { root_expand_factor_ = std::max(factor, 1.01f); }
+        float GetRootExpandFactor() { return root_expand_factor_; }
+        int GetMaxDepth(const Node* node);
+    private:
+       
 
         bool IsValid(ProxyID id)const;
         bool IsActive(ProxyID id)const;
@@ -48,7 +51,6 @@ namespace FlatPhysics {
         void RemoveFromOwner(ProxyID id);
         void QueryNode(const Node* node, const FlatAABB& aabb, const std::function<bool(ProxyID)>& visitor)const;
         int SelectChild(const Node* node, const FlatAABB& aabb)const;
-        bool Contains(const FlatAABB& outer, const FlatAABB& inner)const;
         FlatAABB ChildBounds(const FlatAABB& parent, int child_index)const;
         FlatAABB MakeFatAABB(const FlatAABB& tight)const;
 
