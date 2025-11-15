@@ -143,13 +143,13 @@ namespace FlatPhysics {
 		}
 	}
 
-	void FlatPhysics::BroadPhaseQuadTree::Query(const FlatAABB& aabb, IQueryCallback& callback)
+	void BroadPhaseQuadTree::Query(const FlatAABB& aabb, IQueryCallback& callback)
 	{
 		FlushDirty();
 		if (!root_) {
 			return;
 		}
-		bool continue_search = true;
+
 		QueryNode(root_, aabb, [&](ProxyID id) {
 			if (!IsActive(id)) {
 				return true;
@@ -158,10 +158,8 @@ namespace FlatPhysics {
 			if (!FlatAABB::IntersectAABB(aabb, proxy.tight_aabb)) {
 				return true;
 			}
-			continue_search = callback.ReportProxy(id, proxy.user_data);
-			return continue_search;
-		}
-		);
+			return callback.ReportProxy(id, proxy.user_data);
+			});
 	}
 	void BroadPhaseQuadTree::SetLooseFactor(float factor)
 	{
@@ -429,9 +427,11 @@ namespace FlatPhysics {
 	}
 	int BroadPhaseQuadTree::SelectChild(const Node* node, const FlatAABB& aabb) const
 	{
-		for (int i = 0; i < 4; i++) {
-			const FlatAABB child_bounds = ChildBounds(node->bounds, i);
-			if (child_bounds.Contains(aabb)) {
+		for (int i = 0; i < 4; ++i) {
+			const Node* child = node->children[i];
+			if (!child) continue;
+
+			if (child->bounds.Contains(aabb)) {
 				return i;
 			}
 		}

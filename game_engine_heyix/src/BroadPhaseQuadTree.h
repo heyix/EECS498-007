@@ -72,7 +72,7 @@ namespace FlatPhysics {
         void InsertIntoNode(Node* node, ProxyID id);
         void RemoveFromOwner(ProxyID id);
         template<typename Visitor>
-        void QueryNode(const Node* node, const FlatAABB& aabb, Visitor&& visitor) const;
+        bool QueryNode(const Node* node, const FlatAABB& aabb, Visitor&& visitor) const;
         int SelectChild(const Node* node, const FlatAABB& aabb)const;
         FlatAABB ChildBounds(const FlatAABB& parent, int child_index)const;
         FlatAABB MakeFatAABB(const FlatAABB& tight)const;
@@ -96,25 +96,29 @@ namespace FlatPhysics {
         float proportion_detroyed_objects_needed_to_build = 0.5f;
 	};
     template<typename Visitor>
-    void BroadPhaseQuadTree::QueryNode(const Node* node, const FlatAABB& aabb, Visitor&& visitor) const
+    bool BroadPhaseQuadTree::QueryNode(const Node* node, const FlatAABB& aabb, Visitor&& visitor) const
     {
         if (!node || !FlatAABB::IntersectAABB(node->bounds, aabb)) {
-            return;
+            return true;
         }
 
         for (ProxyID id : node->items) {
             if (!visitor(id)) {
-                return;
+                return false;
             }
         }
 
         if (node->IsLeaf()) {
-            return;
+            return true; 
         }
 
         for (const Node* child : node->children) {
             if (!child) continue;
-            QueryNode(child, aabb, std::forward<Visitor>(visitor));
+            if (!QueryNode(child, aabb, visitor)) {
+                return false; 
+            }
         }
+
+        return true;
     }
 }
