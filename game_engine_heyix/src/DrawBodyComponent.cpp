@@ -300,12 +300,10 @@ void DrawBodyComponent::DrawAABB()
 {
     for (const auto& fixture : body->GetFixtures()) {
         FlatPhysics::FlatAABB aabb = fixture->GetAABB();
-        std::vector<Vector2> corners{
-            {aabb.min.x(), aabb.min.y()},
-            {aabb.max.x(), aabb.min.y()},
-            {aabb.max.x(), aabb.max.y()},
-            {aabb.min.x(), aabb.max.y()}
-        };
-        Engine::instance->renderer->draw_polygon_world(std::move(corners), 0, 128, 0, 128, false);
+        AABB[0] = { aabb.min.x(), aabb.min.y() };
+        AABB[1] = { aabb.max.x(), aabb.min.y() };
+        AABB[2] = { aabb.max.x(), aabb.max.y() };
+        AABB[3] = { aabb.min.x(), aabb.max.y() };
+        Engine::instance->renderer->draw_polygon_world(AABB, 0, 128, 0, 128, false);
     }
 }

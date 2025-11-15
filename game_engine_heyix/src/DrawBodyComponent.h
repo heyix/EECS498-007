@@ -27,6 +27,7 @@ private:
     float width = 1.0f;
     float height = 1.0f;
     float radius = 1.0f;
+    std::vector<Vector2> AABB = std::vector<Vector2>(4);
 private:
     void DrawBody();
     void MoveFirstBody();
