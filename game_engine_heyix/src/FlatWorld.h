@@ -37,7 +37,7 @@ namespace FlatPhysics {
 		void RegisterFixture(FlatFixture* fixture);
 		void UnregisterFixture(FlatFixture* fixture);
 		void UpdateSleeping(float dt);
-		void WakeBodiesOnCollision(FlatBody* bodyA, FlatBody* bodyB, const FixedSizeContainer<ContactPoint, 2>& contact_points);
+		std::uint64_t MakeContactKey(const FlatFixture* a, const FlatFixture* b);
 	private:
 		Vector2 gravity;
 		std::vector<FlatBody*> bodies;
@@ -47,6 +47,7 @@ namespace FlatPhysics {
 		std::unique_ptr<IBroadPhase>    broadphase_;
 		std::unique_ptr<IFlatSolver> solver_;
 		std::vector<std::unique_ptr<FlatConstraint>> constraints;
+		std::unordered_map<std::uint64_t, int> contact_map_;
 		int velocity_iterations_{ 1 };
 		int position_iterations_{ 1 };
 	};

@@ -127,6 +127,7 @@ namespace FlatPhysics {
 	}
 	void FlatWorld::UpdateSleeping(float dt)
 	{
+		//need to change this to sleep island
 		for (FlatBody* body : bodies) {
 			if (body->IsStatic()) {
 				continue;
@@ -161,29 +162,30 @@ namespace FlatPhysics {
 				body->SetAwake(false);
 			}
 		}
+		//brute force for now, need to build island
+		for (FlatManifold& manifold:contacts) {
+			FlatBody* bodyA = manifold.fixtureA->GetBody();
+			FlatBody* bodyB = manifold.fixtureB->GetBody();
+			if (!bodyA->IsStatic() && !bodyA->IsAwake()) {
+				bodyB->SetAwake(false);
+			}
+			if (!bodyB->IsStatic() && !bodyB->IsAwake()) {
+				bodyA->SetAwake(false);
+			}
+		}
 	}
-	void FlatWorld::WakeBodiesOnCollision(FlatBody* bodyA, FlatBody* bodyB, const FixedSizeContainer<ContactPoint, 2>& contact_points)
+	std::uint64_t FlatWorld::MakeContactKey(const FlatFixture* a, const FlatFixture* b)
 	{
-		if (bodyA->IsStatic() && bodyB->IsStatic()) {
-			return;
-		}
+		ProxyID idA = a->GetProxyID();
+		ProxyID idB = b->GetProxyID();
 
-		if (!bodyA->IsAwake() && !bodyB->IsAwake()) {
-			return;
-		}
+		if (idA > idB) std::swap(idA, idB);
 
-		const ContactPoint& cp = contact_points[0]; 
-		const Vector2& n = cp.normal;    
+		std::uint32_t lo = static_cast<std::uint32_t>(idA);
+		std::uint32_t hi = static_cast<std::uint32_t>(idB);
 
-		Vector2 vA = bodyA->GetLinearVelocity();
-		Vector2 vB = bodyB->GetLinearVelocity();
-		Vector2 relV = vB - vA;
-		float normalSpeed = Vector2::Dot(relV, n);
-		float speedAlongNormal = std::fabs(normalSpeed);
-		if (speedAlongNormal > 0.164) {
-			bodyA->SetAwake(true);
-			bodyB->SetAwake(true);
-		}
+		return (static_cast<std::uint64_t>(hi) << 32) |
+			static_cast<std::uint64_t>(lo);
 	}
 	void FlatWorld::SynchronizeFixtures()
 	{
@@ -284,7 +286,9 @@ namespace FlatPhysics {
 		if (!broadphase_) {
 			return;
 		}
-		contacts.clear();
+		for (FlatManifold& m : contacts) {
+			m.touched_this_step = false;
+		}
 		contact_pairs.clear();
 		SynchronizeFixtures();
 		BroadphasePairCollector collector(contact_pairs);
@@ -308,13 +312,65 @@ namespace FlatPhysics {
 		for (const ContactPair& pair : contact_pairs) {
 			FlatFixture* fa = pair.fixture_a;
 			FlatFixture* fb = pair.fixture_b;
-			if (!fa || !fb || fa->GetBody() == fb->GetBody()) {
+			if (!fa || !fb) {
 				continue;
 			}
-			FixedSizeContainer<ContactPoint,2> contact_points;
-			if (Collision::DetectCollision(fa, fb, contact_points)) {
-				WakeBodiesOnCollision(fa->GetBody(), fb->GetBody(), contact_points);
-				contacts.emplace_back(fa, fb, contact_points);
+			FlatBody* bodyA = fa->GetBody();
+			FlatBody* bodyB = fb->GetBody();
+			FixedSizeContainer<ContactPoint, 2> contact_points;
+			const bool touching = Collision::DetectCollision(fa, fb, contact_points);
+			std::uint64_t key = MakeContactKey(fa, fb);
+			auto it = contact_map_.find(key);
+			const bool existed = (it != contact_map_.end());
+			if (!touching) {
+				if (existed) {
+					int idx = it->second;
+					contact_map_.erase(it);
+					int last = static_cast<int>(contacts.size()) - 1;
+					if (idx != last) {
+						contacts[idx] = contacts[last];
+						FlatFixture* movedA = contacts[idx].fixtureA;
+						FlatFixture* movedB = contacts[idx].fixtureB;
+						std::uint64_t moved_key = MakeContactKey(movedA, movedB);
+						contact_map_[moved_key] = idx;
+					}
+					contacts.pop_back();
+				}
+				continue;
+			}
+			FlatManifold* manifold = nullptr;
+			if (!existed) {
+				int index = contacts.size();
+				contacts.emplace_back(fa, fb);//touched_this_step default false
+				contact_map_[key] = index;
+				manifold = &contacts.back();
+				if (!bodyA->IsStatic()) bodyA->SetAwake(true);
+				if (!bodyB->IsStatic()) bodyB->SetAwake(true);
+			}
+			else {
+				manifold = &contacts[it->second];
+			}
+			manifold->touched_this_step = true;
+			manifold->contact_points = contact_points;
+		}
+		for (int i = static_cast<int>(contacts.size()) - 1; i >= 0; --i) {
+			if (!contacts[i].touched_this_step) {
+				FlatFixture* fa = contacts[i].fixtureA;
+				FlatFixture* fb = contacts[i].fixtureB;
+				std::uint64_t key = MakeContactKey(fa, fb);
+
+				contact_map_.erase(key);
+
+				int last = static_cast<int>(contacts.size()) - 1;
+				if (i != last) {
+					contacts[i] = contacts[last];
+
+					FlatFixture* movedA = contacts[i].fixtureA;
+					FlatFixture* movedB = contacts[i].fixtureB;
+					std::uint64_t movedKey = MakeContactKey(movedA, movedB);
+					contact_map_[movedKey] = i;
+				}
+				contacts.pop_back();
 			}
 		}
 	}
