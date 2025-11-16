@@ -187,6 +187,36 @@ namespace FlatPhysics {
 		return (static_cast<std::uint64_t>(hi) << 32) |
 			static_cast<std::uint64_t>(lo);
 	}
+	void FlatWorld::AttachContactToBodies(int contactIndex, FlatManifold& manifold)
+	{
+		FlatBody* bodyA = manifold.fixtureA->GetBody();
+		FlatBody* bodyB = manifold.fixtureB->GetBody();
+		FlatContactEdge* edgeA = edge_pool_.Allocate();
+		edgeA->other = bodyB;
+		edgeA->contact_index = contactIndex;
+		edgeA->prev = nullptr;
+		edgeA->next = bodyA->contact_list_;
+		if (bodyA->contact_list_) {
+			bodyA->contact_list_->prev = edgeA;
+		}
+		bodyA->contact_list_ = edgeA;
+
+		FlatContactEdge* edgeB = edge_pool_.Allocate();
+		edgeB->other = bodyA;
+		edgeB->contact_index = contactIndex;
+		edgeB->prev = nullptr;
+		edgeB->next = bodyB->contact_list_;
+		if (bodyB->contact_list_) {
+			bodyB->contact_list_->prev = edgeB;
+		}
+		bodyB->contact_list_ = edgeB;
+
+		manifold.edgeA = edgeA;
+		manifold.edgeB = edgeB;
+	}
+	void FlatWorld::DestroyContact(int index)
+	{
+	}
 	void FlatWorld::SynchronizeFixtures()
 	{
 		if (!broadphase_) {

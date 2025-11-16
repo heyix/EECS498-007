@@ -1,6 +1,9 @@
 #pragma once
 #include "Vector2.h"
 #include <array>
+#include <vector>
+#include <memory>
+#include <deque>
 namespace FlatPhysics {
 	class FlatBody;
 	class FlatFixture;
@@ -87,7 +90,20 @@ namespace FlatPhysics {
 		int count_{ 0 };
 	};
 
-
+	struct FlatContactEdge {
+		FlatBody* other{ nullptr };
+		int contact_index{ -1 };
+		FlatContactEdge* prev = nullptr;
+		FlatContactEdge* next = nullptr;
+		int pool_index = -1;
+	};
+	struct ContactEdgePool {
+		std::deque<FlatContactEdge> edges;
+		std::vector<int> free_list;
+		FlatContactEdge* Allocate();
+		void Free(FlatContactEdge* e);
+		void Clear();
+	};
 
 
 

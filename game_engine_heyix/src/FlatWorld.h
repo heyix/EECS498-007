@@ -38,6 +38,9 @@ namespace FlatPhysics {
 		void UnregisterFixture(FlatFixture* fixture);
 		void UpdateSleeping(float dt);
 		std::uint64_t MakeContactKey(const FlatFixture* a, const FlatFixture* b);
+
+		void AttachContactToBodies(int contactIndex, FlatManifold& manifold);
+		void DestroyContact(int index);
 	private:
 		Vector2 gravity;
 		std::vector<FlatBody*> bodies;
@@ -50,5 +53,6 @@ namespace FlatPhysics {
 		std::unordered_map<std::uint64_t, int> contact_map_;
 		int velocity_iterations_{ 1 };
 		int position_iterations_{ 1 };
+		ContactEdgePool edge_pool_;
 	};
 }

@@ -9,6 +9,7 @@
 namespace FlatPhysics {
 
     class FlatWorld;
+    struct FlatContactEdge;
     class FlatBody {
     private:
         FlatBody(
@@ -43,6 +44,11 @@ namespace FlatPhysics {
         bool awake_ = true;
         bool can_sleep_ = true;
         const bool  is_static;
+
+        FlatContactEdge* contact_list_ = nullptr;
+        int island_index_ = -1;
+        bool island_flag_ = false;
+        friend class FlatWorld;
     public:
         void SetWorld(FlatWorld* world) { world_ = world; }
         FlatWorld* GetWorld() const { return world_; }
@@ -87,6 +93,13 @@ namespace FlatPhysics {
         float GetSleepTime() const { return sleep_time_; }
         void AddSleepTime(float dt) { sleep_time_ += dt; }
         void SetSleepTime(float t) { sleep_time_ = t; }
+
+
+        FlatContactEdge* GetContactList()const { return contact_list_; }
+        int GetIslandIndex()const { return island_index_; }
+        void SetIslandIndex(int idx) { island_index_ = idx; }
+        bool GetIslandFlag()const { return island_flag_; }
+        void SetIslandFlag(bool f) { island_flag_ = f; }
     public:
         //User API
         void Move(const Vector2& amount, bool can_wake_up = true);

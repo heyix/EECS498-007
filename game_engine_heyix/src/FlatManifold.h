@@ -19,5 +19,8 @@ namespace FlatPhysics {
 		FlatFixture* fixtureB;
 		FixedSizeContainer<ContactPoint, 2> contact_points;
 		bool touched_this_step = false;
+		bool island_flag = false;
+		FlatContactEdge* edgeA = nullptr;
+		FlatContactEdge* edgeB = nullptr;
 	};
 }
