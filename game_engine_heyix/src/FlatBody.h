@@ -86,6 +86,7 @@ namespace FlatPhysics {
         void SetCanSleep(bool flag) { can_sleep_ = flag; if (!can_sleep_)SetAwake(true); }
         float GetSleepTime() const { return sleep_time_; }
         void AddSleepTime(float dt) { sleep_time_ += dt; }
+        void SetSleepTime(float t) { sleep_time_ = t; }
     public:
         //User API
         void Move(const Vector2& amount, bool can_wake_up = true);

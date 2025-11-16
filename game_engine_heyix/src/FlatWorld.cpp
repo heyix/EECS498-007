@@ -131,22 +131,34 @@ namespace FlatPhysics {
 			if (body->IsStatic()) {
 				continue;
 			}
+
 			if (!body->GetCanSleep()) {
+				body->SetSleepTime(0.0f);
 				body->SetAwake(true);
-			}
-			if (!body->IsAwake()) {
 				continue;
 			}
+
+			if (!body->IsAwake()) {
+				body->SetSleepTime(0.0f);
+				continue;
+			}
+
 			const Vector2 v = body->GetLinearVelocity();
 			const float w = body->GetAngularVelocity();
-			if (v.LengthSquared() > kLinearSleepToleranceSq || std::fabs(w) > kAngularSleepTolerance) {
-				body->SetAwake(true);
+
+			const float lin2 = v.LengthSquared();
+			const float ang = std::fabs(w);
+
+			if (lin2 > kLinearSleepToleranceSq || ang > kAngularSleepTolerance) {
+				body->SetSleepTime(0.0f);
+				continue;
 			}
-			else {
-				body->AddSleepTime(dt);
-				if (body->GetSleepTime() >= kTimeToSleep) {
-					body->SetAwake(false);
-				}
+
+			float t = body->GetSleepTime() + dt;
+			body->SetSleepTime(t);
+
+			if (t >= kTimeToSleep) {
+				body->SetAwake(false);
 			}
 		}
 	}
