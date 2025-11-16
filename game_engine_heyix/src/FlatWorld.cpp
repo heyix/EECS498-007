@@ -166,9 +166,9 @@ namespace FlatPhysics {
 		Vector2 vA = bodyA->GetLinearVelocity();
 		Vector2 vB = bodyB->GetLinearVelocity();
 		Vector2 relV = vB - vA;
-		float normalSpeed = Vector2::Dot(-relV, n);
+		float normalSpeed = Vector2::Dot(relV, n);
 		float speedAlongNormal = std::fabs(normalSpeed);
-		if (speedAlongNormal > 0.2) {
+		if (speedAlongNormal > 0.164) {
 			bodyA->SetAwake(true);
 			bodyB->SetAwake(true);
 		}
