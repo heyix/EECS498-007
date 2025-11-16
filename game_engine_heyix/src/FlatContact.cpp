@@ -6,6 +6,7 @@ namespace FlatPhysics {
 			int idx = free_list.back();
 			free_list.pop_back();
 			FlatContactEdge* e = &edges[idx];
+			e->pool_index = idx;
 			e->other = nullptr;
 			e->contact_index = -1;
 			e->prev = nullptr;
