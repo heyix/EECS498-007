@@ -92,17 +92,19 @@ namespace FlatPhysics {
 
 	struct FlatContactEdge {
 		FlatBody* other{ nullptr };
-		int contact_index{ -1 };
 		FlatContactEdge* prev = nullptr;
 		FlatContactEdge* next = nullptr;
+		int contact_index{ -1 };
 		int pool_index = -1;
 	};
-	struct ContactEdgePool {
-		std::deque<FlatContactEdge> edges;
-		std::vector<int> free_list;
+	class ContactEdgePool {
+	public:
 		FlatContactEdge* Allocate();
 		void Free(FlatContactEdge* e);
 		void Clear();
+	private:
+		std::deque<FlatContactEdge> edges;
+		std::vector<int> free_list;
 	};
 
 

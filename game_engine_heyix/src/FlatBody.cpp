@@ -44,7 +44,8 @@ void FlatPhysics::FlatBody::DestroyFixture(FlatFixture* fixture)
     if (!fixture) return;
 
     if (world_) {
-        world_->UnregisterFixture(fixture);
+        world_->UnregisterFixtureForBroadphase(fixture);
+        world_->UnregisterFixtureContactEdge(fixture);
     }
 
     for (auto it = fixtures_.begin(); it != fixtures_.end(); ++it) {

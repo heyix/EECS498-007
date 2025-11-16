@@ -47,17 +47,16 @@ namespace FlatPhysics {
     private:
         FlatBody* body_{ nullptr };
         std::unique_ptr<Shape> shape_;
+        void* user_data_{ nullptr };
+        Vector2 local_center;
         float density_{ 1.0f };
         float friction_{ 0.3f };
         float restitution_{ 0.0f };
-        bool  is_trigger_{ false };
-        Filter filter_{};
-        void* user_data_{ nullptr };
-        Vector2 local_center;
-
         ProxyID proxy_id_{ kNullProxy };
         FlatAABB last_aabb_{ Vector2::Zero(), Vector2::Zero() };
+        Filter filter_{};
         bool has_last_aabb_{ false };
         bool proxy_dirty_{ true };
+        bool  is_trigger_{ false };
     };
 }

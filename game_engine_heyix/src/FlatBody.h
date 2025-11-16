@@ -96,6 +96,7 @@ namespace FlatPhysics {
 
 
         FlatContactEdge* GetContactList()const { return contact_list_; }
+        void SetContactList(FlatContactEdge* edge) { contact_list_ = edge; }
         int GetIslandIndex()const { return island_index_; }
         void SetIslandIndex(int idx) { island_index_ = idx; }
         bool GetIslandFlag()const { return island_flag_; }

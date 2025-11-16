@@ -35,12 +35,13 @@ namespace FlatPhysics {
 		void NarrowPhase();
 
 		void RegisterFixture(FlatFixture* fixture);
-		void UnregisterFixture(FlatFixture* fixture);
+		void UnregisterFixtureForBroadphase(FlatFixture* fixture);
+		void UnregisterFixtureContactEdge(FlatFixture* fixture);
 		void UpdateSleeping(float dt);
 		std::uint64_t MakeContactKey(const FlatFixture* a, const FlatFixture* b);
 
 		void AttachContactToBodies(int contactIndex, FlatManifold& manifold);
-		void DestroyContact(int index);
+		void DestroyContactManifold(int contact_index);
 	private:
 		Vector2 gravity;
 		std::vector<FlatBody*> bodies;

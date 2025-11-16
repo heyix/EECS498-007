@@ -10,6 +10,7 @@
 #include "PenetrationConstraint.h"
 #include "FlatSolverPGS.h"
 #include "BroadPhaseQuadTree.h"
+#include "FlatContact.h"
 namespace FlatPhysics {
 	namespace {
 		constexpr float kLinearSleepTolerance = 0.05f;             
@@ -71,10 +72,13 @@ namespace FlatPhysics {
 		if (it == index_map.end()) {
 			return false;
 		}
-
+		while (FlatContactEdge* edge = body->contact_list_) {
+			int index = edge->contact_index;
+			DestroyContactManifold(index);
+		}
 		if (broadphase_) {
 			for (const auto& fixture_uptr : body->GetFixtures()) {
-				UnregisterFixture(fixture_uptr.get());
+				UnregisterFixtureForBroadphase(fixture_uptr.get());
 			}
 		}
 
@@ -111,7 +115,7 @@ namespace FlatPhysics {
 		fixture->ClearProxyDirty();
 	}
 
-	void FlatWorld::UnregisterFixture(FlatFixture* fixture)
+	void FlatWorld::UnregisterFixtureForBroadphase(FlatFixture* fixture)
 	{
 		if (!fixture || !broadphase_) {
 			return;
@@ -124,6 +128,15 @@ namespace FlatPhysics {
 		}
 		fixture->ClearLastAABB();
 		fixture->MarkProxyDirty();
+	}
+	void FlatWorld::UnregisterFixtureContactEdge(FlatFixture* fixture)
+	{
+		for (int i = static_cast<int>(contacts.size()) - 1; i >= 0; --i) {
+			FlatManifold& m = contacts[i];
+			if (m.fixtureA == fixture || m.fixtureB == fixture) {
+				DestroyContactManifold(i);
+			}
+		}
 	}
 	void FlatWorld::UpdateSleeping(float dt)
 	{
@@ -214,8 +227,47 @@ namespace FlatPhysics {
 		manifold.edgeA = edgeA;
 		manifold.edgeB = edgeB;
 	}
-	void FlatWorld::DestroyContact(int index)
+	void FlatWorld::DestroyContactManifold(int contact_index)
 	{
+		FlatManifold& manifold = contacts[contact_index];
+		FlatBody* bodyA = manifold.fixtureA->GetBody();
+		FlatBody* bodyB = manifold.fixtureB->GetBody();
+
+		auto unlinkEdge = [](FlatBody* body, FlatContactEdge* edge) {
+			if (!edge)return;
+			if (edge->prev) {
+				edge->prev->next = edge->next;
+			}
+			if (edge->next) {
+				edge->next->prev = edge->prev;
+			}
+			if (body->GetContactList() == edge) {
+				body->SetContactList(edge->next);
+			}
+		};
+		unlinkEdge(bodyA, manifold.edgeA);
+		unlinkEdge(bodyB, manifold.edgeB);
+		edge_pool_.Free(manifold.edgeA);
+		edge_pool_.Free(manifold.edgeB);
+		manifold.edgeA = nullptr;
+		manifold.edgeB = nullptr;
+
+		std::uint64_t key = MakeContactKey(manifold.fixtureA, manifold.fixtureB);
+		auto it = contact_map_.find(key);
+		if (it != contact_map_.end()) {
+			contact_map_.erase(it);
+		}
+		int last = static_cast<int>(contacts.size()) - 1;
+		if (contact_index != last) {
+			contacts[contact_index] = contacts[last];
+			FlatFixture* movedA = contacts[contact_index].fixtureA;
+			FlatFixture* movedB = contacts[contact_index].fixtureB;
+			std::uint64_t movedKey = MakeContactKey(movedA, movedB);
+			contact_map_[movedKey] = contact_index;
+			if (contacts[contact_index].edgeA)contacts[contact_index].edgeA->contact_index = contact_index;
+			if (contacts[contact_index].edgeB)contacts[contact_index].edgeB->contact_index = contact_index;
+		}
+		contacts.pop_back();
 	}
 	void FlatWorld::SynchronizeFixtures()
 	{
@@ -316,9 +368,6 @@ namespace FlatPhysics {
 		if (!broadphase_) {
 			return;
 		}
-		for (FlatManifold& m : contacts) {
-			m.touched_this_step = false;
-		}
 		contact_pairs.clear();
 		SynchronizeFixtures();
 		BroadphasePairCollector collector(contact_pairs);
@@ -326,19 +375,9 @@ namespace FlatPhysics {
 	}
 	void FlatWorld::NarrowPhase()
 	{
-		//for (const ContactPair& pair : contact_pairs) {
-		//	FlatFixture* fa = pair.fixture_a;
-		//	FlatFixture* fb = pair.fixture_b;
-		//	if (!fa || !fb || fa->GetBody() == fb->GetBody()) {
-		//		continue;
-		//	}
-		//	std::vector<ContactPoint> contact_points;
-		//	if (Collision::DetectCollision(fa, fb, contact_points)) {
-		//		contacts.push_back({ fa, fb, contact_points });
-
-		//		//ContactPointsOld contact_points = Collision::FindContactPointsOld(fa, fb);
-		//	}
-		//}
+		for (FlatManifold& m : contacts) {
+			m.touched_this_step = false;
+		}
 		for (const ContactPair& pair : contact_pairs) {
 			FlatFixture* fa = pair.fixture_a;
 			FlatFixture* fb = pair.fixture_b;
@@ -353,18 +392,10 @@ namespace FlatPhysics {
 			auto it = contact_map_.find(key);
 			const bool existed = (it != contact_map_.end());
 			if (!touching) {
+				//contact existed last frame but not touched this frame
 				if (existed) {
 					int idx = it->second;
-					contact_map_.erase(it);
-					int last = static_cast<int>(contacts.size()) - 1;
-					if (idx != last) {
-						contacts[idx] = contacts[last];
-						FlatFixture* movedA = contacts[idx].fixtureA;
-						FlatFixture* movedB = contacts[idx].fixtureB;
-						std::uint64_t moved_key = MakeContactKey(movedA, movedB);
-						contact_map_[moved_key] = idx;
-					}
-					contacts.pop_back();
+					DestroyContactManifold(idx);
 				}
 				continue;
 			}
@@ -374,6 +405,7 @@ namespace FlatPhysics {
 				contacts.emplace_back(fa, fb);//touched_this_step default false
 				contact_map_[key] = index;
 				manifold = &contacts.back();
+				AttachContactToBodies(index, *manifold);
 				if (!bodyA->IsStatic()) bodyA->SetAwake(true);
 				if (!bodyB->IsStatic()) bodyB->SetAwake(true);
 			}
@@ -385,22 +417,7 @@ namespace FlatPhysics {
 		}
 		for (int i = static_cast<int>(contacts.size()) - 1; i >= 0; --i) {
 			if (!contacts[i].touched_this_step) {
-				FlatFixture* fa = contacts[i].fixtureA;
-				FlatFixture* fb = contacts[i].fixtureB;
-				std::uint64_t key = MakeContactKey(fa, fb);
-
-				contact_map_.erase(key);
-
-				int last = static_cast<int>(contacts.size()) - 1;
-				if (i != last) {
-					contacts[i] = contacts[last];
-
-					FlatFixture* movedA = contacts[i].fixtureA;
-					FlatFixture* movedB = contacts[i].fixtureB;
-					std::uint64_t movedKey = MakeContactKey(movedA, movedB);
-					contact_map_[movedKey] = i;
-				}
-				contacts.pop_back();
+				DestroyContactManifold(i);
 			}
 		}
 	}
@@ -433,11 +450,7 @@ namespace FlatPhysics {
 			for (FlatBody* body : bodies) {
 				for (const auto& fixture_uptr : body->GetFixtures()) {
 					FlatFixture* fixture = fixture_uptr.get();
-					ProxyID id = fixture->GetProxyID();
-					if (id != kNullProxy) {
-						broadphase_->DestroyProxy(id);
-						fixture->SetProxyID(kNullProxy);
-					}
+					UnregisterFixtureForBroadphase(fixture);
 				}
 			}
 		}
