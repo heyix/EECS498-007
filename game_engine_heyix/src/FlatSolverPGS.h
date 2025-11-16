@@ -12,7 +12,8 @@ namespace FlatPhysics {
 		void PreSolve(float dt) override;
 		void Solve(float dt, int iterations) override;
 		void PostSolve(float dt, int iterations) override;
-		void StoreImpulses() override;
+	private:
+		bool CanFixtureCollide(FlatFixture* fixtureA, FlatFixture* fixtureB);
 	private:
 		const std::vector<std::unique_ptr<FlatConstraint>>* constraints_{ nullptr };
 		std::vector<PenetrationConstraint> penetration_constraints_;

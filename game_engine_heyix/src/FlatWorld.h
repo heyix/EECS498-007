@@ -36,6 +36,8 @@ namespace FlatPhysics {
 
 		void RegisterFixture(FlatFixture* fixture);
 		void UnregisterFixture(FlatFixture* fixture);
+		void UpdateSleeping(float dt);
+		void WakeBodiesOnCollision(FlatBody* bodyA, FlatBody* bodyB, const FixedSizeContainer<ContactPoint, 2>& contact_points);
 	private:
 		Vector2 gravity;
 		std::vector<FlatBody*> bodies;

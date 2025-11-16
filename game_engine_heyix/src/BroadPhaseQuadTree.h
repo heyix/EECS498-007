@@ -9,17 +9,17 @@ namespace FlatPhysics {
         BroadPhaseQuadTree(int max_depth = 8, int max_leaf_capacity = 4, float loose_factor = 0.2f);
     private:
         struct Node {
-            FlatAABB bounds;
             std::array<Node*, 4> children{};
             std::vector<ProxyID> items;
+            FlatAABB bounds;
             int depth = 0;
             bool IsLeaf()const;
         };
         struct Proxy {
-            FlatAABB tight_aabb{ 0,0,0,0 };
-            FlatAABB fat_aabb{ 0,0,0,0 };
             void* user_data{ nullptr };
             Node* owner{ nullptr };
+            FlatAABB tight_aabb{ 0,0,0,0 };
+            FlatAABB fat_aabb{ 0,0,0,0 };
             bool dirty = false;
             bool active = false;
         };

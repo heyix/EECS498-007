@@ -1,4 +1,5 @@
 #include "PenetrationConstraint.h"
+#include <iostream>
 #include <algorithm>
 namespace FlatPhysics {
 	PenetrationConstraint::PenetrationConstraint(FlatFixture *a, FlatFixture* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal)
@@ -204,9 +205,6 @@ namespace FlatPhysics {
 		//	bodyB->ApplyImpulseAngular(i5);
 		//}
 #pragma endregion
-
-
-
 		VecN<6> v = GetVelocities();
 		MatMN<6,6> inv_m = GetInverseM();
 
@@ -228,10 +226,10 @@ namespace FlatPhysics {
 		FlatBody* bodyA = a->GetBody();
 		FlatBody* bodyB = b->GetBody();
 		VecN<6> impulses = jt * lambda;
-		bodyA->ApplyImpulseLinear({ impulses(0),impulses(1) });
-		bodyA->ApplyImpulseAngular(impulses(2));
-		bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) });
-		bodyB->ApplyImpulseAngular(impulses(5));
+		bodyA->ApplyImpulseLinear({ impulses(0),impulses(1) },false);
+		bodyA->ApplyImpulseAngular(impulses(2), false);
+		bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) }, false);
+		bodyB->ApplyImpulseAngular(impulses(5), false);
 	}
 	void PenetrationConstraint::PostSolve()
 	{
@@ -264,10 +262,10 @@ namespace FlatPhysics {
 		float correction = std::min(percent * error, maxCorr);
 		float impulseN = correction / std::max(K, 1e-8f);
 		Vector2 P = impulseN * n;
-		bodyA->Move(-invMassA * P);
-		bodyA->Rotate(-invIA * rnA * impulseN);
-		bodyB->Move(+invMassB * P);
-		bodyB->Rotate(+invIB * rnB * impulseN);
+		bodyA->Move(-invMassA * P, false);
+		bodyA->Rotate(-invIA * rnA * impulseN, false);
+		bodyB->Move(+invMassB * P, false);
+		bodyB->Rotate(+invIB * rnB * impulseN, false);
 
 	}
 }

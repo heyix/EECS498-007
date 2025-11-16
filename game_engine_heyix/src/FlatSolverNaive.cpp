@@ -181,8 +181,8 @@ namespace FlatPhysics {
 			return;
 		}
 
-		const float invMassA = bodyA->is_static ? 0.0f : bodyA->GetInverseMass();
-		const float invMassB = bodyB->is_static ? 0.0f : bodyB->GetInverseMass();
+		const float invMassA = bodyA->IsStatic() ? 0.0f : bodyA->GetInverseMass();
+		const float invMassB = bodyB->IsStatic() ? 0.0f : bodyB->GetInverseMass();
 		const float invMassSum = invMassA + invMassB;
 		if (invMassSum <= 0.0f) {
 			return;
@@ -203,8 +203,6 @@ namespace FlatPhysics {
 		}
 
     }
-
-    void FlatSolverNaive::StoreImpulses() {}
 
 }
 

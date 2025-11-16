@@ -10,7 +10,6 @@ namespace FlatPhysics {
         void PreSolve(float dt) override;
         void Solve(float dt, int iterations) override;
         void PostSolve(float dt, int iterations) override;
-        void StoreImpulses() override;
 
     private:
         void SolveVelocityForManifold(const FlatManifold& manifold) const;

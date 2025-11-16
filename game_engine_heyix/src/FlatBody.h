@@ -18,10 +18,9 @@ namespace FlatPhysics {
         );
 
     private:
+        FlatWorld* world_ = nullptr;
+        std::vector<std::unique_ptr<FlatFixture>> fixtures_;
         Vector2 position;
-
-
-
         Vector2 linear_velocity;
         float   angle_rad;
         float   angular_velocity;
@@ -39,10 +38,10 @@ namespace FlatPhysics {
         Vector2 custom_gravity = Vector2::Zero();
 
         bool need_update_transform = true;
-        std::vector<std::unique_ptr<FlatFixture>> fixtures_;
 
-        FlatWorld* world_ = nullptr;
-    public:
+        float sleep_time_ = 0.0f;
+        bool awake_ = true;
+        bool can_sleep_ = true;
         const bool  is_static;
     public:
         void SetWorld(FlatWorld* world) { world_ = world; }
@@ -70,7 +69,7 @@ namespace FlatPhysics {
         Vector2 LocalToWorld(const Vector2& local_point);
         void WorldToLocal(const std::vector<Vector2>& world_point, std::vector<Vector2>& out);
         void LocalToWorld(const std::vector<Vector2>& local_point, std::vector<Vector2>& out);
-        bool IsStatic() { return is_static; }
+        bool IsStatic()const { return is_static; }
 
 
 
@@ -80,21 +79,28 @@ namespace FlatPhysics {
         void   ClearCustomGravity() { has_custom_gravity = false; custom_gravity = Vector2::Zero(); }
         bool   HasCustomGravity() const { return has_custom_gravity; }
         Vector2 GetEffectiveGravity(const Vector2& world_gravity) const;
+
+        bool IsAwake()const;
+        void SetAwake(bool flag);
+        bool GetCanSleep()const { return can_sleep_; }
+        void SetCanSleep(bool flag) { can_sleep_ = flag; if (!can_sleep_)SetAwake(true); }
+        float GetSleepTime() const { return sleep_time_; }
+        void AddSleepTime(float dt) { sleep_time_ += dt; }
     public:
+        //User API
+        void Move(const Vector2& amount, bool can_wake_up = true);
+        void MoveTo(const Vector2& position, bool can_wake_up = true);
+        void Rotate(float amount, bool can_wake_up = true);
 
-        void Move(const Vector2& amount);
-        void MoveTo(const Vector2& position);
-        void Rotate(float amount);
-
-        void AddForce(const Vector2& amount);
-        void AddTorque(float amount);
-        void ApplyImpulseLinear(const Vector2& impulse);
-        void ApplyImpulseAngular(const float j);
-        void ApplyImpulseAtPoint(const Vector2& impulse, const Vector2& r);
-        void SetLinearVelocity(const Vector2& velocity) { if (is_static) return; linear_velocity = velocity; }
-        void SetAngularVelocity(float velocity) { if (is_static)return; angular_velocity = velocity; }
-        void AddLinearVelocity(const Vector2& delta) { SetLinearVelocity(linear_velocity + delta); }
-        void AddAngularVelocity(float delta) { SetAngularVelocity(angular_velocity + delta); }
+        void AddForce(const Vector2& amount, bool can_wake_up = true);
+        void AddTorque(float amount, bool can_wake_up = true);
+        void ApplyImpulseLinear(const Vector2& impulse, bool can_wake_up = true);
+        void ApplyImpulseAngular(const float j, bool can_wake_up = true);
+        void ApplyImpulseAtPoint(const Vector2& impulse, const Vector2& r, bool can_wake_up = true);
+        void SetLinearVelocity(const Vector2& velocity, bool can_wake_up = true);
+        void SetAngularVelocity(float velocity, bool can_wake_up = true);
+        void AddLinearVelocity(const Vector2& delta, bool can_wake_up = true);
+        void AddAngularVelocity(float delta, bool can_wake_up = true);
     public:
         void IntegrateForces(float time, const Vector2& gravity);
         void IntegrateVelocities(float time);

@@ -80,6 +80,7 @@ public:
 	float Length()const ;
 	float LengthSquared()const ;
 	Vector2 NormalDirection() const;//clockwise 90, polygons are counterclockwise
+	void Clear() { vector2.x = 0; vector2.y = 0; }
 
 public:
 	static float DistanceSquared(const Vector2& a, const Vector2& b);

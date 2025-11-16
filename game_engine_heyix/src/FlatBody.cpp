@@ -77,28 +77,60 @@ Vector2 FlatPhysics::FlatBody::GetEffectiveGravity(const Vector2& world_gravity)
     return g * gravity_scale;
 }
 
-void FlatBody::Move(const Vector2& amount) {
-    if (IsStatic()) return;
-    MoveTo(this->position + amount);
+bool FlatPhysics::FlatBody::IsAwake() const
+{
+    if (IsStatic()) {
+        return false;
+    }
+    return awake_;
 }
 
-void FlatBody::MoveTo(const Vector2& p) {
+void FlatPhysics::FlatBody::SetAwake(bool flag)
+{
+    if (!flag) {
+        if (!IsAwake()) return;
+        awake_ = false;
+        linear_velocity.Clear();
+        angular_velocity = 0.0f;
+        force.Clear();
+        torque = 0.0f;
+        sleep_time_ = 0.0f;
+    }
+    else {
+        awake_ = true;
+        sleep_time_ = 0.0f;
+    }
+}
+
+void FlatBody::Move(const Vector2& amount, bool can_wake_up) {
+    if (IsStatic()) return;
+    MoveTo(this->position + amount, can_wake_up);
+}
+
+void FlatBody::MoveTo(const Vector2& p, bool can_wake_up) {
     if (IsStatic())return;
     constexpr float kLinearSleepEpsSq = 1e-6f;
     if ((p - this->position).LengthSquared() < kLinearSleepEpsSq) {
         return;
+    }
+    if (can_wake_up) {
+        SetAwake(true);
     }
     if (p != this->position)MarkFixturesDirty();
     this->position = p;
     need_update_transform = true;
 }
 
-void FlatPhysics::FlatBody::Rotate(float amount)
+void FlatPhysics::FlatBody::Rotate(float amount, bool can_wake_up)
 {
     if (IsStatic())return;
     constexpr float kAngularSleepEps = FlatMath::DegToRad(0.01);
     if (std::fabs(amount) < kAngularSleepEps) {
         return;
+    }
+    if (can_wake_up) {
+
+        SetAwake(true);
     }
     this->angle_rad += amount;
     need_update_transform = true;
@@ -108,26 +140,25 @@ void FlatPhysics::FlatBody::Rotate(float amount)
 
 void FlatPhysics::FlatBody::IntegrateForces(float time, const Vector2& gravity)
 {
-    if (IsStatic())return;
-
+    if (IsStatic() || !IsAwake())return;
     const Vector2 effective_g = GetEffectiveGravity(gravity);
     Vector2 acceleration = effective_g;
     if (GetInverseMass() > 0.0f) {
         acceleration += force * GetInverseMass();
     }
-    AddLinearVelocity(acceleration * time);
-    force = Vector2::Zero();
+    AddLinearVelocity(acceleration * time, false);
+    force.Zero();
 
     float angular_acceleration = torque * GetInverseInertia();
-    AddAngularVelocity(angular_acceleration * time);
+    AddAngularVelocity(angular_acceleration * time, false);
     torque = 0;
 }
 
 void FlatPhysics::FlatBody::IntegrateVelocities(float time)
 {
-    if (IsStatic()) return;
-    Move(linear_velocity * time);
-    Rotate(angular_velocity * time);
+    if (IsStatic() || !IsAwake()) return;
+    Move(linear_velocity * time, false);
+    Rotate(angular_velocity * time, false);
 }
 
 
@@ -153,36 +184,84 @@ void FlatPhysics::FlatBody::LocalToWorld(const std::vector<Vector2>& local_point
     return FlatTransform::TransformVectors(local_point, out, GetTransform());
 }
 
-void FlatPhysics::FlatBody::AddForce(const Vector2& amount)
+void FlatPhysics::FlatBody::AddForce(const Vector2& amount, bool can_wake_up)
 {
     if (IsStatic()) return;
+    if (amount.LengthSquared() == 0.0f) return;
+    if (can_wake_up) {
+
+        SetAwake(true);
+    }
     force += amount;
 }
 
-void FlatPhysics::FlatBody::AddTorque(float amount)
+void FlatPhysics::FlatBody::AddTorque(float amount, bool can_wake_up)
 {
     if (IsStatic()) return;
+    if (amount == 0.0f) return;
+    if (can_wake_up) {
+
+        SetAwake(true);
+    }
     torque += amount;
 }
 
-void FlatPhysics::FlatBody::ApplyImpulseLinear(const Vector2& impulse)
+void FlatPhysics::FlatBody::ApplyImpulseLinear(const Vector2& impulse, bool can_wake_up)
 {
     if (IsStatic())return;
-    AddLinearVelocity(impulse * GetInverseMass());
+    if (impulse.LengthSquared() == 0.0f) return;
+    AddLinearVelocity(impulse * GetInverseMass(),can_wake_up);
 }
 
-void FlatPhysics::FlatBody::ApplyImpulseAngular(const float j)
+void FlatPhysics::FlatBody::ApplyImpulseAngular(const float j, bool can_wake_up)
 {
     if (IsStatic())return;
-    AddAngularVelocity(j * GetInverseInertia());
+    if (j == 0.0f) return;
+    AddAngularVelocity(j * GetInverseInertia(), can_wake_up);
 }
 
 //r: arm start from mass center
-void FlatPhysics::FlatBody::ApplyImpulseAtPoint(const Vector2& impulse, const Vector2& r)
+void FlatPhysics::FlatBody::ApplyImpulseAtPoint(const Vector2& impulse, const Vector2& r, bool can_wake_up)
 {
     if (IsStatic())return;
-    AddLinearVelocity(impulse * GetInverseMass());
-    AddAngularVelocity(Vector2::Cross(r, impulse) * GetInverseInertia());
+    if (impulse.LengthSquared() == 0.0f) return;
+    AddLinearVelocity(impulse * GetInverseMass(), can_wake_up);
+    AddAngularVelocity(Vector2::Cross(r, impulse) * GetInverseInertia(),can_wake_up);
+}
+
+void FlatPhysics::FlatBody::SetLinearVelocity(const Vector2& velocity, bool can_wake_up)
+{
+    if (IsStatic()) return; 
+    if (velocity == linear_velocity) {
+        return;
+    }
+    if (can_wake_up) {
+
+        SetAwake(true);
+    }
+    linear_velocity = velocity;
+}
+
+void FlatPhysics::FlatBody::SetAngularVelocity(float velocity, bool can_wake_up)
+{
+    if (is_static)return; 
+    if (velocity == angular_velocity) {
+        return;
+    }
+    if (can_wake_up) {
+        SetAwake(true);
+    }
+    angular_velocity = velocity;
+}
+
+void FlatPhysics::FlatBody::AddLinearVelocity(const Vector2& delta, bool can_wake_up)
+{
+    SetLinearVelocity(linear_velocity + delta, can_wake_up);
+}
+
+void FlatPhysics::FlatBody::AddAngularVelocity(float delta, bool can_wake_up)
+{
+    SetAngularVelocity(angular_velocity + delta,can_wake_up);
 }
 
 void FlatPhysics::FlatBody::ResetMassData()

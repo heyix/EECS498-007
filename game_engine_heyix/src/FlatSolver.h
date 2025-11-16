@@ -12,6 +12,5 @@ namespace FlatPhysics {
 		virtual void PreSolve(float dt) = 0;
 		virtual void Solve(float dt, int iterations) = 0;
 		virtual void PostSolve(float dt, int iterations) = 0;
-		virtual void StoreImpulses() = 0;
 	};
 }

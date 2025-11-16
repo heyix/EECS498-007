@@ -26,10 +26,14 @@ namespace FlatPhysics {
 	void FlatPhysics::FlatSolverPGS::PreSolve(float dt)
 	{
 		for (const std::unique_ptr<FlatConstraint>& constraint : *constraints_) {
-			constraint->PreSolve(dt);
+			if (CanFixtureCollide(constraint->a, constraint->b)) {
+				constraint->PreSolve(dt);
+			}
 		}
 		for (auto& constraint : penetration_constraints_) {
-			constraint.PreSolve(dt);
+			if (CanFixtureCollide(constraint.a, constraint.b)) {
+				constraint.PreSolve(dt);
+			}
 		}
 	}
 
@@ -37,10 +41,14 @@ namespace FlatPhysics {
 	{
 		for (int i = 0; i < iterations; i++) {
 			for (const std::unique_ptr<FlatConstraint>& constraint : *constraints_) {
-				constraint->Solve();
+				if (CanFixtureCollide(constraint->a, constraint->b)) {
+					constraint->Solve();
+				}
 			}
 			for (auto& constraint : penetration_constraints_) {
-				constraint.Solve();
+				if (CanFixtureCollide(constraint.a, constraint.b)) {
+					constraint.Solve();
+				}
 			}
 		}
 	}
@@ -49,16 +57,29 @@ namespace FlatPhysics {
 	{
 		for (int i = 0; i < iterations; i++) {
 			for (auto& constraint : *constraints_) {
-				constraint->PostSolve();
+				if (CanFixtureCollide(constraint->a, constraint->b)) {
+					constraint->PostSolve();
+				}
 			}
 			for (auto& constraint : penetration_constraints_) {
-				constraint.PostSolve();
+				if (CanFixtureCollide(constraint.a, constraint.b)) {
+					constraint.PostSolve();
+				}
 			}
 		}
 	}
 
-	void FlatPhysics::FlatSolverPGS::StoreImpulses()
+	bool FlatSolverPGS::CanFixtureCollide(FlatFixture* fixtureA, FlatFixture* fixtureB)
 	{
+		FlatBody* bodyA = fixtureA->GetBody();
+		FlatBody* bodyB = fixtureB->GetBody();
+		if (bodyA->IsStatic() && bodyB->IsStatic()) {
+			return false;
+		}
+		if (!bodyA->IsAwake() && !bodyB->IsAwake()) {
+			return false;
+		}
+		return true;
 	}
 
 }

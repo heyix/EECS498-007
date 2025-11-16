@@ -12,6 +12,10 @@
 #include "BroadPhaseQuadTree.h"
 namespace FlatPhysics {
 	namespace {
+		constexpr float kLinearSleepTolerance = 0.05f;             
+		constexpr float kLinearSleepToleranceSq = kLinearSleepTolerance * kLinearSleepTolerance;
+		constexpr float kAngularSleepTolerance = FlatMath::DegToRad(2.0f);
+		constexpr float kTimeToSleep = 0.5f;
 		class BroadphasePairCollector : public FlatPhysics::IPairCallback {
 		public:
 			explicit BroadphasePairCollector(std::vector<ContactPair>& out) : pairs_(out) {}
@@ -27,7 +31,7 @@ namespace FlatPhysics {
 				if (bodyA == bodyB) {
 					return;
 				}
-				if (bodyA && bodyB && bodyA->is_static && bodyB->is_static) {
+				if (bodyA && bodyB && bodyA->IsStatic() && bodyB->IsStatic()) {
 					return;
 				}
 				if (fixtureA && fixtureB) {
@@ -121,6 +125,54 @@ namespace FlatPhysics {
 		fixture->ClearLastAABB();
 		fixture->MarkProxyDirty();
 	}
+	void FlatWorld::UpdateSleeping(float dt)
+	{
+		for (FlatBody* body : bodies) {
+			if (body->IsStatic()) {
+				continue;
+			}
+			if (!body->GetCanSleep()) {
+				body->SetAwake(true);
+			}
+			if (!body->IsAwake()) {
+				continue;
+			}
+			const Vector2 v = body->GetLinearVelocity();
+			const float w = body->GetAngularVelocity();
+			if (v.LengthSquared() > kLinearSleepToleranceSq || std::fabs(w) > kAngularSleepTolerance) {
+				body->SetAwake(true);
+			}
+			else {
+				body->AddSleepTime(dt);
+				if (body->GetSleepTime() >= kTimeToSleep) {
+					body->SetAwake(false);
+				}
+			}
+		}
+	}
+	void FlatWorld::WakeBodiesOnCollision(FlatBody* bodyA, FlatBody* bodyB, const FixedSizeContainer<ContactPoint, 2>& contact_points)
+	{
+		if (bodyA->IsStatic() && bodyB->IsStatic()) {
+			return;
+		}
+
+		if (!bodyA->IsAwake() && !bodyB->IsAwake()) {
+			return;
+		}
+
+		const ContactPoint& cp = contact_points[0]; 
+		const Vector2& n = cp.normal;    
+
+		Vector2 vA = bodyA->GetLinearVelocity();
+		Vector2 vB = bodyB->GetLinearVelocity();
+		Vector2 relV = vB - vA;
+		float normalSpeed = Vector2::Dot(-relV, n);
+		float speedAlongNormal = std::fabs(normalSpeed);
+		if (speedAlongNormal > 0.2) {
+			bodyA->SetAwake(true);
+			bodyB->SetAwake(true);
+		}
+	}
 	void FlatWorld::SynchronizeFixtures()
 	{
 		if (!broadphase_) {
@@ -187,7 +239,7 @@ namespace FlatPhysics {
 			body->IntegrateVelocities(time);
 		}
 		solver_->PostSolve(time, 2);
-
+		UpdateSleeping(time);
 		//CollisionDetectionStep(time);
 	}
 	void FlatWorld::AddConstraint(std::unique_ptr<FlatConstraint> constraint)
@@ -249,6 +301,7 @@ namespace FlatPhysics {
 			}
 			FixedSizeContainer<ContactPoint,2> contact_points;
 			if (Collision::DetectCollision(fa, fb, contact_points)) {
+				WakeBodiesOnCollision(fa->GetBody(), fb->GetBody(), contact_points);
 				contacts.emplace_back(fa, fb, contact_points);
 			}
 		}
