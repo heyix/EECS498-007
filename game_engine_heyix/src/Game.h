@@ -90,7 +90,6 @@ private:
 	std::unique_ptr<Time> time;
 	bool pending_change_scene = false;
 	Uint64 last_ticks = 0;
-	float physics_step_time = 0;
 public:
 	static inline Game* instance = nullptr;
 };

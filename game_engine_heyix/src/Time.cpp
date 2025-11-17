@@ -2,35 +2,49 @@
 #include "Engine.h"
 void Time::Begin_New_Frame(float raw_frame_dt_seconds)
 {
-	unscaled_delta_time = raw_frame_dt_seconds;
-	delta_time = raw_frame_dt_seconds * time_scale;
-	unscaled_time += unscaled_delta_time;
-	time += delta_time;
+    unscaled_delta_time = raw_frame_dt_seconds;
+    delta_time = raw_frame_dt_seconds * time_scale;
+    unscaled_time += unscaled_delta_time;
+    time += delta_time;
 
-	accumulator += unscaled_delta_time;
+    accumulator += unscaled_delta_time;
 
-	if (count_fps) {
-		fps_frame_count++;
-		fps_accum_time += raw_frame_dt_seconds;
+    if (count_fps) {
+        fps_frame_count++;
+        fps_accum_time += raw_frame_dt_seconds;
 
-		if (fps_accum_time >= fps_update_interval)
-		{
-			fps = fps_frame_count / fps_accum_time;
-			fps_frame_count = 0;
-			fps_accum_time = 0.0f;
-		}
-	}
-	if (count_physics_fps)
-	{
-		physics_fps_accum_time += raw_frame_dt_seconds;
+        if (fps_accum_time >= fps_update_interval) {
+            fps = fps_frame_count / fps_accum_time;
+            fps_frame_count = 0;
+            fps_accum_time = 0.0f;
+        }
+    }
 
-		if (physics_fps_accum_time >= physics_fps_update_interval)
-		{
-			physics_fps = physics_step_count / physics_fps_accum_time;
-			physics_step_count = 0;
-			physics_fps_accum_time = 0.0f;
-		}
-	}
+    if (count_physics_fps) {
+        physics_fps_accum_time += raw_frame_dt_seconds;
+
+        if (physics_fps_accum_time >= physics_fps_update_interval) {
+            if (physics_fps_accum_time > 0.0f) {
+                physics_fps = physics_step_count / physics_fps_accum_time;
+            }
+            else {
+                physics_fps = 0.0f;
+            }
+
+            if (physics_step_count > 0) {
+                physics_step_time_ms = static_cast<float>(
+                    physics_step_time_accum_ms / physics_step_count
+                    );
+            }
+            else {
+                physics_step_time_ms = 0.0f;
+            }
+
+            physics_step_count = 0;
+            physics_fps_accum_time = 0.0f;
+            physics_step_time_accum_ms = 0.0;
+        }
+    }
 }
 
 bool Time::Try_Run_Fixed_Step()
@@ -59,12 +73,18 @@ void Time::Enable_FPS_Count()
 
 void Time::Enable_Physics_FPS_Count()
 {
-	count_physics_fps = true;
-	physics_fps = 0.0f;
-	physics_fps_accum_time = 0.0f;
-	physics_step_count = 0;
+    count_physics_fps = true;
+    physics_fps = 0.0f;
+    physics_fps_accum_time = 0.0f;
+    physics_step_count = 0;
+    physics_step_time_ms = 0.0f;
+    physics_step_time_accum_ms = 0.0;
 }
-
+void Time::Accumulate_Physics_Step_Time(double step_ms)
+{
+    if (!count_physics_fps) return;
+    physics_step_time_accum_ms += step_ms;
+}
 float Time::Lua_Delta_Time()
 {
 	return Engine::instance->running_game->Delta_Time();

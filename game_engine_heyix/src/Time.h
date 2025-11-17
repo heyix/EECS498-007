@@ -25,6 +25,9 @@ private:
 	float physics_fps_accum_time = 0.0f;
 	int physics_step_count = 0;
 	bool count_physics_fps = false;
+
+	float physics_step_time_ms = 0.0f;
+	double physics_step_time_accum_ms = 0.0; 
 public:
 	void Begin_New_Frame(float raw_frame_dt_seconds);
 	bool Try_Run_Fixed_Step();
@@ -38,10 +41,12 @@ public:
 	float FPS() { if (count_fps)return fps; else return 0; }
 	void Enable_FPS_Count();
 	void Disable_FPS_Count() { count_fps = false; }
+	void Accumulate_Physics_Step_Time(double step_ms);
 
 	void Enable_Physics_FPS_Count();
 	void Disable_Physics_FPS_Count() { count_physics_fps = false; }
 	float Physics_FPS() const { return count_physics_fps ? physics_fps : 0.0f; }
+	float Physics_Step_Time() const { return count_physics_fps ? physics_step_time_ms : 0.0f; }
 public:
 	static float Lua_Delta_Time();
 	static float Lua_Unscaled_Delta_Time();

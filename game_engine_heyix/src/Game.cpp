@@ -13,42 +13,38 @@
 void Game::game_loop()
 {
 	bool count_fps = true;
-	bool count_physics_time = true;
 	bool count_physics_fps = true;
-	bool display_fps = false;
-	bool display_physics_time = false;
 
 	Input::Init();
 	awake();
 	start();
 	last_ticks = SDL_GetPerformanceCounter();
-	if(count_fps)time->Enable_FPS_Count();
-	if (count_physics_fps)time->Enable_Physics_FPS_Count();
+
+	if (count_fps)         time->Enable_FPS_Count();
+	if (count_physics_fps) time->Enable_Physics_FPS_Count();
+
 	while (is_running) {
 		update_time();
+
 		while (time->Try_Run_Fixed_Step()) {
 			std::chrono::steady_clock::time_point step_start;
-			if (count_physics_time) step_start = std::chrono::steady_clock::now();
-
+			if (count_physics_fps) step_start = std::chrono::steady_clock::now();
 			PhysicsDB::Physics_Step();
 			fixed_update();
 			sync_rigidbody_and_transform();
 
-			if (count_physics_time) {
-				const double physics_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - step_start).count();
-				physics_step_time = physics_ms;
-			}
-			if (display_physics_time) {
-				std::cout << physics_step_time << " ms" << std::endl;
-			}
-
+			double physics_ms = std::chrono::duration<double, std::milli>(
+				std::chrono::steady_clock::now() - step_start
+			).count();
+			time->Accumulate_Physics_Step_Time(physics_ms);
 		}
-		if(display_fps)std::cout << time->FPS()<<std::endl;
+
+
 		process_input();
 		Engine::instance->renderer->clear_renderer();
 		update();
 		EventBus::Process_Subscription();
-		render(); 
+		render();
 		Engine::instance->renderer->clear_all_request_queues();
 		Input::LateUpdate();
 	}
@@ -300,7 +296,7 @@ void Game::Set_Time_Scale(float new_scale)
 }
 float Game::GetPhysicsStepTime()
 {
-	return physics_step_time;
+	return time->Physics_Step_Time();
 }
 float Game::GetFPS()
 {
