@@ -143,10 +143,10 @@ void DrawBodyComponent::On_Start()
     if (shape == "Box") {
         std::unique_ptr<FlatPhysics::PolygonShape> shape = std::make_unique<FlatPhysics::PolygonShape>();
         shape->SetAsBox(width, height);
-        FlatPhysics::FlatBody::CreatePolygonBody(shape->GetVertices(), transform->Get_World_Position(), 2.0f, is_static, 0.2f, 1, 0.2f, 0.5f, this->body);
+        FlatPhysics::FlatBody::CreatePolygonBody(shape->GetVertices(), transform->Get_World_Position(), 2.0f, is_static, 0.0f, 1, 0.2f, 0.5f, this->body);
     }
 	else if (shape == "Polygon") {
-        float density = 2.0f;
+        float density = 5.0f;
         bool is_static = false;
         //if (holder_object->ID == 7)density = 9999;
         const float s = 0.2f;
@@ -156,12 +156,12 @@ void DrawBodyComponent::On_Start()
         poly.emplace_back(+s, +s);       // top-right
         //poly.emplace_back(0.0f, +s * 0.3f); // inner dent (makes it concave)
         poly.emplace_back(-s, +s);       // top-left
-        FlatPhysics::FlatBody::CreatePolygonBody(poly, transform->Get_World_Position(), density, is_static, 0.2f, 1, 0.2f, 0.5f, this->body);
+        FlatPhysics::FlatBody::CreatePolygonBody(poly, transform->Get_World_Position(), density, is_static, 0.0f, 1, 0.2f, 0.5f, this->body);
         //this->body->Rotate(FlatPhysics::FlatMath::DegToRad(45));
     }
 	else {
         bool is_static = false;
-        FlatPhysics::FlatBody::CreateCircleBody(0.2f, transform->Get_World_Position(), 2.0f, is_static, 0.2f, 1, 0.2f, 0.5f, this->body);
+        FlatPhysics::FlatBody::CreateCircleBody(0.2f, transform->Get_World_Position(), 2.0f, is_static, 0.0f, 1, 0.2f, 0.5f, this->body);
 	}
     PhysicsDB::flat_world->AddBody(body.get());
 
