@@ -15,6 +15,8 @@ namespace FlatPhysics {
         FlatBody(
             const Vector2& position,
             float restitution_,
+            float linear_dampling,
+            float angular_dampling,
             bool is_static_
         );
 
@@ -33,6 +35,8 @@ namespace FlatPhysics {
         Vector2 center_of_mass;
         float mass = 0;
         float inverse_mass = 1;
+        float linear_dampling = 0.2f;
+        float angular_dampling = 0.2f;
 
         float   gravity_scale = 1.0f;
         bool    has_custom_gravity = false;
@@ -119,6 +123,7 @@ namespace FlatPhysics {
     public:
         void IntegrateForces(float time, const Vector2& gravity);
         void IntegrateVelocities(float time);
+        void ApplyDampling(float dt);
 
     private:
         void ResetMassData();
@@ -126,9 +131,9 @@ namespace FlatPhysics {
 
     public:
         static bool CreateCircleBody(float radius, const Vector2& position, float density, bool is_static,
-            float restitution, float friction, std::unique_ptr<FlatBody>& out_body);
+            float restitution, float friction, float linear_dampling, float angular_dampling, std::unique_ptr<FlatBody>& out_body);
 
         static bool CreatePolygonBody(const std::vector<Vector2>& vertices, const Vector2& position, float density, bool is_static,
-            float restitution, float friction, std::unique_ptr<FlatBody>& out_body);
+            float restitution, float friction, float linear_dampling, float angular_dampling, std::unique_ptr<FlatBody>& out_body);
     };
 }

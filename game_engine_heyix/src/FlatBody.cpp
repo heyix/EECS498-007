@@ -4,6 +4,7 @@
 #include "FlatWorld.h"
 #include "iostream"
 #include "FlatMath.h"
+#include <algorithm>
 
 using namespace FlatPhysics;
 
@@ -12,6 +13,8 @@ using namespace FlatPhysics;
 FlatBody::FlatBody(
     const Vector2& pos,
     float restitution_,
+    float linear_dampling,
+    float angular_dampling,
     bool is_static_)
     : position(pos),
     linear_velocity(Vector2::Zero()),
@@ -21,6 +24,8 @@ FlatBody::FlatBody(
     force(Vector2::Zero()),
     inverse_inertia(0),
     inertia(0),
+    linear_dampling(linear_dampling),
+    angular_dampling(angular_dampling),
     current_transform(FlatTransform(pos, angle_rad))
 {
 }
@@ -163,6 +168,22 @@ void FlatPhysics::FlatBody::IntegrateVelocities(float time)
     if (IsStatic() || !IsAwake()) return;
     Move(linear_velocity * time, false);
     Rotate(angular_velocity * time, false);
+}
+
+void FlatPhysics::FlatBody::ApplyDampling(float dt)
+{
+    if (IsStatic() || !IsAwake()) {
+        return;
+    }
+    float ld = 1.0f - dt * linear_dampling;
+    float ad = 1.0f - dt * angular_dampling;
+
+    ld = std::clamp(ld, 0.0f, 1.0f);
+    ad = std::clamp(ad, 0.0f, 1.0f);
+    
+
+    linear_velocity *= ld;
+    angular_velocity *= ad;
 }
 
 
@@ -314,7 +335,7 @@ void FlatPhysics::FlatBody::ResetMassData()
 }
 
 bool FlatBody::CreateCircleBody(float r, const Vector2& pos, float density, bool is_static,
-    float restitution, float friction, std::unique_ptr<FlatBody>& out_body)
+    float restitution, float friction, float linear_dampling, float angular_dampling, std::unique_ptr<FlatBody>& out_body)
 {
     out_body = nullptr;
 
@@ -325,7 +346,7 @@ bool FlatBody::CreateCircleBody(float r, const Vector2& pos, float density, bool
     std::unique_ptr<Shape> shape = std::make_unique<CircleShape>(Vector2::Zero(), r);
     fd.shape = shape.get();
 
-    out_body.reset(new FlatBody(pos, restitution, is_static));
+    out_body.reset(new FlatBody(pos, restitution, linear_dampling, angular_dampling, is_static));
     out_body->CreateFixture(fd);
 
     //FixtureDef fd2;
@@ -339,7 +360,7 @@ bool FlatBody::CreateCircleBody(float r, const Vector2& pos, float density, bool
 }
 
 
-bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2>& vertices, const Vector2& position, float density, bool is_static, float restitution, float friction, std::unique_ptr<FlatBody>& out_body)
+bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2>& vertices, const Vector2& position, float density, bool is_static, float restitution, float friction, float linear_dampling, float angular_dampling, std::unique_ptr<FlatBody>& out_body)
 {
     out_body = nullptr;
 
@@ -350,7 +371,7 @@ bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2>& vertic
 
 
     auto body = std::unique_ptr<FlatBody>(
-        new FlatBody(position, restitution, is_static)
+        new FlatBody(position, restitution, linear_dampling, angular_dampling, is_static)
     );
     FixtureDef fd;
     fd.density = density;

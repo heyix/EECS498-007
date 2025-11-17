@@ -355,6 +355,16 @@ namespace FlatPhysics {
 		contact_point.start = centerB - n * radiusB;
 		contact_point.end = centerA + n * radiusA;
 		contact_point.depth = (contact_point.end - contact_point.start).Length();
+
+		contact_point.id.key = 0;
+		contact_point.id.contact_feature.indexA = 0;
+		contact_point.id.contact_feature.indexB = 0;
+		contact_point.id.contact_feature.typeA = ContactFeatureType::Feature_Vertex;
+		contact_point.id.contact_feature.typeB = ContactFeatureType::Feature_Vertex;
+		contact_point.normal_impulse = 0.0f;
+		contact_point.tangent_impulse = 0.0f;
+
+
 		contact.Push_Back(contact_point);
 		return true;
 	}
@@ -407,6 +417,10 @@ namespace FlatPhysics {
 			contact_point.start = center - contact_point.normal * radius;
 			contact_point.end = contact_point.start + (contact_point.normal * contact_point.depth);
 		}
+
+
+
+
 		contact.Push_Back(contact_point);
 		return true;
 	}

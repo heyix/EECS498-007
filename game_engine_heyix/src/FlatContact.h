@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <deque>
+#include <cstdint>
 namespace FlatPhysics {
 	class FlatBody;
 	class FlatFixture;
@@ -39,15 +40,33 @@ namespace FlatPhysics {
 	};
 
 
+	enum ContactFeatureType : std::uint8_t {
+		Feature_Vertex = 0,
+		Feature_Face = 1
+	};
 
+	struct ContactFeature {
+		std::uint8_t indexA = 0;
+		std::uint8_t indexB = 0;
+		std::uint8_t typeA = Feature_Vertex;
+		std::uint8_t typeB = Feature_Vertex;
+	};
 
-
+	union ContactID {
+		ContactFeature contact_feature;
+		std::uint32_t key;
+	};
 
 	struct ContactPoint {
 		Vector2 start;
 		Vector2 end;
 		float depth = 0;
 		Vector2 normal;
+
+		float normal_impulse = 0.0f;
+		float tangent_impulse = 0.0f;
+
+		ContactID id{};
 	};
 
 
