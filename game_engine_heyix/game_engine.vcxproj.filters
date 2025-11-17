@@ -552,6 +552,9 @@
     <ClCompile Include="src\FlatSolverPGS.cpp">
       <Filter>Source Files\FlatPhysics\Solver</Filter>
     </ClCompile>
+    <ClCompile Include="src\PenetrationConstraintTwoPoint.cpp">
+      <Filter>Source Files\FlatPhysics\Math\Constraints</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThirdParty\lua\lapi.h">
@@ -958,6 +961,9 @@
     </ClInclude>
     <ClInclude Include="src\FlatSolverPGS.h">
       <Filter>Header Files\FlatPhysics\Solver</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PenetrationConstraintTwoPoint.h">
+      <Filter>Header Files\FlatPhysics\Math\Constraints</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -22,4 +22,15 @@ namespace FlatPhysics {
 		Vector2 point_a;//local space
 		Vector2 point_b;
 	};
+
+	class PenetrationConstraintBase : public FlatConstraint
+	{
+	public:
+		using FlatConstraint::FlatConstraint;
+		virtual ~PenetrationConstraintBase() = default;
+
+		virtual void PreSolve(float dt) override = 0;
+		virtual void Solve() override = 0;
+		virtual void PostSolve() override = 0;
+	};
 }

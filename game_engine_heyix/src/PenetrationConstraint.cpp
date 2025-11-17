@@ -3,7 +3,7 @@
 #include <algorithm>
 namespace FlatPhysics {
 	PenetrationConstraint::PenetrationConstraint(FlatFixture *a, FlatFixture* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal, float* normal_impulse_ptr, float* tangent_impulse_ptr, bool is_new_contact)
-		:FlatConstraint(a,b,a->GetBody()->WorldToLocal(collision_point_a), b->GetBody()->WorldToLocal(collision_point_b)), normal(a->GetBody()->WorldToLocal(normal)), bias(0), jacobian(0), cached_lambda(0),friction(std::max(a->GetFriction(), b->GetFriction())),
+		:PenetrationConstraintBase(a,b,a->GetBody()->WorldToLocal(collision_point_a), b->GetBody()->WorldToLocal(collision_point_b)), normal(a->GetBody()->WorldToLocal(normal)), bias(0), jacobian(0), cached_lambda(0),friction(std::max(a->GetFriction(), b->GetFriction())),
 		normal_impulse_(normal_impulse_ptr),tangent_impulse_(tangent_impulse_ptr),is_new_contact_(is_new_contact)
 	{
 	}

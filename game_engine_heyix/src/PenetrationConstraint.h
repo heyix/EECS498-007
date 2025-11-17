@@ -1,7 +1,7 @@
 #pragma once
 #include "FlatConstraint.h"
 namespace FlatPhysics {
-	class PenetrationConstraint :public FlatConstraint {
+	class PenetrationConstraint :public PenetrationConstraintBase {
 	public:
 		PenetrationConstraint(FlatFixture* a, FlatFixture* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal, float* normal_impulse_ptr, float* tangent_impulse_ptr, bool is_new_contact);
 	public:

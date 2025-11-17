@@ -16,6 +16,6 @@ namespace FlatPhysics {
 		bool CanFixtureCollide(FlatFixture* fixtureA, FlatFixture* fixtureB);
 	private:
 		const std::vector<std::unique_ptr<FlatConstraint>>* constraints_{ nullptr };
-		std::vector<PenetrationConstraint> penetration_constraints_;
+		std::vector<std::unique_ptr<PenetrationConstraintBase>> penetration_constraints_;
 	};
 }
