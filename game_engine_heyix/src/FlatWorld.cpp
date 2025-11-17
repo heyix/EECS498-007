@@ -464,21 +464,51 @@ namespace FlatPhysics {
 				}
 				continue;
 			}
-			FlatManifold* manifold = nullptr;
 			if (!existed) {
-				int index = contacts.size();
-				contacts.emplace_back(fa, fb);//touched_this_step default false
+				int index = static_cast<int>(contacts.size());
+				contacts.emplace_back(fa, fb);
+				FlatManifold& manifold = contacts.back();
+				manifold.touched_this_step = true;
+				manifold.contact_points.Clear();
+				for (const ContactPoint& p : contact_points) {
+					manifold.contact_points.Push_Back(p);
+				}
 				contact_map_[key] = index;
-				manifold = &contacts.back();
-				AttachContactToBodies(index, *manifold);
-				if (!bodyA->IsStatic()) bodyA->SetAwake(true);
-				if (!bodyB->IsStatic()) bodyB->SetAwake(true);
+				AttachContactToBodies(index, manifold);
 			}
 			else {
-				manifold = &contacts[it->second];
+				FlatManifold& manifold = contacts[it->second];
+				manifold.touched_this_step = true;
+				FixedSizeContainer<ContactPoint, 2> merged;
+				for (ContactPoint& new_point : contact_points) {
+					ContactPoint merged_point = new_point;
+					merged_point.normal_impulse = 0;
+					merged_point.tangent_impulse = 0;
+					for (ContactPoint& old_point : manifold.contact_points) {
+						if (old_point.id.key == new_point.id.key) {
+							//std::cout
+							//	<< int(old_point.id.contact_feature.indexA) << " "
+							//	<< int(old_point.id.contact_feature.indexB) << " "
+							//	<< int(old_point.id.contact_feature.typeA) << " "
+							//	<< int(old_point.id.contact_feature.typeB) << "\n";
+
+							//std::cout
+							//	<< int(new_point.id.contact_feature.indexA) << " "
+							//	<< int(new_point.id.contact_feature.indexB) << " "
+							//	<< int(new_point.id.contact_feature.typeA) << " "
+							//	<< int(new_point.id.contact_feature.typeB) << "\n\n";
+							merged_point.normal_impulse = old_point.normal_impulse;
+							merged_point.tangent_impulse = old_point.tangent_impulse;
+							break;
+						}
+					}
+					merged.Push_Back(merged_point);
+				}
+				manifold.contact_points = merged;
+
 			}
-			manifold->touched_this_step = true;
-			manifold->contact_points = contact_points;
+			if (!bodyA->IsStatic())bodyA->SetAwake(true);
+			if (!bodyB->IsStatic())bodyB->SetAwake(true);
 		}
 		for (int i = static_cast<int>(contacts.size()) - 1; i >= 0; --i) {
 			if (!contacts[i].touched_this_step) {

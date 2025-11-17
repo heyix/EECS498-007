@@ -3,20 +3,20 @@
 #include "FlatManifold.h"
 #include "FlatFixture.h"
 namespace FlatPhysics {
-	void FlatPhysics::FlatSolverPGS::Initialize(const std::vector<FlatManifold>& manifolds, const std::vector<std::unique_ptr<FlatConstraint>>& constraints)
+	void FlatPhysics::FlatSolverPGS::Initialize(std::vector<FlatManifold>& manifolds, const std::vector<std::unique_ptr<FlatConstraint>>& constraints)
 	{
 		penetration_constraints_.clear();
 		constraints_ = &constraints;
-		for (const FlatManifold& manifold : manifolds) {
+		for (FlatManifold& manifold : manifolds) {
 			FlatFixture* fa = manifold.fixtureA;
 			FlatFixture* fb = manifold.fixtureB;
-			for (const ContactPoint& contact_point : manifold.contact_points) {
+			for (ContactPoint& contact_point : manifold.contact_points) {
 				Vector2 start = contact_point.start;
 				Vector2 end = contact_point.end;
 				if (fa->GetShapeType() == ShapeType::Circle && fb->GetShapeType() == ShapeType::Polygon) {
 					std::swap(start, end);
 				}
-				PenetrationConstraint penetration_constraint = PenetrationConstraint(fa, fb, start, end, contact_point.normal);
+				PenetrationConstraint penetration_constraint = PenetrationConstraint(fa, fb, start, end, contact_point.normal,&contact_point.normal_impulse,&contact_point.tangent_impulse);
 				penetration_constraints_.push_back(std::move(penetration_constraint));
 			}
 		}

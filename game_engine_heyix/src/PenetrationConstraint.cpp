@@ -2,8 +2,9 @@
 #include <iostream>
 #include <algorithm>
 namespace FlatPhysics {
-	PenetrationConstraint::PenetrationConstraint(FlatFixture *a, FlatFixture* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal)
-		:FlatConstraint(a,b,a->GetBody()->WorldToLocal(collision_point_a), b->GetBody()->WorldToLocal(collision_point_b)), normal(a->GetBody()->WorldToLocal(normal)), bias(0), jacobian(0), cached_lambda(0),friction(std::max(a->GetFriction(), b->GetFriction()))
+	PenetrationConstraint::PenetrationConstraint(FlatFixture *a, FlatFixture* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal, float* normal_impulse_ptr, float* tangent_impulse_ptr)
+		:FlatConstraint(a,b,a->GetBody()->WorldToLocal(collision_point_a), b->GetBody()->WorldToLocal(collision_point_b)), normal(a->GetBody()->WorldToLocal(normal)), bias(0), jacobian(0), cached_lambda(0),friction(std::max(a->GetFriction(), b->GetFriction())),
+		normal_impulse_(normal_impulse_ptr),tangent_impulse_(tangent_impulse_ptr)
 	{
 	}
 	void FlatPhysics::PenetrationConstraint::PreSolve(float dt)
@@ -44,25 +45,39 @@ namespace FlatPhysics {
 			jacobian(1, 5) = Vector2::Cross(rb, t);
 		}
 
-		//MatMN<6,2> jt = jacobian.Transpose();
-		////warm start
-		//VecN<6> impulses = jt * cached_lambda;
-		//bodyA->ApplyImpulseLinear({ impulses(0),impulses(1) });
-		//bodyA->ApplyImpulseAngular(impulses(2));
-		//bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) });
-		//bodyB->ApplyImpulseAngular(impulses(5));
+		float oldNormalImpulse = (normal_impulse_ ? *normal_impulse_ : 0.0f);
+		float oldTangentImpulse = (tangent_impulse_ ? *tangent_impulse_ : 0.0f);
 
-		float beta = 0.2f;
+		cached_lambda(0) = oldNormalImpulse;
+		cached_lambda(1) = oldTangentImpulse;
+
+		float beta = 0.01f;
 		float C = Vector2::Dot(pb - pa, -n);
 		C = std::min(0.0f, C + 0.005f);
-		
 
 		Vector2 va = bodyA->GetLinearVelocity() + Vector2(-bodyA->GetAngularVelocity() * ra.y(), bodyA->GetAngularVelocity() * ra.x());
 		Vector2 vb = bodyB->GetLinearVelocity() + Vector2(-bodyB->GetAngularVelocity() * rb.y(), bodyB->GetAngularVelocity() * rb.x());
-		float v_rel_dot_normal = Vector2::Dot((va - vb), n);
-		float e = std::min(a->GetRestitution(), b->GetRestitution());
-		bias = (beta / dt) * C ;
-		bias += (e * v_rel_dot_normal);//bounceness
+		float v_rel_dot_normal = Vector2::Dot((vb - va), n);
+		float e = 0.5;
+		bias = (beta / dt) * C;
+		const float restitution_threshold = 1.0f;
+		bool isNewContact = (oldNormalImpulse == 0.0f) && (oldTangentImpulse == 0.0f);
+		if (isNewContact && v_rel_dot_normal < -restitution_threshold && C > -0.5f*0.005f)
+		{
+			bias += (e * v_rel_dot_normal);
+		}
+
+
+		if (cached_lambda(0) != 0.0f || cached_lambda(1) != 0.0f) {
+			MatMN<6, 2> jt = jacobian.Transpose();
+			VecN<6> impulses = jt * cached_lambda;
+			bodyA->ApplyImpulseLinear({ impulses(0),impulses(1) }, false);
+			bodyA->ApplyImpulseAngular(impulses(2), false);
+			bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) }, false);
+			bodyB->ApplyImpulseAngular(impulses(5), false);
+		}
+
+
 	}
 
 	void FlatPhysics::PenetrationConstraint::Solve()
@@ -230,42 +245,49 @@ namespace FlatPhysics {
 		bodyA->ApplyImpulseAngular(impulses(2), false);
 		bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) }, false);
 		bodyB->ApplyImpulseAngular(impulses(5), false);
+
+		if (normal_impulse_) {
+			*normal_impulse_ = cached_lambda(0);
+		}
+		if (tangent_impulse_) {
+			*tangent_impulse_ = cached_lambda(1);
+		}
 	}
 	void PenetrationConstraint::PostSolve()
 	{
-		FlatBody* bodyA = a->GetBody();
-		FlatBody* bodyB = b->GetBody();
-		const Vector2 pa = bodyA->LocalToWorld(point_a);
-		const Vector2 pb = bodyB->LocalToWorld(point_b);
-		const Vector2 n = bodyA->LocalToWorld(normal);
-		const Vector2 ra = pa - bodyA->GetMassCenterWorld();
-		const Vector2 rb = pb - bodyB->GetMassCenterWorld();
+		//FlatBody* bodyA = a->GetBody();
+		//FlatBody* bodyB = b->GetBody();
+		//const Vector2 pa = bodyA->LocalToWorld(point_a);
+		//const Vector2 pb = bodyB->LocalToWorld(point_b);
+		//const Vector2 n = bodyA->LocalToWorld(normal);
+		//const Vector2 ra = pa - bodyA->GetMassCenterWorld();
+		//const Vector2 rb = pb - bodyB->GetMassCenterWorld();
 
-		const float invMassA =  bodyA->GetInverseMass();
-		const float invMassB =  bodyB->GetInverseMass();
-		const float invIA =  bodyA->GetInverseInertia();
-		const float invIB =  bodyB->GetInverseInertia();
+		//const float invMassA =  bodyA->GetInverseMass();
+		//const float invMassB =  bodyB->GetInverseMass();
+		//const float invIA =  bodyA->GetInverseInertia();
+		//const float invIB =  bodyB->GetInverseInertia();
 
-		// rotational contribution: (r x n)^2 * invI
-		const float rnA = Vector2::Cross(ra, n);
-		const float rnB = Vector2::Cross(rb, n);
+		//// rotational contribution: (r x n)^2 * invI
+		//const float rnA = Vector2::Cross(ra, n);
+		//const float rnB = Vector2::Cross(rb, n);
 
-		float K = invMassA + invMassB + rnA * rnA * invIA + rnB * rnB * invIB;
-		if (K <= 0.0f) return; 
+		//float K = invMassA + invMassB + rnA * rnA * invIA + rnB * rnB * invIB;
+		//if (K <= 0.0f) return; 
 
-		const float linearSlop = 0.015f;
-		const float percent = 0.2f;
-		const float maxCorr = 0.02f; 
-		
-		float C = Vector2::Dot(pb - pa, -n);    
-		float error = std::max(-C - linearSlop, 0.0f);
-		float correction = std::min(percent * error, maxCorr);
-		float impulseN = correction / std::max(K, 1e-8f);
-		Vector2 P = impulseN * n;
-		bodyA->Move(-invMassA * P, false);
-		bodyA->Rotate(-invIA * rnA * impulseN, false);
-		bodyB->Move(+invMassB * P, false);
-		bodyB->Rotate(+invIB * rnB * impulseN, false);
+		//const float linearSlop = 0.015f;
+		//const float percent = 0.2f;
+		//const float maxCorr = 0.02f; 
+		//
+		//float C = Vector2::Dot(pb - pa, -n);    
+		//float error = std::max(-C - linearSlop, 0.0f);
+		//float correction = std::min(percent * error, maxCorr);
+		//float impulseN = correction / std::max(K, 1e-8f);
+		//Vector2 P = impulseN * n;
+		//bodyA->Move(-invMassA * P, false);
+		//bodyA->Rotate(-invIA * rnA * impulseN, false);
+		//bodyB->Move(+invMassB * P, false);
+		//bodyB->Rotate(+invIB * rnB * impulseN, false);
 
 	}
 }

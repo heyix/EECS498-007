@@ -3,7 +3,7 @@
 namespace FlatPhysics {
 	class PenetrationConstraint :public FlatConstraint {
 	public:
-		PenetrationConstraint(FlatFixture* a, FlatFixture* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal);
+		PenetrationConstraint(FlatFixture* a, FlatFixture* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal, float* normal_impulse_ptr, float* tangent_impulse_ptr);
 	public:
 		virtual void PreSolve(float dt)override;
 		virtual void Solve()override;
@@ -14,5 +14,7 @@ namespace FlatPhysics {
 		float bias;
 		Vector2 normal;
 		float friction = 0.0f;
+		float* normal_impulse_ = nullptr;
+		float* tangent_impulse_ = nullptr;
 	};
 }
