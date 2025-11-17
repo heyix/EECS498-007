@@ -395,7 +395,7 @@ namespace FlatPhysics {
 		NarrowPhase();
 		solver_->Initialize(contacts,constraints);
 		solver_->PreSolve(time);
-		solver_->Solve(time, 20);
+		solver_->Solve(time, 15);
 		for (FlatBody* body : bodies) {
 			body->IntegrateVelocities(time);
 		}

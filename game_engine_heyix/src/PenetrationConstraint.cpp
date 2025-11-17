@@ -51,7 +51,7 @@ namespace FlatPhysics {
 		cached_lambda(0) = oldNormalImpulse;
 		cached_lambda(1) = oldTangentImpulse;
 
-		float beta = 0.2f;
+		float beta = 0.1f;
 		float C = Vector2::Dot(pb - pa, -n);
 		C = std::min(0.0f, C + 0.005f);
 
