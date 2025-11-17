@@ -88,18 +88,29 @@ bool FlatPhysics::FlatBody::IsAwake() const
 
 void FlatPhysics::FlatBody::SetAwake(bool flag)
 {
-    if (!flag) {
-        if (!IsAwake()) return;
+    if (IsStatic()) {
+        return;
+    }
+
+    if (flag)
+    {
+        if (IsAwake()) {
+            return;
+        }
+        awake_ = true;
+        sleep_time_ = 0.0f;
+    }
+    else
+    {
+        if (!IsAwake()) {
+            return;
+        }
         awake_ = false;
+        sleep_time_ = 0.0f;
         linear_velocity.Clear();
         angular_velocity = 0.0f;
         force.Clear();
         torque = 0.0f;
-        sleep_time_ = 0.0f;
-    }
-    else {
-        awake_ = true;
-        sleep_time_ = 0.0f;
     }
 }
 
@@ -110,10 +121,6 @@ void FlatBody::Move(const Vector2& amount, bool can_wake_up) {
 
 void FlatBody::MoveTo(const Vector2& p, bool can_wake_up) {
     if (IsStatic())return;
-    constexpr float kLinearSleepEpsSq = 1e-6f;
-    if ((p - this->position).LengthSquared() < kLinearSleepEpsSq) {
-        return;
-    }
     if (can_wake_up) {
         SetAwake(true);
     }
@@ -125,10 +132,6 @@ void FlatBody::MoveTo(const Vector2& p, bool can_wake_up) {
 void FlatPhysics::FlatBody::Rotate(float amount, bool can_wake_up)
 {
     if (IsStatic())return;
-    constexpr float kAngularSleepEps = FlatMath::DegToRad(0.01);
-    if (std::fabs(amount) < kAngularSleepEps) {
-        return;
-    }
     if (can_wake_up) {
 
         SetAwake(true);

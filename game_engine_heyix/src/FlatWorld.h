@@ -37,6 +37,7 @@ namespace FlatPhysics {
 		void RegisterFixture(FlatFixture* fixture);
 		void UnregisterFixtureForBroadphase(FlatFixture* fixture);
 		void UnregisterFixtureContactEdge(FlatFixture* fixture);
+		void UnregisterAllFixtureContactEdges(FlatBody* body);
 		void UpdateSleeping(float dt);
 		std::uint64_t MakeContactKey(const FlatFixture* a, const FlatFixture* b);
 

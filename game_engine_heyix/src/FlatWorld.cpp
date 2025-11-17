@@ -72,10 +72,7 @@ namespace FlatPhysics {
 		if (it == index_map.end()) {
 			return false;
 		}
-		while (FlatContactEdge* edge = body->contact_list_) {
-			int index = edge->contact_index;
-			DestroyContactManifold(index);
-		}
+		UnregisterAllFixtureContactEdges(body);
 		if (broadphase_) {
 			for (const auto& fixture_uptr : body->GetFixtures()) {
 				UnregisterFixtureForBroadphase(fixture_uptr.get());
@@ -138,53 +135,109 @@ namespace FlatPhysics {
 			}
 		}
 	}
+	void FlatWorld::UnregisterAllFixtureContactEdges(FlatBody* body)
+	{
+		while (FlatContactEdge* edge = body->contact_list_) {
+			int index = edge->contact_index;
+			DestroyContactManifold(index);
+		}
+	}
 	void FlatWorld::UpdateSleeping(float dt)
 	{
-		//need to change this to sleep island
 		for (FlatBody* body : bodies) {
+			body->SetIslandFlag(false);
+			body->SetIslandIndex(-1);
 			if (body->IsStatic()) {
-				continue;
-			}
-
-			if (!body->GetCanSleep()) {
-				body->SetSleepTime(0.0f);
-				body->SetAwake(true);
-				continue;
-			}
-
-			if (!body->IsAwake()) {
-				body->SetSleepTime(0.0f);
-				continue;
-			}
-
-			const Vector2 v = body->GetLinearVelocity();
-			const float w = body->GetAngularVelocity();
-
-			const float lin2 = v.LengthSquared();
-			const float ang = std::fabs(w);
-
-			if (lin2 > kLinearSleepToleranceSq || ang > kAngularSleepTolerance) {
-				body->SetSleepTime(0.0f);
-				continue;
-			}
-
-			float t = body->GetSleepTime() + dt;
-			body->SetSleepTime(t);
-
-			if (t >= kTimeToSleep) {
 				body->SetAwake(false);
+				body->SetSleepTime(0.0f);
 			}
 		}
-		//brute force for now, need to build island
-		for (FlatManifold& manifold:contacts) {
-			FlatBody* bodyA = manifold.fixtureA->GetBody();
-			FlatBody* bodyB = manifold.fixtureB->GetBody();
-			if (!bodyA->IsStatic() && !bodyA->IsAwake()) {
-				bodyB->SetAwake(false);
+		for (FlatManifold& m : contacts) {
+			m.island_flag = false;
+		}
+		std::vector<FlatBody*> stack;
+		stack.reserve(bodies.size());
+		std::vector<FlatBody*> island_bodies;
+		island_bodies.reserve(bodies.size());
+		std::vector<FlatManifold*> island_contacts;
+		island_contacts.reserve(contacts.size());
+		int islandIndex = 0;
+		for (FlatBody* seed : bodies) {
+			if (seed->IsStatic()) {
+				continue;
 			}
-			if (!bodyB->IsStatic() && !bodyB->IsAwake()) {
-				bodyA->SetAwake(false);
+			if (!seed->IsAwake()) {
+				continue;
 			}
+			if (seed->GetIslandFlag()) {
+				continue;
+			}
+			stack.clear();
+			island_bodies.clear();
+			island_contacts.clear();
+
+			stack.push_back(seed);
+			seed->SetIslandFlag(true);
+
+			float min_sleep_time = std::numeric_limits<float>::max();
+			bool island_can_sleep = true;
+
+			while (!stack.empty()) {
+				FlatBody* body = stack.back();
+				stack.pop_back();
+				island_bodies.push_back(body);
+				body->SetIslandIndex(islandIndex);
+
+				const bool can_body_sleep = body->GetCanSleep();
+				const Vector2 v = body->GetLinearVelocity();
+				const float w = body->GetAngularVelocity();
+				const float lin2 = v.LengthSquared();
+				const float ang = std::fabs(w);
+
+				float sleep_time = body->GetSleepTime();
+
+				if (!can_body_sleep || lin2 > kLinearSleepToleranceSq || ang > kAngularSleepTolerance) {
+					sleep_time = 0.0f;
+					body->SetSleepTime(0.0f);
+					island_can_sleep = false;
+					min_sleep_time = 0.0f;
+				}
+				else {
+					sleep_time += dt;
+					body->SetSleepTime(sleep_time);
+					min_sleep_time = std::min(min_sleep_time, sleep_time);
+				}
+				for (FlatContactEdge* edge = body->GetContactList(); edge; edge = edge->next) {
+					const int contact_index = edge->contact_index;
+					FlatManifold& manifold = contacts[contact_index];
+					if (manifold.island_flag) {
+						continue;
+					}
+
+					manifold.island_flag = true;
+					island_contacts.push_back(&manifold);
+					FlatBody* other = edge->other;
+					if (other->GetIslandFlag()) {
+						continue;
+					}
+					if (other->IsStatic()) {
+						continue;
+					}
+					other->SetIslandFlag(true);
+					stack.push_back(other);
+				}
+			}
+			if (island_can_sleep && min_sleep_time >= kTimeToSleep) {
+				for (FlatBody* body : island_bodies) {
+					body->SetAwake(false);
+				}
+			}
+			else {
+				for (FlatBody* body : island_bodies) {
+					body->SetAwake(true);
+				}
+			}
+			islandIndex++;
 		}
 	}
 	std::uint64_t FlatWorld::MakeContactKey(const FlatFixture* a, const FlatFixture* b)
@@ -317,6 +370,10 @@ namespace FlatPhysics {
 		/*for (FlatBody* body : bodies) {
 			body->Step(time, gravity);
 		}*/
+		//for (FlatBody* body : bodies) {
+		//	if (!body->IsStatic())std::cout << body->IsAwake();
+		//}
+		//std::cout << std::endl;
 		for (FlatBody* body : bodies) {
 			body->IntegrateForces(time,gravity);
 		}
