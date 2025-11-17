@@ -17,6 +17,8 @@
 #include "JointConstraint.h"
 #include "FlatBody.h"
 #include "FlatShape.h"
+#include "TextDB.h"
+#include <string>
 namespace {
     static inline uint32_t Hash32(uint32_t x) {
         x ^= x >> 16; x *= 0x7feb352d; x ^= x >> 15; x *= 0x846ca68b; x ^= x >> 16;
@@ -128,7 +130,7 @@ void DrawBodyComponent::On_Update()
     //        }
     //    }
     //}
-
+    if(this->holder_object->ID == 5)DrawTime();
     DrawBody();
     DrawAABB();
     if(holder_object->ID == 4)PhysicsDB::flat_world->DrawContactPoints();
@@ -141,12 +143,11 @@ void DrawBodyComponent::On_Start()
     if (shape == "Box") {
         std::unique_ptr<FlatPhysics::PolygonShape> shape = std::make_unique<FlatPhysics::PolygonShape>();
         shape->SetAsBox(width, height);
-        FlatPhysics::FlatBody::CreatePolygonBody(shape->GetVertices(), transform->Get_World_Position(), 2.0f, is_static, 0.5f, 1, 0.0f, 0.0f, this->body);
+        FlatPhysics::FlatBody::CreatePolygonBody(shape->GetVertices(), transform->Get_World_Position(), 2.0f, is_static, 0.2f, 1, 0.2f, 0.5f, this->body);
     }
 	else if (shape == "Polygon") {
         float density = 2.0f;
         bool is_static = false;
-        if (holder_object->ID == 7)is_static = true;
         //if (holder_object->ID == 7)density = 9999;
         const float s = 0.2f;
         std::vector<Vector2> poly;
@@ -155,13 +156,12 @@ void DrawBodyComponent::On_Start()
         poly.emplace_back(+s, +s);       // top-right
         //poly.emplace_back(0.0f, +s * 0.3f); // inner dent (makes it concave)
         poly.emplace_back(-s, +s);       // top-left
-        FlatPhysics::FlatBody::CreatePolygonBody(poly, transform->Get_World_Position(), density, is_static, 0.5f, 1, 0.0f, 0.0f, this->body);
+        FlatPhysics::FlatBody::CreatePolygonBody(poly, transform->Get_World_Position(), density, is_static, 0.2f, 1, 0.2f, 0.5f, this->body);
         //this->body->Rotate(FlatPhysics::FlatMath::DegToRad(45));
     }
 	else {
         bool is_static = false;
-        if (holder_object->ID == 7)is_static = true;
-        FlatPhysics::FlatBody::CreateCircleBody(0.2f, transform->Get_World_Position(), 2.0f, is_static, 0.5f, 1, 0.0f, 0.0f, this->body);
+        FlatPhysics::FlatBody::CreateCircleBody(0.2f, transform->Get_World_Position(), 2.0f, is_static, 0.2f, 1, 0.2f, 0.5f, this->body);
 	}
     PhysicsDB::flat_world->AddBody(body.get());
 
@@ -185,6 +185,7 @@ void DrawBodyComponent::On_Start()
 
 void DrawBodyComponent::On_Fixed_Update()
 {
+    if (this->holder_object->ID == 5)GetTime();
     MoveFirstBody();
 }
 
@@ -319,4 +320,17 @@ void DrawBodyComponent::DrawAABB()
         AABB[3] = { aabb.min.x(), aabb.max.y() };
         Engine::instance->renderer->draw_polygon_world(AABB, 0, 128, 0, 128, false);
     }
+}
+
+void DrawBodyComponent::DrawTime()
+{
+    auto dimension = Engine::instance->running_game->Get_Camera_Dimension();
+    Engine::instance->renderer->draw_text("NotoSans-Regular", "FPS: " + std::to_string(fps), 24, {0,0,0},dimension.x / 200,dimension.y/20 );
+    Engine::instance->renderer->draw_text("NotoSans-Regular", "Physics Step Time: " + std::to_string(physics_step_time) + " ms", 24, { 0,0,0 }, dimension.x / 200, dimension.y / 12);
+}
+
+void DrawBodyComponent::GetTime()
+{
+    fps = Engine::instance->running_game->GetFPS();;
+    physics_step_time = Engine::instance->running_game->GetPhysicsStepTime();
 }

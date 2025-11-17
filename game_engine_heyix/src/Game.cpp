@@ -12,6 +12,8 @@
 #include  "Time.h"
 void Game::game_loop()
 {
+	bool count_fps = true;
+	bool count_physics_time = true;
 	bool display_fps = false;
 	bool display_physics_time = false;
 
@@ -19,21 +21,25 @@ void Game::game_loop()
 	awake();
 	start();
 	last_ticks = SDL_GetPerformanceCounter();
-	if(display_fps)time->Enable_FPS_Count();
+	if(count_fps)time->Enable_FPS_Count();
 	while (is_running) {
 		update_time();
 		while (time->Try_Run_Fixed_Step()) {
 			std::chrono::steady_clock::time_point step_start;
-			if (display_physics_time) step_start = std::chrono::steady_clock::now();
+			if (count_physics_time) step_start = std::chrono::steady_clock::now();
 
 			PhysicsDB::Physics_Step();
 			fixed_update();
 			sync_rigidbody_and_transform();
 
-			if (display_physics_time) {
+			if (count_physics_time) {
 				const double physics_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - step_start).count();
-				std::cout << physics_ms << " ms" << std::endl;
+				physics_step_time = physics_ms;
 			}
+			if (display_physics_time) {
+				std::cout << physics_step_time << " ms" << std::endl;
+			}
+
 		}
 		if(display_fps)std::cout << time->FPS()<<std::endl;
 		process_input();
@@ -289,6 +295,14 @@ float Game::Get_Time_Scale()
 void Game::Set_Time_Scale(float new_scale)
 {
 	time->Set_Time_Scale(new_scale);
+}
+float Game::GetPhysicsStepTime()
+{
+	return physics_step_time;
+}
+float Game::GetFPS()
+{
+	return time->FPS();
 }
 void Game::Load_Scene(const std::string& scene_name)
 {

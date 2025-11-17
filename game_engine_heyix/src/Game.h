@@ -77,6 +77,8 @@ public:
 	float Get_Time_Scale();
 	void Set_Time_Scale(float new_scale);
 
+	float GetPhysicsStepTime();
+	float GetFPS();
 private:
 	GameData game_data;
 	std::string current_scene_name;
@@ -87,6 +89,7 @@ private:
 	std::unique_ptr<Time> time;
 	bool pending_change_scene = false;
 	Uint64 last_ticks = 0;
+	float physics_step_time = 0;
 public:
 	static inline Game* instance = nullptr;
 };

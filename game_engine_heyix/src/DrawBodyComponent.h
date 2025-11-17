@@ -30,9 +30,13 @@ private:
     float radius = 1.0f;
     bool is_static = true;
     std::vector<Vector2> AABB = std::vector<Vector2>(4);
+    float fps = 0;
+    float physics_step_time = 0;
 private:
     void DrawBody();
     void MoveFirstBody();
     void Rotate();
     void DrawAABB();
+    void DrawTime();
+    void GetTime();
 };

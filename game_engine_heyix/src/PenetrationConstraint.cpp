@@ -58,7 +58,7 @@ namespace FlatPhysics {
 		Vector2 va = bodyA->GetLinearVelocity() + Vector2(-bodyA->GetAngularVelocity() * ra.y(), bodyA->GetAngularVelocity() * ra.x());
 		Vector2 vb = bodyB->GetLinearVelocity() + Vector2(-bodyB->GetAngularVelocity() * rb.y(), bodyB->GetAngularVelocity() * rb.x());
 		float v_rel_dot_normal = Vector2::Dot((vb - va), n);
-		float e = 0.5;
+		float e = std::min(a->GetRestitution(), b->GetRestitution());
 		bias = (beta / dt) * C;
 		const float restitution_threshold = 1.0f;
 		if (is_new_contact_ && v_rel_dot_normal < -restitution_threshold)

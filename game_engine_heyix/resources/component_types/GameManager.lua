@@ -95,7 +95,6 @@ GameManager = {
 		end
 
 		local new_body = Actor.Instantiate("Ground")
-		Debug.Log("Spawned body with ID: " .. tostring(new_body:GetID()))
 
 		local GROUND_WIDTH  = 20
 		local GROUND_HEIGHT = 2
