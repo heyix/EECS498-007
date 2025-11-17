@@ -543,7 +543,7 @@
     <ClCompile Include="src\JointConstraint.cpp">
       <Filter>Source Files\FlatPhysics\Math\Constraints</Filter>
     </ClCompile>
-    <ClCompile Include="src\PenetrationConstraint.cpp">
+    <ClCompile Include="src\PenetrationConstraintSinglePoint.cpp">
       <Filter>Source Files\FlatPhysics\Math\Constraints</Filter>
     </ClCompile>
     <ClCompile Include="src\BroadPhaseQuadTree.cpp">
@@ -953,7 +953,7 @@
     <ClInclude Include="src\JointConstraint.h">
       <Filter>Header Files\FlatPhysics\Math\Constraints</Filter>
     </ClInclude>
-    <ClInclude Include="src\PenetrationConstraint.h">
+    <ClInclude Include="src\PenetrationConstraintSinglePoint.h">
       <Filter>Header Files\FlatPhysics\Math\Constraints</Filter>
     </ClInclude>
     <ClInclude Include="src\BroadPhaseQuadTree.h">

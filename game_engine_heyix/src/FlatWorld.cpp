@@ -7,7 +7,6 @@
 #include "FlatMath.h"
 #include "BroadPhaseNaive.h"
 #include "FlatSolverNaive.h"
-#include "PenetrationConstraint.h"
 #include "FlatSolverPGS.h"
 #include "BroadPhaseQuadTree.h"
 #include "FlatContact.h"

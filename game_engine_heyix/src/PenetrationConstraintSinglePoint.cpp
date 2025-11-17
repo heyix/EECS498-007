@@ -1,13 +1,13 @@
-#include "PenetrationConstraint.h"
+#include "PenetrationConstraintSinglePoint.h"
 #include <iostream>
 #include <algorithm>
 namespace FlatPhysics {
-	PenetrationConstraint::PenetrationConstraint(FlatFixture *a, FlatFixture* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal, float* normal_impulse_ptr, float* tangent_impulse_ptr, bool is_new_contact)
+	PenetrationConstraintSinglePoint::PenetrationConstraintSinglePoint(FlatFixture *a, FlatFixture* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal, float* normal_impulse_ptr, float* tangent_impulse_ptr, bool is_new_contact)
 		:PenetrationConstraintBase(a,b,a->GetBody()->WorldToLocal(collision_point_a), b->GetBody()->WorldToLocal(collision_point_b)), normal(a->GetBody()->WorldToLocal(normal)), bias(0), jacobian(0), cached_lambda(0),friction(std::max(a->GetFriction(), b->GetFriction())),
 		normal_impulse_(normal_impulse_ptr),tangent_impulse_(tangent_impulse_ptr),is_new_contact_(is_new_contact)
 	{
 	}
-	void FlatPhysics::PenetrationConstraint::PreSolve(float dt)
+	void FlatPhysics::PenetrationConstraintSinglePoint::PreSolve(float dt)
 	{
 		FlatBody* bodyA = a->GetBody();
 		FlatBody* bodyB = b->GetBody();
@@ -78,7 +78,7 @@ namespace FlatPhysics {
 
 	}
 
-	void FlatPhysics::PenetrationConstraint::Solve()
+	void FlatPhysics::PenetrationConstraintSinglePoint::Solve()
 	{ 
 #pragma region DirectComputeVersion
 		//{
@@ -251,7 +251,7 @@ namespace FlatPhysics {
 			*tangent_impulse_ = cached_lambda(1);
 		}
 	}
-	void PenetrationConstraint::PostSolve()
+	void PenetrationConstraintSinglePoint::PostSolve()
 	{
 		FlatBody* bodyA = a->GetBody();
 		FlatBody* bodyB = b->GetBody();

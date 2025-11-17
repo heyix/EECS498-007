@@ -1,7 +1,9 @@
 #pragma once
 #include "FlatSolver.h"
 #include "FlatConstraint.h"
-#include "PenetrationConstraint.h"
+#include "PenetrationConstraintSinglePoint.h"
+#include <deque>
+#include "PenetrationConstraintTwoPoint.h"
 namespace FlatPhysics {
 	class FlatSolverPGS :public IFlatSolver {
 	public:
@@ -16,6 +18,8 @@ namespace FlatPhysics {
 		bool CanFixtureCollide(FlatFixture* fixtureA, FlatFixture* fixtureB);
 	private:
 		const std::vector<std::unique_ptr<FlatConstraint>>* constraints_{ nullptr };
-		std::vector<std::unique_ptr<PenetrationConstraintBase>> penetration_constraints_;
+		std::vector<PenetrationConstraintBase*> penetration_constraints_;
+		std::vector<PenetrationConstraintSinglePoint> one_point_constraints_;
+		std::vector<PenetrationConstraintTwoPoint> two_point_constraints_;
 	};
 }

@@ -48,7 +48,7 @@
     <ClCompile Include="src\FlatSolverNaive.cpp" />
     <ClCompile Include="src\FlatTransform.cpp" />
     <ClCompile Include="src\MatMN.cpp" />
-    <ClCompile Include="src\PenetrationConstraint.cpp" />
+    <ClCompile Include="src\PenetrationConstraintSinglePoint.cpp" />
     <ClCompile Include="src\PenetrationConstraintTwoPoint.cpp" />
     <ClCompile Include="src\VecN.cpp" />
     <ClCompile Include="src\FlatWorld.cpp" />
@@ -187,7 +187,7 @@
     <ClInclude Include="src\FlatSolverNaive.h" />
     <ClInclude Include="src\FlatTransform.h" />
     <ClInclude Include="src\MatMN.h" />
-    <ClInclude Include="src\PenetrationConstraint.h" />
+    <ClInclude Include="src\PenetrationConstraintSinglePoint.h" />
     <ClInclude Include="src\PenetrationConstraintTwoPoint.h" />
     <ClInclude Include="src\VecN.h" />
     <ClInclude Include="src\FlatWorld.h" />

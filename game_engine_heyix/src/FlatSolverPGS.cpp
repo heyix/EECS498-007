@@ -4,10 +4,20 @@
 #include "FlatFixture.h"
 #include "PenetrationConstraintTwoPoint.h"
 namespace FlatPhysics {
-	void FlatPhysics::FlatSolverPGS::Initialize(std::vector<FlatManifold>& manifolds, const std::vector<std::unique_ptr<FlatConstraint>>& constraints)
-	{
-        penetration_constraints_.clear();
+    void FlatPhysics::FlatSolverPGS::Initialize(
+        std::vector<FlatManifold>& manifolds,
+        const std::vector<std::unique_ptr<FlatConstraint>>& constraints)
+    {
         constraints_ = &constraints;
+
+        one_point_constraints_.clear();
+        two_point_constraints_.clear();
+        penetration_constraints_.clear();
+
+        const std::size_t manifoldCount = manifolds.size();
+        one_point_constraints_.reserve(manifoldCount); 
+        two_point_constraints_.reserve(manifoldCount);  
+        penetration_constraints_.reserve(manifoldCount);
 
         for (FlatManifold& manifold : manifolds)
         {
@@ -16,7 +26,8 @@ namespace FlatPhysics {
             const bool is_new = manifold.is_new_contact;
 
             const int count = manifold.contact_points.Size();
-            if (count == 0) continue;
+            if (count == 0)
+                continue;
 
             if (count == 1)
             {
@@ -31,17 +42,10 @@ namespace FlatPhysics {
                     std::swap(start, end);
                 }
 
-                auto c = std::make_unique<PenetrationConstraint>(
-                    fa,
-                    fb,
-                    start,
-                    end,
-                    cp.normal,
-                    &cp.normal_impulse,
-                    &cp.tangent_impulse,
-                    is_new);
+                one_point_constraints_.emplace_back(fa, fb, start, end, cp.normal, &cp.normal_impulse, &cp.tangent_impulse, is_new);
 
-                penetration_constraints_.push_back(std::move(c));
+                PenetrationConstraintBase* base = &one_point_constraints_.back();
+                penetration_constraints_.push_back(base);
             }
             else
             {
@@ -60,25 +64,13 @@ namespace FlatPhysics {
                     std::swap(p1a, p1b);
                 }
 
-                auto c2 = std::make_unique<PenetrationConstraintTwoPoint>(
-                    fa,
-                    fb,
-                    p0a,
-                    p0b,
-                    p1a,
-                    p1b,
-                    cp0.normal,
-                    &cp0.normal_impulse,
-                    &cp0.tangent_impulse,
-                    &cp1.normal_impulse,
-                    &cp1.tangent_impulse,
-                    is_new);
+				two_point_constraints_.emplace_back(fa, fb, p0a, p0b, p1a, p1b, cp0.normal, &cp0.normal_impulse, &cp0.tangent_impulse, &cp1.normal_impulse, &cp1.tangent_impulse, is_new);
 
-                penetration_constraints_.push_back(std::move(c2));
+				PenetrationConstraintBase* base = &two_point_constraints_.back();
+                penetration_constraints_.push_back(base);
             }
         }
-
-	}
+    }
 
 	void FlatPhysics::FlatSolverPGS::PreSolve(float dt)
 	{
