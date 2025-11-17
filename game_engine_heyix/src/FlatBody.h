@@ -35,8 +35,8 @@ namespace FlatPhysics {
         Vector2 center_of_mass;
         float mass = 0;
         float inverse_mass = 1;
-        float linear_dampling = 0.2f;
-        float angular_dampling = 0.2f;
+        float linear_dampling = 0.0f;
+        float angular_dampling = 0.0f;
 
         float   gravity_scale = 1.0f;
         bool    has_custom_gravity = false;
