@@ -48,8 +48,8 @@ namespace FlatPhysics {
 		float oldNormalImpulse = (normal_impulse_ ? *normal_impulse_ : 0.0f);
 		float oldTangentImpulse = (tangent_impulse_ ? *tangent_impulse_ : 0.0f);
 
-		//cached_lambda(0) = oldNormalImpulse;
-		//cached_lambda(1) = oldTangentImpulse;
+		cached_lambda(0) = oldNormalImpulse;
+		cached_lambda(1) = oldTangentImpulse;
 
 		float beta = 0.2f;
 		float C = Vector2::Dot(pb - pa, -n);
@@ -58,22 +58,23 @@ namespace FlatPhysics {
 		Vector2 va = bodyA->GetLinearVelocity() + Vector2(-bodyA->GetAngularVelocity() * ra.y(), bodyA->GetAngularVelocity() * ra.x());
 		Vector2 vb = bodyB->GetLinearVelocity() + Vector2(-bodyB->GetAngularVelocity() * rb.y(), bodyB->GetAngularVelocity() * rb.x());
 		float v_rel_dot_normal = Vector2::Dot((vb - va), n);
-		float e = 0.0;
+		float e = 0.5;
 		bias = (beta / dt) * C;
 		const float restitution_threshold = 1.0f;
 		bool isNewContact = (oldNormalImpulse == 0.0f) && (oldTangentImpulse == 0.0f);
+		if (isNewContact && v_rel_dot_normal < -restitution_threshold)
+		{
+			bias += (e * v_rel_dot_normal);
+		}
 
-			bias += (-e * v_rel_dot_normal);
-
-
-		//if (cached_lambda(0) != 0.0f || cached_lambda(1) != 0.0f) {
-		//	MatMN<6, 2> jt = jacobian.Transpose();
-		//	VecN<6> impulses = jt * cached_lambda;
-		//	bodyA->ApplyImpulseLinear({ impulses(0),impulses(1) }, false);
-		//	bodyA->ApplyImpulseAngular(impulses(2), false);
-		//	bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) }, false);
-		//	bodyB->ApplyImpulseAngular(impulses(5), false);
-		//}
+		if (cached_lambda(0) != 0.0f || cached_lambda(1) != 0.0f) {
+			MatMN<6, 2> jt = jacobian.Transpose();
+			VecN<6> impulses = jt * cached_lambda;
+			bodyA->ApplyImpulseLinear({ impulses(0),impulses(1) }, false);
+			bodyA->ApplyImpulseAngular(impulses(2), false);
+			bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) }, false);
+			bodyB->ApplyImpulseAngular(impulses(5), false);
+		}
 
 
 	}
