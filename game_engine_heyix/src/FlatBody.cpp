@@ -129,10 +129,6 @@ void FlatBody::MoveTo(const Vector2& p, bool can_wake_up) {
     if (can_wake_up) {
         SetAwake(true);
     }
-    constexpr float kLinearSleepEpsSq = 1e-6f;
-    if ((p - this->position).LengthSquared() < kLinearSleepEpsSq) {
-        return;
-    }
     if (p != this->position)MarkFixturesDirty();
     this->position = p;
     need_update_transform = true;
@@ -143,10 +139,6 @@ void FlatPhysics::FlatBody::Rotate(float amount, bool can_wake_up)
     if (IsStatic())return;
     if (can_wake_up) {
         SetAwake(true);
-    }
-    constexpr float kAngularSleepEps = FlatMath::DegToRad(0.01);
-    if (std::fabs(amount) < kAngularSleepEps) {
-        return;
     }
     this->angle_rad += amount;
     need_update_transform = true;

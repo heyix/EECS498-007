@@ -13,9 +13,9 @@
 #include "FlatContact.h"
 namespace FlatPhysics {
 	namespace {
-		constexpr float kLinearSleepTolerance = 0.05f;             
+		constexpr float kLinearSleepTolerance = 0.1f;             
 		constexpr float kLinearSleepToleranceSq = kLinearSleepTolerance * kLinearSleepTolerance;
-		constexpr float kAngularSleepTolerance = FlatMath::DegToRad(2.0f);
+		constexpr float kAngularSleepTolerance = FlatMath::DegToRad(4.0f);
 		constexpr float kTimeToSleep = 0.5f;
 		class BroadphasePairCollector : public FlatPhysics::IPairCallback {
 		public:
