@@ -14,6 +14,7 @@ void Game::game_loop()
 {
 	bool count_fps = true;
 	bool count_physics_time = true;
+	bool count_physics_fps = true;
 	bool display_fps = false;
 	bool display_physics_time = false;
 
@@ -22,6 +23,7 @@ void Game::game_loop()
 	start();
 	last_ticks = SDL_GetPerformanceCounter();
 	if(count_fps)time->Enable_FPS_Count();
+	if (count_physics_fps)time->Enable_Physics_FPS_Count();
 	while (is_running) {
 		update_time();
 		while (time->Try_Run_Fixed_Step()) {
@@ -303,6 +305,10 @@ float Game::GetPhysicsStepTime()
 float Game::GetFPS()
 {
 	return time->FPS();
+}
+float Game::GetPhysicsFPS()
+{
+	return time->Physics_FPS();
 }
 void Game::Load_Scene(const std::string& scene_name)
 {

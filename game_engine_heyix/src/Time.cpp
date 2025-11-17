@@ -20,6 +20,17 @@ void Time::Begin_New_Frame(float raw_frame_dt_seconds)
 			fps_accum_time = 0.0f;
 		}
 	}
+	if (count_physics_fps)
+	{
+		physics_fps_accum_time += raw_frame_dt_seconds;
+
+		if (physics_fps_accum_time >= physics_fps_update_interval)
+		{
+			physics_fps = physics_step_count / physics_fps_accum_time;
+			physics_step_count = 0;
+			physics_fps_accum_time = 0.0f;
+		}
+	}
 }
 
 bool Time::Try_Run_Fixed_Step()
@@ -31,6 +42,10 @@ bool Time::Try_Run_Fixed_Step()
 
 	fixed_time += fixed_delta_time * time_scale;
 
+	if (count_physics_fps)
+		physics_step_count++;
+
+
 	return true;
 }
 
@@ -40,6 +55,14 @@ void Time::Enable_FPS_Count()
 	fps = 0.0f;
 	fps_accum_time = 0.0f;
 	fps_frame_count = 0;
+}
+
+void Time::Enable_Physics_FPS_Count()
+{
+	count_physics_fps = true;
+	physics_fps = 0.0f;
+	physics_fps_accum_time = 0.0f;
+	physics_step_count = 0;
 }
 
 float Time::Lua_Delta_Time()

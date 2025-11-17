@@ -32,6 +32,7 @@ private:
     std::vector<Vector2> AABB = std::vector<Vector2>(4);
     float fps = 0;
     float physics_step_time = 0;
+    float physics_fps = 0;
 private:
     void DrawBody();
     void MoveFirstBody();

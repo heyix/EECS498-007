@@ -79,6 +79,7 @@ public:
 
 	float GetPhysicsStepTime();
 	float GetFPS();
+	float GetPhysicsFPS();
 private:
 	GameData game_data;
 	std::string current_scene_name;

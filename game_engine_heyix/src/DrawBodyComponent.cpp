@@ -327,10 +327,12 @@ void DrawBodyComponent::DrawTime()
     auto dimension = Engine::instance->running_game->Get_Camera_Dimension();
     Engine::instance->renderer->draw_text("NotoSans-Regular", "FPS: " + std::to_string(fps), 24, {0,0,0},dimension.x / 200,dimension.y/20 );
     Engine::instance->renderer->draw_text("NotoSans-Regular", "Physics Step Time: " + std::to_string(physics_step_time) + " ms", 24, { 0,0,0 }, dimension.x / 200, dimension.y / 12);
+    Engine::instance->renderer->draw_text("NotoSans-Regular", "Physics FPS: " + std::to_string(physics_fps), 24, { 0,0,0 }, dimension.x / 200, dimension.y / 8.5);
 }
 
 void DrawBodyComponent::GetTime()
 {
     fps = Engine::instance->running_game->GetFPS();;
     physics_step_time = Engine::instance->running_game->GetPhysicsStepTime();
+    physics_fps = Engine::instance->running_game->GetPhysicsFPS();
 }
