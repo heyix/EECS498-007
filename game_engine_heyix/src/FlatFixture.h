@@ -5,6 +5,16 @@
 #include "FlatDefs.h"
 namespace FlatPhysics {
     class FlatBody;
+    namespace {
+        static const char* ShapeTypeToString(ShapeType t)
+        {
+            switch (t) {
+            case ShapeType::Circle:  return "Circle";
+            case ShapeType::Polygon: return "Polygon";
+            default: return "Unknown";
+            }
+        }
+    }
     class FlatFixture {
     public:
         FlatFixture(FlatBody* body, const FixtureDef& def);
@@ -40,7 +50,7 @@ namespace FlatPhysics {
         float ComputeArea()        const;
         float ComputeMass()        const;
         float ComputeLocalInertia()const;
-
+        void PrintInfo()const;
     private:
         Vector2 ComputeLocalCenter() const;
 

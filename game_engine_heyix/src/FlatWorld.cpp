@@ -395,7 +395,7 @@ namespace FlatPhysics {
 		NarrowPhase();
 		solver_->Initialize(contacts,constraints);
 		solver_->PreSolve(time);
-		solver_->Solve(time, 200);
+		solver_->Solve(time, 20);
 		for (FlatBody* body : bodies) {
 			body->IntegrateVelocities(time);
 		}
@@ -443,17 +443,14 @@ namespace FlatPhysics {
 		for (FlatManifold& m : contacts) {
 			m.touched_this_step = false;
 		}
-
 		for (const ContactPair& pair : contact_pairs) {
 			FlatFixture* fa = pair.fixture_a;
 			FlatFixture* fb = pair.fixture_b;
 			if (!fa || !fb) {
 				continue;
 			}
-
 			FlatBody* bodyA = fa->GetBody();
 			FlatBody* bodyB = fb->GetBody();
-
 			FixedSizeContainer<ContactPoint, 2> contact_points;
 			const bool touching = Collision::DetectCollision(fa, fb, contact_points);
 
@@ -476,9 +473,10 @@ namespace FlatPhysics {
 				FlatManifold& manifold = contacts.back();
 				manifold.touched_this_step = true;
 				manifold.contact_points = contact_points;
+				manifold.is_new_contact = true;
 				contact_map_[key] = index;
 				AttachContactToBodies(index, manifold);
-
+	
 				if (!bodyA->IsStatic()) bodyA->SetAwake(true);
 				if (!bodyB->IsStatic()) bodyB->SetAwake(true);
 			}
@@ -486,7 +484,7 @@ namespace FlatPhysics {
 				// Existing contact: update + warm start impulses, but don't wake
 				FlatManifold& manifold = contacts[it->second];
 				manifold.touched_this_step = true;
-
+				manifold.is_new_contact = false;
 				FixedSizeContainer<ContactPoint, 2> merged;
 				for (ContactPoint& new_point : contact_points) {
 					ContactPoint merged_point = new_point;

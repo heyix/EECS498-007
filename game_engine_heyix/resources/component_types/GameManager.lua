@@ -158,6 +158,7 @@ GameManager = {
 				SpawnWallsAroundBox(gx, gy)
 			end
 		end
+		Actor.Destroy(new_body)
 	end,
 
 	OnUpdate = function(self)

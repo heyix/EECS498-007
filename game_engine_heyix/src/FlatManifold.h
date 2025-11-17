@@ -22,5 +22,6 @@ namespace FlatPhysics {
 		bool island_flag = false;
 		FlatContactEdge* edgeA = nullptr;
 		FlatContactEdge* edgeB = nullptr;
+		bool is_new_contact = false;
 	};
 }

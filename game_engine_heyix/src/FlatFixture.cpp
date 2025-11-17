@@ -155,6 +155,39 @@ namespace FlatPhysics {
         }
     }
 
+    void FlatFixture::PrintInfo() const
+    {
+        std::cout << "=== FlatFixture ===\n";
+        std::cout << " this=" << this << "\n";
+        std::cout << " body=" << body_ << "\n";
+
+        std::cout << " shape=" << ShapeTypeToString(shape_->GetType()) << "\n";
+
+        std::cout << " density=" << density_
+            << " friction=" << friction_
+            << " restitution=" << restitution_ << "\n";
+
+        std::cout << " is_trigger=" << (is_trigger_ ? "true" : "false") << "\n";
+
+        std::cout << " user_data=" << user_data_ << "\n";
+
+        if (has_last_aabb_) {
+            std::cout << " last_aabb=[("
+                << last_aabb_.min.x() << ", " << last_aabb_.min.y()
+                << ") -> ("
+                << last_aabb_.max.x() << ", " << last_aabb_.max.y()
+                << ")]\n";
+        }
+        else {
+            std::cout << " last_aabb=NONE\n";
+        }
+
+        std::cout << " proxy_id=" << proxy_id_
+            << " (dirty=" << (proxy_dirty_ ? "true" : "false") << ")\n";
+
+        std::cout << "====================\n";
+    }
+
     Vector2 FlatFixture::ComputeLocalCenter() const
     {
         if (!shape_) return Vector2::Zero();
