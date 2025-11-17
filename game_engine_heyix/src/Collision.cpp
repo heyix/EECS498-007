@@ -356,7 +356,6 @@ namespace FlatPhysics {
 		contact_point.end = centerA + n * radiusA;
 		contact_point.depth = (contact_point.end - contact_point.start).Length();
 
-		contact_point.id.key = 0;
 		contact_point.id.contact_feature.indexA = 0;
 		contact_point.id.contact_feature.indexB = 0;
 		contact_point.id.contact_feature.typeA = ContactFeatureType::Feature_Vertex;
@@ -373,6 +372,7 @@ namespace FlatPhysics {
 	{
 		Vector2 min_cur_vertex;
 		Vector2 min_next_vertex;
+		int result_edge_index = -1;
 
 		bool is_outside = false;
 		float distance_circle_edge = std::numeric_limits<float>::lowest();
@@ -388,6 +388,7 @@ namespace FlatPhysics {
 					min_cur_vertex = va;
 					min_next_vertex = vb;
 					distance_circle_edge = projection;
+					result_edge_index = i;
 				}
 				is_outside = true;
 			}
@@ -396,6 +397,7 @@ namespace FlatPhysics {
 					distance_circle_edge = projection;
 					min_cur_vertex = va;
 					min_next_vertex = vb;
+					result_edge_index = i;
 				}
 			}
 		}
@@ -419,7 +421,13 @@ namespace FlatPhysics {
 		}
 
 
-
+		ContactFeature& feature = contact_point.id.contact_feature;
+		feature.typeA = ContactFeatureType::Feature_Face;
+		feature.typeB = ContactFeatureType::Feature_Vertex;
+		feature.indexA = static_cast<std::uint8_t>(result_edge_index);
+		feature.indexB = 0;
+		contact_point.normal_impulse = 0.0f;
+		contact_point.tangent_impulse = 0.0f;
 
 		contact.Push_Back(contact_point);
 		return true;
@@ -440,15 +448,19 @@ namespace FlatPhysics {
 		int reference_edge_index;
 		const std::vector<Vector2>* reference_vertices;
 		const std::vector<Vector2>* incident_vertices;
+
+		bool reference_is_A = false;
 		if (ab_separation > ba_separation) {
 			reference_edge_index = a_reference_edge_index;
 			reference_vertices = &verticesA;
 			incident_vertices = &verticesB;
+			reference_is_A = true;
 		}
 		else {
 			reference_edge_index = b_reference_edge_index;
 			reference_vertices = &verticesB;
 			incident_vertices = &verticesA;
+			reference_is_A = false;
 		}
 		ContactPoint contact_point;
 		Vector2 reference_edge = EdgeAt(*reference_vertices, reference_edge_index);
@@ -476,7 +488,7 @@ namespace FlatPhysics {
 			contact_points = clipped_points;
 		}
 
-
+		int point_slot = 0;
 		Vector2 reference_vertex = (*reference_vertices)[reference_edge_index];
 		for (Vector2& v_clip : clipped_points) {
 			float separation = Vector2::Dot((v_clip - reference_vertex), reference_edge_normal);
@@ -490,7 +502,28 @@ namespace FlatPhysics {
 					std::swap(contact_point.start, contact_point.end);
 				}
 				contact_point.depth = -separation;
+
+				ContactFeature& feature = contact_point.id.contact_feature;
+				std::uint8_t ref_edge = static_cast<std::uint8_t>(reference_edge_index);
+				std::uint8_t inc_edge = static_cast<std::uint8_t>(incident_edge_index);
+				if (reference_is_A) {
+					feature.typeA = ContactFeatureType::Feature_Face;
+					feature.typeB = ContactFeatureType::Feature_Vertex;
+					feature.indexA = ref_edge;
+					feature.indexB = static_cast<std::uint8_t>(inc_edge * 2 + point_slot);
+
+				}
+				else {
+					feature.typeA = ContactFeatureType::Feature_Vertex;
+					feature.typeB = ContactFeatureType::Feature_Face;
+					feature.indexA = static_cast<std::uint8_t>(inc_edge * 2 + point_slot);
+					feature.indexB = ref_edge;
+				}
+				contact_point.normal_impulse = 0.0f;
+				contact_point.tangent_impulse = 0.0f;
+
 				contact.Push_Back(contact_point);
+				++point_slot;
 			}
 		}
 		return true;

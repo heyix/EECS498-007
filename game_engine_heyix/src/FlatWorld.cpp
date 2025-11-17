@@ -370,15 +370,15 @@ namespace FlatPhysics {
 		/*for (FlatBody* body : bodies) {
 			body->Step(time, gravity);
 		}*/
-		int count = 0;
-		for (FlatBody* body : bodies) {
-			if (!body->IsStatic()) {
-				if (!body->IsAwake()) {
-					count++;
-				}
-			}
-		}
-		std::cout << count<<std::endl;
+		//int count = 0;
+		//for (FlatBody* body : bodies) {
+		//	if (!body->IsStatic()) {
+		//		if (!body->IsAwake()) {
+		//			count++;
+		//		}
+		//	}
+		//}
+		//std::cout << count<<std::endl;
 		for (FlatBody* body : bodies) {
 			body->IntegrateForces(time,gravity);
 		}
