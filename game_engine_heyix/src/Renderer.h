@@ -168,7 +168,7 @@ private:
 	std::vector<ImageDrawRequest> scene_space_image_request_queue;
 	std::vector<ImageDrawRequest> ui_image_request_queue;
 	std::vector<ImageDrawRequest> pixels_request_queue;
-	std::deque<TextDrawRequest> text_draw_request_queue;
-	std::deque<FRectDrawRequest> frect_draw_request_queue;
-	std::deque<PolygonDrawRequest> polygon_draw_request_queue;
+	std::vector<TextDrawRequest> text_draw_request_queue;
+	std::vector<FRectDrawRequest> frect_draw_request_queue;
+	std::vector<PolygonDrawRequest> polygon_draw_request_queue;
 };

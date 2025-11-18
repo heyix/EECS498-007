@@ -561,9 +561,6 @@
     <ClCompile Include="src\BroadPhaseQuadTree.cpp">
       <Filter>Source Files\FlatPhysics\BroadPhase</Filter>
     </ClCompile>
-    <ClCompile Include="src\FlatSolverPGS.cpp">
-      <Filter>Source Files\FlatPhysics\Solver</Filter>
-    </ClCompile>
     <ClCompile Include="src\PenetrationConstraintTwoPoint.cpp">
       <Filter>Source Files\FlatPhysics\Math\Constraints</Filter>
     </ClCompile>
@@ -578,6 +575,9 @@
     </ClCompile>
     <ClCompile Include="ThirdParty\SDL2_gfx\SDL2_rotozoom.c">
       <Filter>Source Files\SDL\gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FlatSolverPGS.cpp">
+      <Filter>Source Files\FlatPhysics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

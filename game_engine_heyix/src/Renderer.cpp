@@ -126,7 +126,6 @@ void Renderer::Render_All_Polygon_Requests()
 	const float ox = cam_dim.x * 0.5f * (1.0f / zoom);
 	const float oy = cam_dim.y * 0.5f * (1.0f / zoom);
 
-	// scratch buffers reused for every polygon
 	std::vector<SDL_FPoint> screenPts;
 	std::vector<Sint16> xs;
 	std::vector<Sint16> ys;
