@@ -573,7 +573,7 @@ namespace FlatPhysics {
 		for (FlatManifold& manifold : contacts) {
 			for (ContactPoint& point : manifold.contact_points) {
 				Vector2 contact_point = point.end; {
-					constexpr float kMarkerHalfSize = 0.05f;
+					constexpr float kMarkerHalfSize = 0.03f;
 					static const std::vector<Vector2> markerVerts = {
 						{ -kMarkerHalfSize, -kMarkerHalfSize },
 						{  kMarkerHalfSize, -kMarkerHalfSize },
@@ -582,7 +582,7 @@ namespace FlatPhysics {
 					};
 
 					auto queueMarker = [&](const Vector2& p) {
-						Engine::instance->renderer->draw_polygon(markerVerts, p, 0.0f, 255, 0, 0, 255, false);
+						Engine::instance->renderer->draw_polygon(markerVerts, p, 0.0f, 255, 0, 0, 255, false,1);
 						};
 					queueMarker(contact_point);
 				}

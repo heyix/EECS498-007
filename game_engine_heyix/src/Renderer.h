@@ -89,12 +89,12 @@ class PolygonDrawRequest {
 public:
 	PolygonDrawRequest(const std::vector<Vector2>& vertices,
 		const Vector2& position, float angle_radian,
-		float r, float g, float b, float a, bool fill_color, bool use_cache)
-		: vertices(&vertices), position(position), angle_radian(angle_radian), r(r), g(g), b(b), a(a), fill_color(fill_color), use_cache(use_cache) {}
+		float r, float g, float b, float a, bool fill_color, bool use_cache, int sorting_order)
+		: vertices(&vertices), position(position), angle_radian(angle_radian), r(r), g(g), b(b), a(a), fill_color(fill_color), use_cache(use_cache),sorting_order(sorting_order) {}
 	PolygonDrawRequest(std::vector<Vector2>&& vertices,
 		const Vector2& position, float angle_radian,
-		float r, float g, float b, float a, bool fill_color, bool use_cache)
-		: owned_vertices(std::move(vertices)), vertices(&owned_vertices), position(position), angle_radian(angle_radian), r(r), g(g), b(b), a(a), fill_color(fill_color), use_cache(use_cache) {}
+		float r, float g, float b, float a, bool fill_color, bool use_cache, int sorting_order)
+		: owned_vertices(std::move(vertices)), vertices(&owned_vertices), position(position), angle_radian(angle_radian), r(r), g(g), b(b), a(a), fill_color(fill_color), use_cache(use_cache),sorting_order(sorting_order) {}
 
 public:
 	std::vector<Vector2> owned_vertices;
@@ -102,8 +102,16 @@ public:
 	Vector2 position;
 	float angle_radian;
 	float r, g, b, a;
+	int sorting_order = 0;
 	bool fill_color;
 	bool use_cache;
+};
+struct PolygonDrawRequestComparator {
+	bool operator()(const PolygonDrawRequest& a,
+		const PolygonDrawRequest& b) const
+	{
+		return a.sorting_order < b.sorting_order;
+	}
 };
 
 class Renderer {
@@ -152,16 +160,16 @@ public:
 		scene_space_image_request_queue.emplace_back( std::forward<T>(image_name), x, y, rotation_degrees,scale_x, scale_y, pivot_x, pivot_y,  r,  g,  b,  a, sorting_order );
 	}
 	template<typename T>
-	void draw_polygon(T&& vertices, const Vector2& position, float angle_radian, float r, float g, float b, float a, bool fill_color = true) {
-		polygon_draw_request_queue.emplace_back(std::forward<T>(vertices), position, angle_radian, r, g, b, a, fill_color, true);
+	void draw_polygon(T&& vertices, const Vector2& position, float angle_radian, float r, float g, float b, float a, bool fill_color = true,int sorting_order = 0) {
+		polygon_draw_request_queue.emplace_back(std::forward<T>(vertices), position, angle_radian, r, g, b, a, fill_color, true, sorting_order);
 	}
 	template<typename T>
-	void draw_polygon_world(T&& worldVertices, float r, float g, float b, float a, bool fill_color = true) {
-		polygon_draw_request_queue.emplace_back(std::forward<T>(worldVertices), Vector2(0.0f, 0.0f), 0.0f, r, g, b, a, fill_color, false);
+	void draw_polygon_world(T&& worldVertices, float r, float g, float b, float a, bool fill_color = true, int sorting_order = 0) {
+		polygon_draw_request_queue.emplace_back(std::forward<T>(worldVertices), Vector2(0.0f, 0.0f), 0.0f, r, g, b, a, fill_color, false, sorting_order);
 	}
 	template<typename T>
-	void draw_polygon_nocache(T&& vertices,const Vector2& position,float angle_radian,float r, float g, float b, float a,bool fill_color = true) {
-		polygon_draw_request_queue.emplace_back(std::forward<T>(vertices), position, angle_radian, r, g, b, a, fill_color, false);
+	void draw_polygon_nocache(T&& vertices,const Vector2& position,float angle_radian,float r, float g, float b, float a,bool fill_color = true, int sorting_order = 0) {
+		polygon_draw_request_queue.emplace_back(std::forward<T>(vertices), position, angle_radian, r, g, b, a, fill_color, false, sorting_order);
 	}
 private:
 	void Render_All_Scene_Space_Image_Requests();

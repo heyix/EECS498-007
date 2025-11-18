@@ -152,7 +152,7 @@ void Renderer::Render_All_Polygon_Requests()
 {
 	if (polygon_draw_request_queue.empty())
 		return;
-	
+	std::stable_sort(polygon_draw_request_queue.begin(), polygon_draw_request_queue.end(), PolygonDrawRequestComparator{});
 	SDL_SetRenderDrawBlendMode(sdl_renderer, SDL_BLENDMODE_BLEND);
 
 	const float ppm = kPixelsPerMeter;
