@@ -7,8 +7,6 @@ namespace FlatPhysics {
     template<int M_, int N_>
     class MatMN {
     public:
-        int M = M_;
-        int N = N_;
 
         class RowView {
         public:

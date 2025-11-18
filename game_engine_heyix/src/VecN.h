@@ -5,8 +5,6 @@ namespace FlatPhysics {
     template<int N_>
     class VecN {
     public:
-        int N = N_;
-
         VecN() {
             Zero();
         }

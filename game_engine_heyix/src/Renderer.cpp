@@ -17,11 +17,11 @@ void Renderer::clear_renderer()
 void Renderer::render_frame()
 {
 	Render_All_Scene_Space_Image_Requests();
+	Render_All_Polygon_Requests();
 	Render_All_UI_Image_Requests();
 	Render_All_Text_Requests();
 	Render_All_Pixel_Draw_Request();
 	Render_All_FRect_Requests();
-	Render_All_Polygon_Requests();
 	SDL_RenderSetScale(sdl_renderer, 1, 1);
 
 	Helper::SDL_RenderPresent(sdl_renderer);
