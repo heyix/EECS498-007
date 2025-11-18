@@ -50,8 +50,8 @@ namespace FlatPhysics {
         const bool  is_static;
 
         FlatContactEdge* contact_list_ = nullptr;
-        int island_index_ = -1;
-        bool island_flag_ = false;
+        int awaken_island_index_ = -1;
+        bool awaken_island_flag_ = false;
         friend class FlatWorld;
     public:
         void SetWorld(FlatWorld* world) { world_ = world; }
@@ -101,10 +101,10 @@ namespace FlatPhysics {
 
         FlatContactEdge* GetContactList()const { return contact_list_; }
         void SetContactList(FlatContactEdge* edge) { contact_list_ = edge; }
-        int GetIslandIndex()const { return island_index_; }
-        void SetIslandIndex(int idx) { island_index_ = idx; }
-        bool GetIslandFlag()const { return island_flag_; }
-        void SetIslandFlag(bool f) { island_flag_ = f; }
+        int GetIslandIndex()const { return awaken_island_index_; }
+        void SetIslandIndex(int idx) { awaken_island_index_ = idx; }
+        bool GetIslandFlag()const { return awaken_island_flag_; }
+        void SetIslandFlag(bool f) { awaken_island_flag_ = f; }
     public:
         //User API
         void Move(const Vector2& amount, bool can_wake_up = true);

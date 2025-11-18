@@ -43,6 +43,8 @@ namespace FlatPhysics {
 
 		void AttachContactToBodies(int contactIndex, FlatManifold& manifold);
 		void DestroyContactManifold(int contact_index);
+
+		void BuildIslands();
 	private:
 		Vector2 gravity;
 		std::vector<FlatBody*> bodies;
