@@ -155,6 +155,10 @@
     <ClCompile Include="ThirdParty\lua\lutf8lib.c" />
     <ClCompile Include="ThirdParty\lua\lvm.c" />
     <ClCompile Include="ThirdParty\lua\lzio.c" />
+    <ClCompile Include="ThirdParty\SDL2_gfx\SDL2_framerate.c" />
+    <ClCompile Include="ThirdParty\SDL2_gfx\SDL2_gfxPrimitives.c" />
+    <ClCompile Include="ThirdParty\SDL2_gfx\SDL2_imageFilter.c" />
+    <ClCompile Include="ThirdParty\SDL2_gfx\SDL2_rotozoom.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AudioDB.h" />
@@ -293,6 +297,11 @@
     <ClInclude Include="ThirdParty\lua\lundump.h" />
     <ClInclude Include="ThirdParty\lua\lvm.h" />
     <ClInclude Include="ThirdParty\lua\lzio.h" />
+    <ClInclude Include="ThirdParty\SDL2_gfx\SDL2_framerate.h" />
+    <ClInclude Include="ThirdParty\SDL2_gfx\SDL2_gfxPrimitives.h" />
+    <ClInclude Include="ThirdParty\SDL2_gfx\SDL2_gfxPrimitives_font.h" />
+    <ClInclude Include="ThirdParty\SDL2_gfx\SDL2_imageFilter.h" />
+    <ClInclude Include="ThirdParty\SDL2_gfx\SDL2_rotozoom.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -348,7 +357,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LibraryPath>$(ProjectDir)ThirdParty\SDL2\lib\;$(ProjectDir)ThirdParty\SDL2_image\lib\;$(ProjectDir)ThirdParty\SDL2_mixer\lib\;$(ProjectDir)ThirdParty\SDL2_ttf\lib\;$(LibraryPath)</LibraryPath>
-    <IncludePath>$(PorjectDir)ThirdParty\SDL2;$(PorjectDir)ThirdParty\SDL2_image;$(PorjectDir)ThirdParty\SDL2_mixer;$(PorjectDir)ThirdParty\SDL2_ttf;$(IncludePath)</IncludePath>
+    <IncludePath>$(PorjectDir)ThirdParty\SDL2;$(PorjectDir)ThirdParty\SDL2_image;$(PorjectDir)ThirdParty\SDL2_mixer;$(PorjectDir)ThirdParty\SDL2_ttf;$(PorjectDir)ThirdParty\SDL2_gfx;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

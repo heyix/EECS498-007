@@ -145,6 +145,18 @@
     <Filter Include="Source Files\FlatPhysics\Math\Constraints">
       <UniqueIdentifier>{31a2247d-0abe-43fc-99f5-60ad62f2000d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\SDL">
+      <UniqueIdentifier>{21afedb0-1d7f-4f24-a67d-d2fe5cd23a98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SDL">
+      <UniqueIdentifier>{c724994a-1f54-403a-af91-8129b3ad195e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\SDL\gfx">
+      <UniqueIdentifier>{6e1a5798-45c5-4f38-bcb8-d3423e5dd5cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SDL\gfx">
+      <UniqueIdentifier>{8d0a43e6-8148-4cd0-85ed-6cc2ee2a95ae}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ThirdParty\lua\lapi.c">
@@ -555,6 +567,18 @@
     <ClCompile Include="src\PenetrationConstraintTwoPoint.cpp">
       <Filter>Source Files\FlatPhysics\Math\Constraints</Filter>
     </ClCompile>
+    <ClCompile Include="ThirdParty\SDL2_gfx\SDL2_framerate.c">
+      <Filter>Source Files\SDL\gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\SDL2_gfx\SDL2_gfxPrimitives.c">
+      <Filter>Source Files\SDL\gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\SDL2_gfx\SDL2_imageFilter.c">
+      <Filter>Source Files\SDL\gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\SDL2_gfx\SDL2_rotozoom.c">
+      <Filter>Source Files\SDL\gfx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThirdParty\lua\lapi.h">
@@ -964,6 +988,21 @@
     </ClInclude>
     <ClInclude Include="src\PenetrationConstraintTwoPoint.h">
       <Filter>Header Files\FlatPhysics\Math\Constraints</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\SDL2_gfx\SDL2_framerate.h">
+      <Filter>Header Files\SDL\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\SDL2_gfx\SDL2_gfxPrimitives.h">
+      <Filter>Header Files\SDL\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\SDL2_gfx\SDL2_gfxPrimitives_font.h">
+      <Filter>Header Files\SDL\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\SDL2_gfx\SDL2_imageFilter.h">
+      <Filter>Header Files\SDL\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\SDL2_gfx\SDL2_rotozoom.h">
+      <Filter>Header Files\SDL\gfx</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -39,7 +39,6 @@ void Game::game_loop()
 			time->Accumulate_Physics_Step_Time(physics_ms);
 		}
 
-
 		process_input();
 		Engine::instance->renderer->clear_renderer();
 		update();

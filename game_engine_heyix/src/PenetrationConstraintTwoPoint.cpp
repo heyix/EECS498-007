@@ -2,6 +2,7 @@
 #include "FlatBody.h"
 #include <cmath>
 #include <algorithm>
+
 namespace FlatPhysics {
 
     PenetrationConstraintTwoPoint::PenetrationConstraintTwoPoint(
@@ -32,9 +33,6 @@ namespace FlatPhysics {
         , tangent_impulse1_(t1_impulse_ptr)
         , is_new_contact_(is_new_contact)
     {
-        Jn_.Zero();
-        normal_lambda_.Zero();
-        normal_bias_.Zero();
     }
 
     void PenetrationConstraintTwoPoint::PreSolve(float dt)
@@ -42,7 +40,9 @@ namespace FlatPhysics {
         FlatBody* bodyA = a->GetBody();
         FlatBody* bodyB = b->GetBody();
 
+
         n_world_ = bodyA->LocalToWorld(normal_local_).Normalized();
+        t_world_ = n_world_.NormalDirection().Normalized();
 
         p0a_world_ = bodyA->LocalToWorld(point_a);
         p0b_world_ = bodyB->LocalToWorld(point_b);
@@ -54,7 +54,13 @@ namespace FlatPhysics {
         r1a_ = p1a_world_ - bodyA->GetMassCenterWorld();
         r1b_ = p1b_world_ - bodyB->GetMassCenterWorld();
 
+        invMassA_ = bodyA->GetInverseMass();
+        invMassB_ = bodyB->GetInverseMass();
+        invIA_ = bodyA->GetInverseInertia();
+        invIB_ = bodyB->GetInverseInertia();
+
         const Vector2& n = n_world_;
+
 
         Jn_(0, 0) = -n.x();
         Jn_(0, 1) = -n.y();
@@ -70,14 +76,57 @@ namespace FlatPhysics {
         Jn_(1, 4) = n.y();
         Jn_(1, 5) = Vector2::Cross(r1b_, n);
 
-        invMassA_ = bodyA->GetInverseMass();
-        invMassB_ = bodyB->GetInverseMass();
-        invIA_ = bodyA->GetInverseInertia();
-        invIB_ = bodyB->GetInverseInertia();
 
-        MatMN<6, 6> inv_m = GetInverseM(); 
-        JnT_cached_ = Jn_.Transpose();
+        MatMN<6, 6> inv_m = GetInverseM();   
+        JnT_cached_ = Jn_.Transpose();  
         K_cached_ = Jn_ * inv_m * JnT_cached_;
+
+        float oldN0 = normal_impulse0_ ? *normal_impulse0_ : 0.0f;
+        float oldT0 = tangent_impulse0_ ? *tangent_impulse0_ : 0.0f;
+        float oldN1 = normal_impulse1_ ? *normal_impulse1_ : 0.0f;
+        float oldT1 = tangent_impulse1_ ? *tangent_impulse1_ : 0.0f;
+
+        normal_lambda_(0) = oldN0;
+        normal_lambda_(1) = oldN1;
+
+        if (oldN0 != 0.0f || oldN1 != 0.0f)
+        {
+            VecN<6> impulses = JnT_cached_ * normal_lambda_;
+
+            bodyA->ApplyImpulseLinear({ impulses(0), impulses(1) }, false);
+            bodyA->ApplyImpulseAngular(impulses(2), false);
+
+            bodyB->ApplyImpulseLinear({ impulses(3), impulses(4) }, false);
+            bodyB->ApplyImpulseAngular(impulses(5), false);
+        }
+
+        if (friction_ > 0.0f && (oldT0 != 0.0f || oldT1 != 0.0f))
+        {
+            const Vector2& t = t_world_;
+
+            if (oldT0 != 0.0f)
+            {
+                Vector2 P = oldT0 * t;
+
+                bodyA->ApplyImpulseLinear(-P, false);
+                bodyA->ApplyImpulseAngular(-Vector2::Cross(r0a_, P), false);
+
+                bodyB->ApplyImpulseLinear(P, false);
+                bodyB->ApplyImpulseAngular(Vector2::Cross(r0b_, P), false);
+            }
+
+            if (oldT1 != 0.0f)
+            {
+                Vector2 P = oldT1 * t;
+
+                bodyA->ApplyImpulseLinear(-P, false);
+                bodyA->ApplyImpulseAngular(-Vector2::Cross(r1a_, P), false);
+
+                bodyB->ApplyImpulseLinear(P, false);
+                bodyB->ApplyImpulseAngular(Vector2::Cross(r1b_, P), false);
+            }
+        }
+
 
         const float beta = 0.1f;
         const float restitution_threshold = 1.0f;
@@ -126,63 +175,17 @@ namespace FlatPhysics {
 
             normal_bias_(1) = bias1;
         }
-
-        float oldN0 = normal_impulse0_ ? *normal_impulse0_ : 0.0f;
-        float oldT0 = tangent_impulse0_ ? *tangent_impulse0_ : 0.0f;
-        float oldN1 = normal_impulse1_ ? *normal_impulse1_ : 0.0f;
-        float oldT1 = tangent_impulse1_ ? *tangent_impulse1_ : 0.0f;
-
-        normal_lambda_(0) = oldN0;
-        normal_lambda_(1) = oldN1;
-
-        if (oldN0 != 0.0f || oldN1 != 0.0f)
-        {
-            VecN<6> impulses = JnT_cached_ * normal_lambda_;
-
-            bodyA->ApplyImpulseLinear({ impulses(0), impulses(1) }, false);
-            bodyA->ApplyImpulseAngular(impulses(2), false);
-
-            bodyB->ApplyImpulseLinear({ impulses(3), impulses(4) }, false);
-            bodyB->ApplyImpulseAngular(impulses(5), false);
-        }
-
-        if (friction_ > 0.0f && (oldT0 != 0.0f || oldT1 != 0.0f))
-        {
-            t_world_ = n_world_.NormalDirection().Normalized();
-
-            if (oldT0 != 0.0f)
-            {
-                Vector2 P = oldT0 * t_world_;
-
-                bodyA->ApplyImpulseLinear(-P, false);
-                bodyA->ApplyImpulseAngular(-Vector2::Cross(r0a_, P), false);
-
-                bodyB->ApplyImpulseLinear(P, false);
-                bodyB->ApplyImpulseAngular(Vector2::Cross(r0b_, P), false);
-            }
-
-            if (oldT1 != 0.0f)
-            {
-                Vector2 P = oldT1 * t_world_;
-
-                bodyA->ApplyImpulseLinear(-P, false);
-                bodyA->ApplyImpulseAngular(-Vector2::Cross(r1a_, P), false);
-
-                bodyB->ApplyImpulseLinear(P, false);
-                bodyB->ApplyImpulseAngular(Vector2::Cross(r1b_, P), false);
-            }
-        }
     }
-
 
     void PenetrationConstraintTwoPoint::Solve()
     {
         FlatBody* bodyA = a->GetBody();
         FlatBody* bodyB = b->GetBody();
 
+
         VecN<6> v = GetVelocities();
 
-        VecN<2> rhs = Jn_ * v;
+        VecN<2> rhs = Jn_ * v; 
         rhs *= -1.0f;
         rhs(0) -= normal_bias_(0);
         rhs(1) -= normal_bias_(1);
@@ -205,12 +208,18 @@ namespace FlatPhysics {
         bodyB->ApplyImpulseLinear({ impulses(3), impulses(4) }, false);
         bodyB->ApplyImpulseAngular(impulses(5), false);
 
+
         if (friction_ > 0.0f)
         {
             const Vector2& n = n_world_;
-            if (t_world_.LengthSquared() == 0.0f)
-                t_world_ = n.NormalDirection().Normalized();
-            const Vector2& t = t_world_;
+            Vector2 t = t_world_;
+            if (t.LengthSquared() == 0.0f)
+                t = n.NormalDirection().Normalized();
+
+            const float invMassA = invMassA_;
+            const float invMassB = invMassB_;
+            const float invIA = invIA_;
+            const float invIB = invIB_;
 
             auto solveFrictionForPoint =
                 [&](int normalIndex,
@@ -231,7 +240,7 @@ namespace FlatPhysics {
                     float rtA = Vector2::Cross(ra, t);
                     float rtB = Vector2::Cross(rb, t);
 
-                    float kT = invMassA_ + invMassB_ + invIA_ * rtA * rtA + invIB_ * rtB * rtB;
+                    float kT = invMassA + invMassB + invIA * rtA * rtA + invIB * rtB * rtB;
                     if (kT <= 0.0f)
                         return;
 
@@ -268,7 +277,6 @@ namespace FlatPhysics {
 
     void PenetrationConstraintTwoPoint::PostSolve()
     {
-
         FlatBody* bodyA = a->GetBody();
         FlatBody* bodyB = b->GetBody();
 
@@ -281,7 +289,7 @@ namespace FlatPhysics {
         const float invIA = invIA_;
         const float invIB = invIB_;
 
-        const Vector2 n = bodyA->LocalToWorld(normal_local_).Normalized();
+        const Vector2 n = n_world_.Normalized();
 
         auto solvePositionForContact =
             [&](const Vector2& pa_local, const Vector2& pb_local)
@@ -314,8 +322,7 @@ namespace FlatPhysics {
             };
 
         solvePositionForContact(point_a, point_b);
-
         solvePositionForContact(point_a1_local_, point_b1_local_);
     }
 
-} 
+}
