@@ -577,7 +577,7 @@
       <Filter>Source Files\SDL\gfx</Filter>
     </ClCompile>
     <ClCompile Include="src\FlatSolverPGS.cpp">
-      <Filter>Source Files\FlatPhysics</Filter>
+      <Filter>Source Files\FlatPhysics\Solver</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
