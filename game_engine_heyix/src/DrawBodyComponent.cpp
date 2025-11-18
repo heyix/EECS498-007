@@ -19,6 +19,7 @@
 #include "FlatShape.h"
 #include "TextDB.h"
 #include <string>
+#include "Game.h"
 namespace {
     static inline uint32_t Hash32(uint32_t x) {
         x ^= x >> 16; x *= 0x7feb352d; x ^= x >> 15; x *= 0x846ca68b; x ^= x >> 16;
@@ -59,6 +60,36 @@ namespace {
         float v = 0.90f + 0.07f * ((seed >> 16) & 0xFF) / 255.0f; // ~[0.90, 0.97]
 
         HSVtoRGB(h, s, v, r, g, b);
+    }
+    static bool IsAABBVisible(const FlatPhysics::FlatAABB& aabb)
+    {
+        const float ppm = 100.0f;
+
+        std::unique_ptr<Game>& game = Engine::instance->running_game;
+        const glm::vec2  cam_pos = game->Get_Camera_Position(); 
+        const glm::ivec2 cam_dim = game->Get_Camera_Dimension(); 
+        const float      zoom = game->Get_Zoom_Factor();
+
+        const float half_w = (cam_dim.x * 0.5f) / (ppm * zoom);
+        const float half_h = (cam_dim.y * 0.5f) / (ppm * zoom);
+
+        const float cam_min_x = cam_pos.x - half_w;
+        const float cam_max_x = cam_pos.x + half_w;
+        const float cam_min_y = cam_pos.y - half_h;
+        const float cam_max_y = cam_pos.y + half_h;
+
+        const float pad = 0.2f; 
+        const float min_x = aabb.min.x() - pad;
+        const float max_x = aabb.max.x() + pad;
+        const float min_y = aabb.min.y() - pad;
+        const float max_y = aabb.max.y() + pad;
+
+        if (max_x < cam_min_x) return false;
+        if (min_x > cam_max_x) return false;
+        if (max_y < cam_min_y) return false;
+        if (min_y > cam_max_y) return false;
+
+        return true;
     }
 }
 
@@ -256,6 +287,11 @@ void DrawBodyComponent::Add_Bool_Property(const std::string& key, bool new_prope
 void DrawBodyComponent::DrawBody()
 {
     for (const std::unique_ptr<FlatPhysics::FlatFixture>& fixture : body->GetFixtures()) {
+        FlatPhysics::FlatAABB aabb = fixture->GetAABB();
+        if (!IsAABBVisible(aabb)) {
+            continue;
+        }
+
         const float x = body->GetPosition().GetX();
         const float y = body->GetPosition().GetY();
         const float rot = body->GetAngle();
@@ -267,28 +303,35 @@ void DrawBodyComponent::DrawBody()
 
         switch (fixture->GetShapeType())
         {
-        case FlatPhysics::ShapeType::Circle: {
+        case FlatPhysics::ShapeType::Circle:
+        {
             float radius = fixture->GetShape().AsCircle()->radius;
-            Engine::instance->renderer->draw_ex("circle", x, y, FlatPhysics::FlatMath::RadToDeg(rot),
+            Engine::instance->renderer->draw_ex(
+                "circle",
+                x, y,
+                FlatPhysics::FlatMath::RadToDeg(rot),
                 radius * 2.0f, radius * 2.0f,
                 0.5f, 0.5f,
-                r, g, bl, a, 0);
+                r, g, bl, a, 0
+            );
             break;
         }
-        case FlatPhysics::ShapeType::Polygon: {
+        case FlatPhysics::ShapeType::Polygon:
+        {
             const FlatPhysics::PolygonShape* polygon = fixture->GetShape().AsPolygon();
             auto& vertices = polygon->GetVertices();
-            int r, g, b;
-            PastelColorFromID(holder_object->ID, r, g, b);
+
+            int pr, pg, pb;
+            PastelColorFromID(holder_object->ID, pr, pg, pb);
+
             std::vector<Vector2>& verts = polygon->GetVerticesSizedBuffer();
             body->LocalToWorld(vertices, verts);
-            Engine::instance->renderer->draw_polygon_world(verts, r, g, b, 255, true);
+
+            Engine::instance->renderer->draw_polygon_world(verts, pr, pg, pb, 255, true);
             break;
         }
         }
     }
-    
-
 }
 
 void DrawBodyComponent::MoveFirstBody()
