@@ -2,6 +2,43 @@
 #include "ImageDB.h"
 #include "Engine.h"
 #include "SDL2_gfxPrimitives.h"
+namespace {
+	constexpr float kPixelsPerMeter = 100.0f;
+	constexpr float kPolyPadPixels = 2.0f;
+
+	std::size_t HashPolygonVertices(const std::vector<Vector2>& verts)
+	{
+		std::size_t h = 1469598103934665603ull;
+		auto mix = [&](uint32_t v) {
+			h ^= static_cast<std::size_t>(v);
+			h *= 1099511628211ull;
+			};
+
+		uint32_t bits = 0;
+		for (const Vector2& p : verts) {
+			float fx = p.x();
+			float fy = p.y();
+
+			std::memcpy(&bits, &fx, sizeof(float));
+			mix(bits);
+			std::memcpy(&bits, &fy, sizeof(float));
+			mix(bits);
+		}
+
+		mix(static_cast<uint32_t>(verts.size()));
+		return h;
+	}
+
+	bool VerticesEqual(const std::vector<Vector2>& a, const std::vector<Vector2>& b)
+	{
+		if (a.size() != b.size()) return false;
+		for (size_t i = 0; i < a.size(); ++i) {
+			if (a[i].x() != b[i].x() || a[i].y() != b[i].y())
+				return false;
+		}
+		return true;
+	}
+}
 void Renderer::init_renderer(const char* title, int x, int y, int w, int h, int index, Uint32 window_flags, Uint32 renderer_flags)
 {
 	sdl_window = Helper::SDL_CreateWindow(title, x, y, w, h, window_flags);
@@ -115,13 +152,13 @@ void Renderer::Render_All_Polygon_Requests()
 {
 	if (polygon_draw_request_queue.empty())
 		return;
-
+	
 	SDL_SetRenderDrawBlendMode(sdl_renderer, SDL_BLENDMODE_BLEND);
 
-	const float ppm = 100.0f;
+	const float ppm = kPixelsPerMeter;
 	const glm::vec2  cam_pos = Engine::instance->running_game->Get_Camera_Position();
 	const glm::ivec2 cam_dim = Engine::instance->running_game->Get_Camera_Dimension();
-	const float zoom = Engine::instance->running_game->Get_Zoom_Factor();
+	const float      zoom = Engine::instance->running_game->Get_Zoom_Factor();
 
 	const float ox = cam_dim.x * 0.5f * (1.0f / zoom);
 	const float oy = cam_dim.y * 0.5f * (1.0f / zoom);
@@ -136,11 +173,82 @@ void Renderer::Render_All_Polygon_Requests()
 		const size_t n = verts.size();
 		if (n < 2) continue;
 
+		const Uint8 r = static_cast<Uint8>(req.r);
+		const Uint8 g = static_cast<Uint8>(req.g);
+		const Uint8 b = static_cast<Uint8>(req.b);
+		const Uint8 a = static_cast<Uint8>(req.a);
+
+		if (req.use_cache && req.fill_color && n >= 3)
+		{
+			if (auto* entry = GetOrCreatePolygonCacheEntry(verts))
+			{
+				const Vector2& minv = entry->minv;
+
+				const float origin_sx =
+					(req.position.x() - cam_pos.x) * ppm + ox;
+				const float origin_sy =
+					(req.position.y() - cam_pos.y) * ppm + oy;
+
+				const float origin_offset_x = kPolyPadPixels - minv.x() * ppm;
+				const float origin_offset_y = kPolyPadPixels - minv.y() * ppm;
+
+				SDL_FRect dest{
+					origin_sx - origin_offset_x,
+					origin_sy - origin_offset_y,
+					entry->texW,
+					entry->texH
+				};
+
+				SDL_SetTextureColorMod(entry->texture, r, g, b);
+				SDL_SetTextureAlphaMod(entry->texture, a);
+
+				const float angle_deg = req.angle_radian * (180.0f / 3.14159265f);
+
+				if (std::fabs(req.angle_radian) < 1e-4f)
+				{
+					SDL_RenderCopyF(
+						sdl_renderer,
+						entry->texture,
+						nullptr,
+						&dest
+					);
+				}
+				else
+				{
+					SDL_FPoint pivot{
+						origin_offset_x,
+						origin_offset_y
+					};
+
+					SDL_RenderCopyExF(
+						sdl_renderer,
+						entry->texture,
+						nullptr,
+						&dest,
+						angle_deg,
+						&pivot,
+						SDL_FLIP_NONE
+					);
+				}
+
+
+				continue;
+			}
+		}
+
 		screenPts.clear();
 		screenPts.reserve(n);
-		for (size_t i = 0; i < n; ++i) {
-			const float wx = verts[i].x() + req.position.x();
-			const float wy = verts[i].y() + req.position.y();
+
+		const float c = std::cos(req.angle_radian);
+		const float s = std::sin(req.angle_radian);
+
+		for (size_t i = 0; i < n; ++i)
+		{
+			const float lx = verts[i].x();
+			const float ly = verts[i].y();
+
+			const float wx = req.position.x() + (c * lx - s * ly);
+			const float wy = req.position.y() + (s * lx + c * ly);
 
 			const float sx = (wx - cam_pos.x) * ppm + ox;
 			const float sy = (wy - cam_pos.y) * ppm + oy;
@@ -155,24 +263,31 @@ void Renderer::Render_All_Polygon_Requests()
 			ys[i] = static_cast<Sint16>(std::lround(screenPts[i].y));
 		}
 
-		const Uint8 r = static_cast<Uint8>(req.r);
-		const Uint8 g = static_cast<Uint8>(req.g);
-		const Uint8 b = static_cast<Uint8>(req.b);
-		const Uint8 a = static_cast<Uint8>(req.a);
-
 		if (req.fill_color && n >= 3) {
-			GFX_filledPolygonRGBA(sdl_renderer,
+			GFX_filledPolygonRGBA(
+				sdl_renderer,
 				xs.data(), ys.data(), static_cast<int>(n),
-				r, g, b, a);
+				r, g, b, a
+			);
 		}
 
-		GFX_polygonRGBA(sdl_renderer,
+		GFX_polygonRGBA(
+			sdl_renderer,
 			xs.data(), ys.data(), static_cast<int>(n),
-			r, g, b, a);
+			r, g, b, a
+		);
 	}
 
-	SDL_SetRenderDrawColor(sdl_renderer, clear_color_r, clear_color_g, clear_color_b, clear_color_a);
+	SDL_SetRenderDrawColor(
+		sdl_renderer,
+		clear_color_r,
+		clear_color_g,
+		clear_color_b,
+		clear_color_a
+	);
 	SDL_SetRenderDrawBlendMode(sdl_renderer, SDL_BLENDMODE_NONE);
+
+	polygon_draw_request_queue.clear();
 }
 
 void Renderer::render_image_request_queue(std::vector<ImageDrawRequest>& request_queue)
@@ -264,4 +379,98 @@ void Renderer::render_image_request_queue(std::vector<ImageDrawRequest>& request
 		}
 	}
 	request_queue.clear();
+}
+
+Renderer::PolygonCacheEntry* Renderer::GetOrCreatePolygonCacheEntry(const std::vector<Vector2>& verts)
+{
+	if (verts.size() < 3) return nullptr;
+
+	std::size_t h = HashPolygonVertices(verts);
+
+	auto it = polygon_cache_buckets_.find(h);
+	if (it != polygon_cache_buckets_.end()) {
+		auto& indexList = it->second;
+		for (std::size_t idx : indexList) {
+			PolygonCacheEntry& entry = polygon_cache_[idx];
+			if (VerticesEqual(entry.vertices, verts)) {
+				return &entry;
+			}
+		}
+	}
+
+	Vector2 minv = verts[0];
+	Vector2 maxv = verts[0];
+	for (size_t i = 1; i < verts.size(); ++i) {
+		const Vector2& v = verts[i];
+		if (v.x() < minv.x()) minv.x() = v.x();
+		if (v.y() < minv.y()) minv.y() = v.y();
+		if (v.x() > maxv.x()) maxv.x() = v.x();
+		if (v.y() > maxv.y()) maxv.y() = v.y();
+	}
+	const Vector2 size = maxv - minv;
+
+	int texW = static_cast<int>(std::ceil(size.x() * kPixelsPerMeter + 2.0f * kPolyPadPixels));
+	int texH = static_cast<int>(std::ceil(size.y() * kPixelsPerMeter + 2.0f * kPolyPadPixels));
+
+	if (texW <= 0 || texH <= 0) {
+		return nullptr;
+	}
+
+	SDL_Texture* tex = SDL_CreateTexture(
+		sdl_renderer,
+		SDL_PIXELFORMAT_RGBA8888,
+		SDL_TEXTUREACCESS_TARGET,
+		texW,
+		texH
+	);
+	if (!tex) {
+		return nullptr;
+	}
+
+	SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
+
+	SDL_SetRenderTarget(sdl_renderer, tex);
+	SDL_SetRenderDrawBlendMode(sdl_renderer, SDL_BLENDMODE_BLEND);
+	SDL_SetRenderDrawColor(sdl_renderer, 0, 0, 0, 0);
+	SDL_RenderClear(sdl_renderer);
+
+	const size_t n = verts.size();
+	std::vector<Sint16> xs(n), ys(n);
+
+	const float origin_offset_x = kPolyPadPixels - minv.x() * kPixelsPerMeter;
+	const float origin_offset_y = kPolyPadPixels - minv.y() * kPixelsPerMeter;
+
+	for (size_t i = 0; i < n; ++i) {
+		const Vector2& v = verts[i];
+		float px = v.x() * kPixelsPerMeter + origin_offset_x;
+		float py = v.y() * kPixelsPerMeter + origin_offset_y;
+		xs[i] = static_cast<Sint16>(std::lround(px));
+		ys[i] = static_cast<Sint16>(std::lround(py));
+	}
+
+	GFX_filledPolygonRGBA(
+		sdl_renderer,
+		xs.data(), ys.data(), static_cast<int>(n),
+		255, 255, 255, 255
+	);
+	GFX_polygonRGBA(
+		sdl_renderer,
+		xs.data(), ys.data(), static_cast<int>(n),
+		255, 255, 255, 255
+	);
+
+	SDL_SetRenderTarget(sdl_renderer, nullptr);
+
+	PolygonCacheEntry entry;
+	entry.vertices = verts;
+	entry.texture = tex;
+	entry.texW = static_cast<float>(texW);
+	entry.texH = static_cast<float>(texH);
+	entry.minv = minv;
+
+	const std::size_t newIndex = polygon_cache_.size();
+	polygon_cache_.push_back(std::move(entry));
+	polygon_cache_buckets_[h].push_back(newIndex);
+
+	return &polygon_cache_.back();
 }

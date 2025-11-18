@@ -164,7 +164,7 @@ void DrawBodyComponent::On_Update()
     if(this->holder_object->ID == 5)DrawTime();
     DrawBody();
     DrawAABB();
-    if(holder_object->ID == 4)PhysicsDB::flat_world->DrawContactPoints();
+    if(holder_object->ID == 5)PhysicsDB::flat_world->DrawContactPoints();
     //std::cout << transform->Get_World_Position().x() << " " << transform->Get_World_Position().y() << std::endl;
 }
 
@@ -319,15 +319,12 @@ void DrawBodyComponent::DrawBody()
         case FlatPhysics::ShapeType::Polygon:
         {
             const FlatPhysics::PolygonShape* polygon = fixture->GetShape().AsPolygon();
-            auto& vertices = polygon->GetVertices();
+            const auto& vertices = polygon->GetVertices();
 
             int pr, pg, pb;
             PastelColorFromID(holder_object->ID, pr, pg, pb);
 
-            std::vector<Vector2>& verts = polygon->GetVerticesSizedBuffer();
-            body->LocalToWorld(vertices, verts);
-
-            Engine::instance->renderer->draw_polygon_world(verts, pr, pg, pb, 255, true);
+            Engine::instance->renderer->draw_polygon(vertices, body->GetPosition(), body->GetAngle(), pr, pg, pb, 255, true);
             break;
         }
         }
@@ -355,6 +352,8 @@ void DrawBodyComponent::Rotate()
 
 void DrawBodyComponent::DrawAABB()
 {
+    Vector2 bodyPos = body->GetPosition();
+
     for (const auto& fixture : body->GetFixtures()) {
         FlatPhysics::FlatAABB aabb = fixture->GetAABB();
         AABB[0] = { aabb.min.x(), aabb.min.y() };

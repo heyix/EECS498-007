@@ -582,7 +582,7 @@ namespace FlatPhysics {
 					};
 
 					auto queueMarker = [&](const Vector2& p) {
-						Engine::instance->renderer->draw_polygon(markerVerts, p, 255, 0, 0, 255, false);
+						Engine::instance->renderer->draw_polygon(markerVerts, p, 0.0f, 255, 0, 0, 255, false);
 						};
 					queueMarker(contact_point);
 				}

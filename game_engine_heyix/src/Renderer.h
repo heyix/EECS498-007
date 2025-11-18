@@ -9,6 +9,7 @@
 #include "glm/glm.hpp"
 #include "Vector2.h"
 #include <utility>
+#include <unordered_map>
 
 class ImageDrawRequest {
 public:
@@ -87,20 +88,22 @@ public:
 class PolygonDrawRequest {
 public:
 	PolygonDrawRequest(const std::vector<Vector2>& vertices,
-		const Vector2& position,
-		float r, float g, float b, float a, bool fill_color)
-		: vertices(&vertices), position(position), r(r), g(g), b(b), a(a),fill_color(fill_color) {}
+		const Vector2& position, float angle_radian,
+		float r, float g, float b, float a, bool fill_color, bool use_cache)
+		: vertices(&vertices), position(position), angle_radian(angle_radian), r(r), g(g), b(b), a(a), fill_color(fill_color), use_cache(use_cache) {}
 	PolygonDrawRequest(std::vector<Vector2>&& vertices,
-		const Vector2& position,
-		float r, float g, float b, float a, bool fill_color)
-		: owned_vertices(vertices), vertices(&owned_vertices), position(position), r(r), g(g), b(b), a(a), fill_color(fill_color) {}
+		const Vector2& position, float angle_radian,
+		float r, float g, float b, float a, bool fill_color, bool use_cache)
+		: owned_vertices(std::move(vertices)), vertices(&owned_vertices), position(position), angle_radian(angle_radian), r(r), g(g), b(b), a(a), fill_color(fill_color), use_cache(use_cache) {}
 
 public:
 	std::vector<Vector2> owned_vertices;
 	const std::vector<Vector2>* vertices;
 	Vector2 position;
+	float angle_radian;
 	float r, g, b, a;
 	bool fill_color;
+	bool use_cache;
 };
 
 class Renderer {
@@ -109,6 +112,14 @@ public:
 	T* get_pointer(std::optional<T>& opt) {
 		return opt ? &(*opt) : nullptr;
 	}
+private:
+	struct PolygonCacheEntry {
+		std::vector<Vector2> vertices;
+		SDL_Texture* texture = nullptr;
+		float texW = 0.0f;
+		float texH = 0.0f;
+		Vector2 minv;
+	};
 public:
 	void init_renderer(const char* title, int x, int y, int w, int h, int index, Uint32 window_flags,Uint32 renderer_flags);
 	void clear_renderer();
@@ -141,12 +152,16 @@ public:
 		scene_space_image_request_queue.emplace_back( std::forward<T>(image_name), x, y, rotation_degrees,scale_x, scale_y, pivot_x, pivot_y,  r,  g,  b,  a, sorting_order );
 	}
 	template<typename T>
-	void draw_polygon(T&& vertices, const Vector2& position, float r, float g, float b, float a, bool fill_color = true) {
-		polygon_draw_request_queue.emplace_back(std::forward<T>(vertices), position, r, g, b, a, fill_color);
+	void draw_polygon(T&& vertices, const Vector2& position, float angle_radian, float r, float g, float b, float a, bool fill_color = true) {
+		polygon_draw_request_queue.emplace_back(std::forward<T>(vertices), position, angle_radian, r, g, b, a, fill_color, true);
 	}
 	template<typename T>
 	void draw_polygon_world(T&& worldVertices, float r, float g, float b, float a, bool fill_color = true) {
-		draw_polygon(std::forward<T>(worldVertices), { 0,0 }, r, g, b, a, fill_color);
+		polygon_draw_request_queue.emplace_back(std::forward<T>(worldVertices), Vector2(0.0f, 0.0f), 0.0f, r, g, b, a, fill_color, false);
+	}
+	template<typename T>
+	void draw_polygon_nocache(T&& vertices,const Vector2& position,float angle_radian,float r, float g, float b, float a,bool fill_color = true) {
+		polygon_draw_request_queue.emplace_back(std::forward<T>(vertices), position, angle_radian, r, g, b, a, fill_color, false);
 	}
 private:
 	void Render_All_Scene_Space_Image_Requests();
@@ -157,6 +172,7 @@ private:
 	void Render_All_Polygon_Requests();
 private:
 	void render_image_request_queue(std::vector<ImageDrawRequest>& request_queue);
+	PolygonCacheEntry* GetOrCreatePolygonCacheEntry(const std::vector<Vector2>& verts);
 public:
 	SDL_Window* sdl_window;
 	SDL_Renderer* sdl_renderer;
@@ -171,4 +187,7 @@ private:
 	std::vector<TextDrawRequest> text_draw_request_queue;
 	std::vector<FRectDrawRequest> frect_draw_request_queue;
 	std::vector<PolygonDrawRequest> polygon_draw_request_queue;
+
+	std::vector<PolygonCacheEntry> polygon_cache_;
+	std::unordered_map<std::size_t, std::vector<std::size_t>> polygon_cache_buckets_;
 };
