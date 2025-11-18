@@ -269,8 +269,8 @@ namespace FlatPhysics {
 		if (K <= 0.0f) return; 
 
 		const float linearSlop = 0.01f;
-		const float percent = 0.1f;
-		const float maxCorr = 0.04f; 
+		const float percent = 0.2f;
+		const float maxCorr = 0.02f; 
 		
 		float C = Vector2::Dot(pb - pa, -n);    
 		float error = std::max(-C - linearSlop, 0.0f);

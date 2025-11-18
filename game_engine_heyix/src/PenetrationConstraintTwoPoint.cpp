@@ -281,8 +281,8 @@ namespace FlatPhysics {
         FlatBody* bodyB = b->GetBody();
 
         const float linearSlop = 0.01f;
-        const float percent = 0.1f;
-        const float maxCorr = 0.04f;
+        const float percent = 0.2f;
+        const float maxCorr = 0.02f;
 
         const float invMassA = invMassA_;
         const float invMassB = invMassB_;
