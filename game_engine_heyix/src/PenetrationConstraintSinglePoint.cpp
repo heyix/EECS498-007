@@ -51,7 +51,7 @@ namespace FlatPhysics {
 		cached_lambda(0) = oldNormalImpulse;
 		cached_lambda(1) = oldTangentImpulse;
 
-		float beta = 0.1f;
+		float beta = 0.2f;
 		float C = Vector2::Dot(pb - pa, -n);
 		C = std::min(0.0f, C + 0.005f);
 
@@ -210,6 +210,8 @@ namespace FlatPhysics {
 		if (tangent_impulse_)
 			*tangent_impulse_ = cached_lambda(1);
 #pragma endregion
+#pragma region MatrixComputeVersion
+
 		/*VecN<6> v = GetVelocities();
 		MatMN<6,6> inv_m = GetInverseM();
 
@@ -242,6 +244,7 @@ namespace FlatPhysics {
 		if (tangent_impulse_) {
 			*tangent_impulse_ = cached_lambda(1);
 		}*/
+#pragma endregion
 	}
 	void PenetrationConstraintSinglePoint::PostSolve()
 	{
@@ -266,8 +269,8 @@ namespace FlatPhysics {
 		if (K <= 0.0f) return; 
 
 		const float linearSlop = 0.01f;
-		const float percent = 0.2f;
-		const float maxCorr = 0.02f; 
+		const float percent = 0.1f;
+		const float maxCorr = 0.04f; 
 		
 		float C = Vector2::Dot(pb - pa, -n);    
 		float error = std::max(-C - linearSlop, 0.0f);

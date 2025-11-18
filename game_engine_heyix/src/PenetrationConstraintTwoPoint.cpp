@@ -128,7 +128,7 @@ namespace FlatPhysics {
         }
 
 
-        const float beta = 0.1f;
+        const float beta = 0.2f;
         const float restitution_threshold = 1.0f;
         const float e = std::min(a->GetRestitution(), b->GetRestitution());
 
@@ -281,8 +281,8 @@ namespace FlatPhysics {
         FlatBody* bodyB = b->GetBody();
 
         const float linearSlop = 0.01f;
-        const float percent = 0.2f;
-        const float maxCorr = 0.02f;
+        const float percent = 0.1f;
+        const float maxCorr = 0.04f;
 
         const float invMassA = invMassA_;
         const float invMassB = invMassB_;
