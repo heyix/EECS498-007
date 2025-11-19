@@ -30,7 +30,6 @@ namespace FlatPhysics {
                 islandCount = std::max(islandCount, idx + 1);
             }
         }
-
         for (const std::unique_ptr<FlatConstraint>& uptr : constraints)
         {
             FlatConstraint* c = uptr.get();

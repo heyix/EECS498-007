@@ -53,7 +53,6 @@ namespace FlatPhysics {
 	{
 		if (!body || index_map.count(body))return;
 		const int index = static_cast<int>(bodies.size());
-		bodies.push_back(body);
 		index_map[body] = index;
 
 		body->SetWorld(this);
@@ -65,7 +64,7 @@ namespace FlatPhysics {
 		}
 	}
 
-	bool FlatWorld::RemoveBody(FlatBody* body)
+	bool FlatWorld::DestroyBody(FlatBody* body)
 	{
 		auto it = index_map.find(body);
 		if (it == index_map.end()) {
@@ -82,7 +81,7 @@ namespace FlatPhysics {
 		const int last = static_cast<int>(bodies.size()) - 1;
 		if (index != last) {
 			std::swap(bodies[index], bodies[last]);
-			index_map[bodies[index]] = index;
+			index_map[bodies[index].get()] = index;
 		}
 		bodies.pop_back();
 		index_map.erase(it);
@@ -91,13 +90,27 @@ namespace FlatPhysics {
 		return true;
 	}
 
-	FlatBody* FlatWorld::GetBody(int index)
+	FlatBody* FlatWorld::CreateBody(const BodyDef& def)
 	{
-		if (index < 0 || index >= bodies.size()) {
-			return nullptr;
-		}
-		return bodies[index];
+		std::unique_ptr<FlatBody> body(
+			new FlatBody(
+				def.position,
+				def.angle_rad,
+				def.linear_damping,
+				def.angular_damping,
+				def.is_static
+			)
+		);
+
+		FlatBody* body_ptr = body.get();
+		body_ptr->SetGravityScale(def.gravity_scale);
+		body_ptr->SetCanSleep(def.allow_sleep);
+		body_ptr->SetAwake(def.awake);
+		bodies.push_back(std::move(body));
+		AddBody(body_ptr);
+		return body_ptr;
 	}
+
 	void FlatWorld::RegisterFixture(FlatFixture* fixture)
 	{
 		if (!fixture || !broadphase_) {
@@ -144,7 +157,7 @@ namespace FlatPhysics {
 	void FlatWorld::UpdateSleeping(float dt)
 	{
 		int islandCount = 0;
-		for (FlatBody* body : bodies)
+		for (std::unique_ptr<FlatBody>& body : bodies)
 		{
 			if (body->IsStatic())
 				continue;
@@ -164,7 +177,7 @@ namespace FlatPhysics {
 		std::vector<float> minSleepTime(islandCount, std::numeric_limits<float>::max());
 		std::vector<bool>  islandCanSleep(islandCount, true);
 
-		for (FlatBody* body : bodies)
+		for (std::unique_ptr<FlatBody>& body : bodies)
 		{
 			if (body->IsStatic())
 				continue;
@@ -206,7 +219,7 @@ namespace FlatPhysics {
 			}
 		}
 
-		for (FlatBody* body : bodies)
+		for (std::unique_ptr<FlatBody>& body : bodies)
 		{
 			if (body->IsStatic())
 				continue;
@@ -313,7 +326,7 @@ namespace FlatPhysics {
 	//has index and flag only if directly or indirectly connected to a awaken body
 	void FlatWorld::BuildIslands()
 	{
-		for (FlatBody* body : bodies)
+		for (std::unique_ptr<FlatBody>& body : bodies)
 		{
 			body->SetIslandFlag(false);
 			body->SetIslandIndex(-1);
@@ -334,7 +347,7 @@ namespace FlatPhysics {
 
 		int islandIndex = 0;
 
-		for (FlatBody* seed : bodies)
+		for (std::unique_ptr<FlatBody>& seed : bodies)
 		{
 			if (seed->IsStatic())
 				continue;
@@ -344,7 +357,7 @@ namespace FlatPhysics {
 				continue;
 
 			stack.clear();
-			stack.push_back(seed);
+			stack.push_back(seed.get());
 			seed->SetIslandFlag(true);
 
 			while (!stack.empty())
@@ -387,7 +400,7 @@ namespace FlatPhysics {
 			return;
 		}
 
-		for (FlatBody* body : bodies) {
+		for (std::unique_ptr<FlatBody>& body : bodies) {
 			const auto& fixtures = body->GetFixtures();
 			for (const auto& fixture_uptr : fixtures) {
 				FlatFixture* fixture = fixture_uptr.get();
@@ -438,7 +451,7 @@ namespace FlatPhysics {
 		//	}
 		//}
 		//std::cout << count<<std::endl;
-		for (FlatBody* body : bodies) {
+		for (std::unique_ptr<FlatBody>& body : bodies) {
 			body->IntegrateForces(time,gravity);
 			body->ApplyDampling(time);
 		}
@@ -454,7 +467,7 @@ namespace FlatPhysics {
 		solver_->Initialize(contacts,constraints);
 		solver_->PreSolve(time);
 		solver_->Solve(time, 15);
-		for (FlatBody* body : bodies) {
+		for (std::unique_ptr<FlatBody>& body : bodies) {
 			body->IntegrateVelocities(time);
 		}
 		solver_->PostSolve(time, 2);
@@ -594,7 +607,7 @@ namespace FlatPhysics {
 	void FlatWorld::SetBroadPhase(std::unique_ptr<IBroadPhase> bp)
 	{
 		if (broadphase_) {
-			for (FlatBody* body : bodies) {
+			for (std::unique_ptr<FlatBody>& body : bodies) {
 				for (const auto& fixture_uptr : body->GetFixtures()) {
 					FlatFixture* fixture = fixture_uptr.get();
 					UnregisterFixtureForBroadphase(fixture);

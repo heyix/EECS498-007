@@ -33,6 +33,16 @@ namespace FlatPhysics {
 		Filter filter{};
 		void* user_data = nullptr;
 	};
+	struct BodyDef {
+		Vector2 position{ 0.0f, 0.0f };
+		float angle_rad = 0.0f;
+		bool is_static = false;
+		float linear_damping = 0.0f;
+		float angular_damping = 0.0f;
+		float gravity_scale = 1.0f;
+		bool allow_sleep = true;
+		bool awake = true;
+	};
 	class FlatBody;
 
 }

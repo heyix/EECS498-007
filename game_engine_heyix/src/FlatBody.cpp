@@ -12,13 +12,13 @@ using namespace FlatPhysics;
 
 FlatBody::FlatBody(
     const Vector2& pos,
-    float restitution_,
+    float angle_rad,
     float linear_dampling,
     float angular_dampling,
     bool is_static_)
     : position(pos),
     linear_velocity(Vector2::Zero()),
-    angle_rad(0.0f),
+    angle_rad(angle_rad),
     angular_velocity(0.0f),
     is_static(is_static_),
     force(Vector2::Zero()),
@@ -331,68 +331,4 @@ void FlatPhysics::FlatBody::ResetMassData()
         inertia = 0.0f;
         inverse_inertia = 0.0f;
     }
-}
-
-bool FlatBody::CreateCircleBody(float r, const Vector2& pos, float density, bool is_static,
-    float restitution, float friction, float linear_dampling, float angular_dampling, std::unique_ptr<FlatBody>& out_body)
-{
-    out_body = nullptr;
-
-    FixtureDef fd;
-    fd.density = density;
-    fd.restitution = restitution;
-    fd.friction = friction;
-    std::unique_ptr<Shape> shape = std::make_unique<CircleShape>(Vector2::Zero(), r);
-    fd.shape = shape.get();
-
-    out_body.reset(new FlatBody(pos, restitution, linear_dampling, angular_dampling, is_static));
-    out_body->CreateFixture(fd);
-
-    //FixtureDef fd2;
-    //fd2.density = density;
-    //fd2.restitution = restitution;
-    //std::unique_ptr<Shape> shape2 = std::make_unique<CircleShape>(Vector2(1,1), r);
-    //fd2.shape = shape2.get();
-    //out_body->CreateFixture(fd2);
-    //std::cout << out_body->inertia << " " << out_body->inverse_inertia << std::endl;
-    return true;
-}
-
-
-bool FlatPhysics::FlatBody::CreatePolygonBody(const std::vector<Vector2>& vertices, const Vector2& position, float density, bool is_static, float restitution, float friction, float linear_dampling, float angular_dampling, std::unique_ptr<FlatBody>& out_body)
-{
-    out_body = nullptr;
-
-    if (vertices.size() < 3) {
-        std::cout << "Polygon needs at least 3 vertices.";
-        return false;
-    }
-
-
-    auto body = std::unique_ptr<FlatBody>(
-        new FlatBody(position, restitution, linear_dampling, angular_dampling, is_static)
-    );
-    FixtureDef fd;
-    fd.density = density;
-    fd.restitution = restitution;
-    fd.friction = friction;
-    std::unique_ptr<Shape> shape = std::make_unique<PolygonShape>(vertices);
-    fd.shape = shape.get();
-    FlatFixture* sb = body->CreateFixture(fd);
-    out_body = std::move(body);
-    //const float s = 1.0f;
-    //std::vector<Vector2> poly;
-    //poly.emplace_back(-s+2, -s+2);       // bottom-left
-    //poly.emplace_back(+s+2, -s+2);       // bottom-right
-    //poly.emplace_back(+s+2, +s+2);       // top-right
-    ////poly.emplace_back(0.0f, +s * 0.3f); // inner dent (makes it concave)
-    //poly.emplace_back(-s+2, +s+2);       // top-left
-    //FixtureDef fd2;
-    //fd2.density = density;
-    //fd2.restitution = restitution;
-    //std::unique_ptr<Shape> shape2 = std::make_unique<PolygonShape>(poly);
-    //fd2.shape = shape2.get();
-    //out_body->CreateFixture(fd2);
-    //std::cout << out_body->inertia << " " << out_body->inverse_inertia << std::endl;
-    return true;
 }

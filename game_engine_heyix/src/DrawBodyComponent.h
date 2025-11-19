@@ -23,7 +23,7 @@ public:
 public:
     std::string shape = "Polygon";
 private:
-    std::unique_ptr<FlatPhysics::FlatBody> body = nullptr;
+    FlatPhysics::FlatBody* body = nullptr;
     Vector2 move_dir{ 0,0 };
     float width = 1.0f;
     float height = 1.0f;

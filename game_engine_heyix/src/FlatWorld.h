@@ -16,9 +16,8 @@ namespace FlatPhysics {
 	public:
 		int GetBodyCount() { return bodies.size(); }
 	public:
-		void AddBody(FlatBody* body);
-		bool RemoveBody(FlatBody* body);
-		FlatBody* GetBody(int index);
+		bool DestroyBody(FlatBody* body);
+		FlatBody* CreateBody(const BodyDef& def);
 		void Step(float time);
 
 		void AddConstraint(std::unique_ptr<FlatConstraint> constraint);
@@ -30,6 +29,7 @@ namespace FlatPhysics {
 
 
 	private:
+		void AddBody(FlatBody* body);
 		void SynchronizeFixtures();
 		void BroadPhase();
 		void NarrowPhase();
@@ -47,7 +47,7 @@ namespace FlatPhysics {
 		void BuildIslands();
 	private:
 		Vector2 gravity;
-		std::vector<FlatBody*> bodies;
+		std::vector<std::unique_ptr<FlatBody>> bodies;
 		std::unordered_map<FlatBody*, int> index_map;
 		std::vector<FlatManifold> contacts;
 		std::vector<ContactPair> contact_pairs;
