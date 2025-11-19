@@ -46,7 +46,7 @@ namespace FlatPhysics {
 
         float sleep_time_ = 0.0f;
         bool awake_ = true;
-        bool can_sleep_ = true;
+        bool can_sleep_ = false;
         const bool  is_static;
 
         FlatContactEdge* contact_list_ = nullptr;

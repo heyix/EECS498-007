@@ -4,6 +4,7 @@
 #include "PenetrationConstraintSinglePoint.h"
 #include <deque>
 #include "PenetrationConstraintTwoPoint.h"
+#include <vector>
 namespace FlatPhysics {
 	class FlatSolverPGS :public IFlatSolver {
 	public:
@@ -16,10 +17,21 @@ namespace FlatPhysics {
 		void PostSolve(float dt, int iterations) override;
 	private:
 		bool CanFixtureCollide(FlatFixture* fixtureA, FlatFixture* fixtureB);
+		int GetIslandIndex(FlatBody* bodyA, FlatBody* bodyB) const;
 	private:
-		const std::vector<std::unique_ptr<FlatConstraint>>* constraints_{ nullptr };
-		std::vector<PenetrationConstraintBase*> penetration_constraints_;
+		struct IslandConstraints {
+			std::vector<PenetrationConstraintBase*> penetration_constraints;
+			std::vector<FlatConstraint*> constraints;
+			inline void Clear() {
+				penetration_constraints.clear();
+				constraints.clear();
+			}
+		};
+	private:
 		std::vector<PenetrationConstraintSinglePoint> one_point_constraints_;
 		std::vector<PenetrationConstraintTwoPoint> two_point_constraints_;
+
+		std::vector<IslandConstraints> islands_;
+		int active_island_count_ = 0;
 	};
 }

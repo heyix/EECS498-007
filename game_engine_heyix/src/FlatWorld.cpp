@@ -309,7 +309,7 @@ namespace FlatPhysics {
 		}
 		contacts.pop_back();
 	}
-	//idx = -1 and flag = true only if static or sleep island
+	//idx = -1 and flag = false only if static or sleep island
 	//has index and flag only if directly or indirectly connected to a awaken body
 	void FlatWorld::BuildIslands()
 	{

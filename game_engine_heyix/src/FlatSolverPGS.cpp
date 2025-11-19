@@ -4,30 +4,89 @@
 #include "FlatFixture.h"
 #include "PenetrationConstraintTwoPoint.h"
 namespace FlatPhysics {
-    void FlatPhysics::FlatSolverPGS::Initialize(
-        std::vector<FlatManifold>& manifolds,
-        const std::vector<std::unique_ptr<FlatConstraint>>& constraints)
+    void FlatPhysics::FlatSolverPGS::Initialize(std::vector<FlatManifold>& manifolds, const std::vector<std::unique_ptr<FlatConstraint>>& constraints)
     {
-        constraints_ = &constraints;
-
         one_point_constraints_.clear();
         two_point_constraints_.clear();
-        penetration_constraints_.clear();
+        active_island_count_ = 0;
 
-        const std::size_t manifoldCount = manifolds.size();
-        one_point_constraints_.reserve(manifoldCount); 
-        two_point_constraints_.reserve(manifoldCount);  
-        penetration_constraints_.reserve(manifoldCount);
+        int islandCount = 0;
+
+        for (FlatManifold& m : manifolds)
+        {
+            if (!m.island_flag)
+                continue;
+
+            FlatFixture* fa = m.fixtureA;
+            FlatFixture* fb = m.fixtureB;
+            if (!fa || !fb) continue;
+
+            FlatBody* bodyA = fa->GetBody();
+            FlatBody* bodyB = fb->GetBody();
+            if (!bodyA && !bodyB) continue;
+
+            int idx = GetIslandIndex(bodyA, bodyB);
+            if (idx >= 0) {
+                islandCount = std::max(islandCount, idx + 1);
+            }
+        }
+
+        for (const std::unique_ptr<FlatConstraint>& uptr : constraints)
+        {
+            FlatConstraint* c = uptr.get();
+            if (!c || !c->a || !c->b) continue;
+
+            FlatBody* bodyA = c->a->GetBody();
+            FlatBody* bodyB = c->b->GetBody();
+
+            int idx = GetIslandIndex(bodyA, bodyB);
+            if (idx >= 0) {
+                islandCount = std::max(islandCount, idx + 1);
+            }
+        }
+
+        if (islandCount == 0) {
+            return;
+        }
+
+        if (islandCount > static_cast<int>(islands_.size())) {
+            islands_.resize((islandCount * 3) / 2);
+        }
+        active_island_count_ = islandCount;
+
+        for (int i = 0; i < active_island_count_; ++i) {
+            islands_[i].Clear();
+        }
+
+        if (manifolds.size() > one_point_constraints_.capacity()) {
+            one_point_constraints_.reserve((manifolds.size() * 3) / 2);
+        }
+        if (manifolds.size() > two_point_constraints_.capacity()) {
+            two_point_constraints_.reserve((manifolds.size() * 3) / 2);
+        }
 
         for (FlatManifold& manifold : manifolds)
         {
+            if (!manifold.island_flag)
+                continue;
+
             FlatFixture* fa = manifold.fixtureA;
             FlatFixture* fb = manifold.fixtureB;
-            const bool is_new = manifold.is_new_contact;
+            if (!fa || !fb) continue;
+
+            FlatBody* bodyA = fa->GetBody();
+            FlatBody* bodyB = fb->GetBody();
+            if (!bodyA && !bodyB) continue;
+
+            int islandIndex = GetIslandIndex(bodyA, bodyB);
+            if (islandIndex < 0 || islandIndex >= active_island_count_)
+                continue;
 
             const int count = manifold.contact_points.Size();
             if (count == 0)
                 continue;
+
+            const bool is_new = manifold.is_new_contact;
 
             if (count == 1)
             {
@@ -42,10 +101,17 @@ namespace FlatPhysics {
                     std::swap(start, end);
                 }
 
-                one_point_constraints_.emplace_back(fa, fb, start, end, cp.normal, &cp.normal_impulse, &cp.tangent_impulse, is_new);
+                one_point_constraints_.emplace_back(
+                    fa, fb,
+                    start, end,
+                    cp.normal,
+                    &cp.normal_impulse,
+                    &cp.tangent_impulse,
+                    is_new
+                );
 
                 PenetrationConstraintBase* base = &one_point_constraints_.back();
-                penetration_constraints_.push_back(base);
+                islands_[islandIndex].penetration_constraints.push_back(base);
             }
             else
             {
@@ -64,58 +130,109 @@ namespace FlatPhysics {
                     std::swap(p1a, p1b);
                 }
 
-				two_point_constraints_.emplace_back(fa, fb, p0a, p0b, p1a, p1b, cp0.normal, &cp0.normal_impulse, &cp0.tangent_impulse, &cp1.normal_impulse, &cp1.tangent_impulse, is_new);
+                two_point_constraints_.emplace_back(
+                    fa, fb,
+                    p0a, p0b,
+                    p1a, p1b,
+                    cp0.normal,
+                    &cp0.normal_impulse,
+                    &cp0.tangent_impulse,
+                    &cp1.normal_impulse,
+                    &cp1.tangent_impulse,
+                    is_new
+                );
 
-				PenetrationConstraintBase* base = &two_point_constraints_.back();
-                penetration_constraints_.push_back(base);
+                PenetrationConstraintBase* base = &two_point_constraints_.back();
+                islands_[islandIndex].penetration_constraints.push_back(base);
+            }
+        }
+
+        for (const std::unique_ptr<FlatConstraint>& uptr : constraints)
+        {
+            FlatConstraint* c = uptr.get();
+            if (!c || !c->a || !c->b) continue;
+
+            FlatBody* bodyA = c->a->GetBody();
+            FlatBody* bodyB = c->b->GetBody();
+
+            int islandIndex = GetIslandIndex(bodyA, bodyB);
+
+            if (islandIndex >= 0 && islandIndex < active_island_count_) {
+                islands_[islandIndex].constraints.push_back(c);
             }
         }
     }
 
 	void FlatPhysics::FlatSolverPGS::PreSolve(float dt)
 	{
-		for (const std::unique_ptr<FlatConstraint>& constraint : *constraints_) {
-			if (CanFixtureCollide(constraint->a, constraint->b)) {
-				constraint->PreSolve(dt);
-			}
-		}
-		for (auto& constraint : penetration_constraints_) {
-			if (CanFixtureCollide(constraint->a, constraint->b)) {
-				constraint->PreSolve(dt);
-			}
-		}
+        for (int i = 0; i < active_island_count_; ++i)
+        {
+            IslandConstraints& island = islands_[i];
+
+            for (FlatConstraint* c : island.constraints)
+            {
+                if (CanFixtureCollide(c->a, c->b)) {
+                    c->PreSolve(dt);
+                }
+            }
+
+            for (PenetrationConstraintBase* pc : island.penetration_constraints)
+            {
+                if (CanFixtureCollide(pc->a, pc->b)) {
+                    pc->PreSolve(dt);
+                }
+            }
+        }
 	}
 
 	void FlatPhysics::FlatSolverPGS::Solve(float dt, int iterations)
 	{
-		for (int i = 0; i < iterations; i++) {
-			for (const std::unique_ptr<FlatConstraint>& constraint : *constraints_) {
-				if (CanFixtureCollide(constraint->a, constraint->b)) {
-					constraint->Solve();
-				}
-			}
-			for (auto& constraint : penetration_constraints_) {
-				if (CanFixtureCollide(constraint->a, constraint->b)) {
-					constraint->Solve();
-				}
-			}
-		}
+        for (int iter = 0; iter < iterations; ++iter)
+        {
+            for (int i = 0; i < active_island_count_; ++i)
+            {
+                IslandConstraints& island = islands_[i];
+
+                for (FlatConstraint* c : island.constraints)
+                {
+                    if (CanFixtureCollide(c->a, c->b)) {
+                        c->Solve();
+                    }
+                }
+
+                for (PenetrationConstraintBase* pc : island.penetration_constraints)
+                {
+                    if (CanFixtureCollide(pc->a, pc->b)) {
+                        pc->Solve();
+                    }
+                }
+            }
+        }
 	}
 
 	void FlatPhysics::FlatSolverPGS::PostSolve(float dt, int iterations)
 	{
-		for (int i = 0; i < iterations; i++) {
-			for (auto& constraint : *constraints_) {
-				if (CanFixtureCollide(constraint->a, constraint->b)) {
-					constraint->PostSolve();
-				}
-			}
-			for (auto& constraint : penetration_constraints_) {
-				if (CanFixtureCollide(constraint->a, constraint->b)) {
-					constraint->PostSolve();
-				}
-			}
-		}
+        for (int iter = 0; iter < iterations; ++iter)
+        {
+            for (int i = 0; i < active_island_count_; ++i)
+            {
+                IslandConstraints& island = islands_[i];
+
+                for (FlatConstraint* c : island.constraints)
+                {
+                    if (CanFixtureCollide(c->a, c->b)) {
+                        c->PostSolve();
+                    }
+                }
+
+                for (PenetrationConstraintBase* pc : island.penetration_constraints)
+                {
+                    if (CanFixtureCollide(pc->a, pc->b)) {
+                        pc->PostSolve();
+                    }
+                }
+            }
+        }
 	}
 
 	bool FlatSolverPGS::CanFixtureCollide(FlatFixture* fixtureA, FlatFixture* fixtureB)
@@ -130,5 +247,20 @@ namespace FlatPhysics {
 		}
 		return true;
 	}
+
+    //In collision, at least one object is awake and dynamic
+    //If both dynamic and awake, they should already belong to same island
+    int FlatSolverPGS::GetIslandIndex(FlatBody* bodyA, FlatBody* bodyB) const
+    {
+        int idxA = bodyA ? bodyA->GetIslandIndex() : -1;
+        int idxB = bodyB ? bodyB->GetIslandIndex() : -1;
+
+        if (idxA >= 0 && idxB >= 0) {
+            return idxA;
+        }
+        if (idxA >= 0) return idxA;
+        if (idxB >= 0) return idxB;
+        return -1;
+    }
 
 }
