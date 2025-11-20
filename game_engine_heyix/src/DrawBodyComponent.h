@@ -33,6 +33,7 @@ private:
     float fps = 0;
     float physics_step_time = 0;
     float physics_fps = 0;
+    static inline int active_body = 0;
 private:
     void DrawBody();
     void MoveFirstBody();

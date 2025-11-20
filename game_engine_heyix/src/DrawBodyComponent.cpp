@@ -170,6 +170,7 @@ void DrawBodyComponent::On_Update()
 
 void DrawBodyComponent::On_Start()
 {
+    active_body++;
     bool is_static = false;
     if (shape == "Box") {
         is_static = true;
@@ -399,6 +400,7 @@ void DrawBodyComponent::DrawTime()
     Engine::instance->renderer->draw_text("NotoSans-Regular", "FPS: " + std::to_string(fps), 24, {0,0,0},dimension.x / 200,dimension.y/20 );
     Engine::instance->renderer->draw_text("NotoSans-Regular", "Physics Step Time: " + std::to_string(physics_step_time) + " ms", 24, { 0,0,0 }, dimension.x / 200, dimension.y / 12);
     Engine::instance->renderer->draw_text("NotoSans-Regular", "Physics FPS: " + std::to_string(physics_fps), 24, { 0,0,0 }, dimension.x / 200, dimension.y / 8.5);
+    Engine::instance->renderer->draw_text("NotoSans-Regular", "Current Bodies: " + std::to_string(active_body), 24, { 0,0,0 }, dimension.x / 200, dimension.y / 6.7);
 }
 
 void DrawBodyComponent::GetTime()
