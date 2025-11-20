@@ -31,6 +31,7 @@
     <ClCompile Include="src\ComponentDB.cpp" />
     <ClCompile Include="src\ContactListener.cpp" />
     <ClCompile Include="src\CppComponent.cpp" />
+    <ClCompile Include="src\FlatHelper.cpp" />
     <ClCompile Include="src\FlatSolverPGS.cpp" />
     <ClCompile Include="src\JointConstraint.cpp" />
     <ClCompile Include="src\DrawBodyComponent.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="src\ComponentGroup.h" />
     <ClInclude Include="src\ContactListener.h" />
     <ClInclude Include="src\CppComponent.h" />
+    <ClInclude Include="src\FlatHelper.h" />
     <ClInclude Include="src\FlatSolverPGS.h" />
     <ClInclude Include="src\JointConstraint.h" />
     <ClInclude Include="src\DrawBodyComponent.h" />
@@ -409,6 +411,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>%(ProjectDir)ThirdParty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

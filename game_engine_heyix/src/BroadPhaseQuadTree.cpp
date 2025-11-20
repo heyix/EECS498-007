@@ -102,11 +102,13 @@ namespace FlatPhysics {
 		}
 	}
 
-	void FlatPhysics::BroadPhaseQuadTree::UpdatePairs(IPairCallback* callback)
+	void BroadPhaseQuadTree::UpdatePairs(IPairCallback* callback)
 	{
 		if (!callback) {
 			return;
 		}
+
+		// Auto-tune tree params based on active proxy count
 		int target_capacity = ComputeTargetLeafCapacity();
 		if (target_capacity != max_leaf_capacity_) {
 			max_leaf_capacity_ = target_capacity;
@@ -117,30 +119,60 @@ namespace FlatPhysics {
 			max_depth_ = target_depth;
 			tree_dirty_ = true;
 		}
+
+		// Rebuild / flush dirty before we enter parallel region
 		FlushDirty();
 		if (!root_) {
 			return;
 		}
-		//PrintLevelItemCounts();
+
 		const ProxyID count = static_cast<ProxyID>(proxies_.size());
-		for (ProxyID i = 0; i < count; i++) {
-			if (!IsActive(i)) {
-				continue;
-			}
-			Proxy& proxyA = proxies_[i];
-			QueryNode(root_, proxyA.fat_aabb, [&](ProxyID otherId) {
-				if (otherId <= i || !IsActive(otherId)) {
-					return true;
+
+		// We store raw user_data pairs locally per thread to avoid locking
+		using UserPair = std::pair<void*, void*>;
+
+		// OpenMP parallel region
+#pragma omp parallel
+		{
+			std::vector<UserPair> localPairs;
+			localPairs.reserve(256); // tweak if needed
+
+#pragma omp for schedule(static)
+			for (ProxyID i = 0; i < count; ++i) {
+				if (!IsActive(i)) {
+					continue;
 				}
-				Proxy& proxyB = proxies_[otherId];
-				if (!FlatAABB::IntersectAABB(proxyA.tight_aabb, proxyB.tight_aabb)) {
-					return true;
-				}
-				callback->AddPair(proxyA.user_data, proxyB.user_data);
-				return true;
+
+				Proxy& proxyA = proxies_[i];
+
+				// Query against the tree; QueryNode is read-only.
+				QueryNode(root_, proxyA.fat_aabb, [&](ProxyID otherId) {
+					// Avoid duplicates & ensure active
+					if (otherId <= i || !IsActive(otherId)) {
+						return true; // keep walking
+					}
+
+					Proxy& proxyB = proxies_[otherId];
+
+					// Tight AABB test to confirm potential pair
+					if (!FlatAABB::IntersectAABB(proxyA.tight_aabb, proxyB.tight_aabb)) {
+						return true;
+					}
+
+					// Store pair locally for this thread
+					localPairs.emplace_back(proxyA.user_data, proxyB.user_data);
+					return true; // continue querying
+					});
 			}
-			);
-		}
+
+			// Merge local pairs into the callback (serialized)
+#pragma omp critical(BPQ_UpdatePairs_AddPair)
+			{
+				for (const UserPair& p : localPairs) {
+					callback->AddPair(p.first, p.second);
+				}
+			}
+		} // end parallel region
 	}
 
 	void BroadPhaseQuadTree::Query(const FlatAABB& aabb, IQueryCallback& callback)

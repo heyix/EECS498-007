@@ -10,6 +10,7 @@
 #include "FlatSolverPGS.h"
 #include "BroadPhaseQuadTree.h"
 #include "FlatContact.h"
+#include "FlatHelper.h"
 namespace FlatPhysics {
 	namespace {
 		constexpr float kLinearSleepTolerance = 0.1f;             
@@ -482,22 +483,6 @@ namespace FlatPhysics {
 	{
 		return constraints;
 	}
-	//void FlatWorld::CollisionDetectionStep(float dt)
-	//{
-	//	contacts.clear();
-	//	contact_pairs.clear();
-
-	//	BroadPhase();
-	//	NarrowPhase();
-
-	//	if (!contacts.empty() && solver_) {
-	//		solver_->Initialize(contacts);
-	//		solver_->PreSolve();
-	//		solver_->Solve(dt, velocity_iterations_);
-	//		solver_->PostSolve(dt, position_iterations_);
-	//		solver_->StoreImpulses();
-	//	}
-	//}
 
 	void FlatWorld::BroadPhase()
 	{
@@ -507,7 +492,8 @@ namespace FlatPhysics {
 		contact_pairs.clear();
 		SynchronizeFixtures();
 		BroadphasePairCollector collector(contact_pairs);
-		broadphase_->UpdatePairs(&collector);
+		this->broadphase_->UpdatePairs(&collector);
+		
 	}
 	void FlatWorld::NarrowPhase()
 	{
