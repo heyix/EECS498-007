@@ -17,5 +17,7 @@ namespace FlatPhysics {
 		float* normal_impulse_ = nullptr;
 		float* tangent_impulse_ = nullptr;
 		bool is_new_contact_ = false;
+		float lhs00_, lhs01_, lhs11_ = 0.0f;
+		float invDet_ = 0.0f;
 	};
 }

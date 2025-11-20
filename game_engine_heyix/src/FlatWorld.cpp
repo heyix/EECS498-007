@@ -444,7 +444,7 @@ namespace FlatPhysics {
 			body->Step(time, gravity);
 		}*/
 		//int count = 0;
-		//for (FlatBody* body : bodies) {
+		//for (std::unique_ptr<FlatBody>& body : bodies) {
 		//	if (!body->IsStatic()) {
 		//		if (!body->IsAwake()) {
 		//			count++;

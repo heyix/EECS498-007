@@ -5,7 +5,7 @@
 #include <omp.h>
 
 int main(int argc, char* argv[]) {
-	omp_set_num_threads(16);
+	omp_set_num_threads(1);
 	Engine engine;
 	std::unique_ptr<Game> game = std::make_unique<Game>();
 	engine.set_running_game(std::move(game));

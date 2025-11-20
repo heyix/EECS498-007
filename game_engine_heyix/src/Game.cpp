@@ -29,14 +29,17 @@ void Game::game_loop()
 		while (time->Try_Run_Fixed_Step()) {
 			std::chrono::steady_clock::time_point step_start;
 			if (count_physics_fps) step_start = std::chrono::steady_clock::now();
+
 			PhysicsDB::Physics_Step();
+
+			if (count_physics_fps) {
+				double physics_ms = std::chrono::duration<double, std::milli>(
+					std::chrono::steady_clock::now() - step_start
+				).count();
+				time->Accumulate_Physics_Step_Time(physics_ms);
+			}
 			fixed_update();
 			sync_rigidbody_and_transform();
-
-			double physics_ms = std::chrono::duration<double, std::milli>(
-				std::chrono::steady_clock::now() - step_start
-			).count();
-			time->Accumulate_Physics_Step_Time(physics_ms);
 		}
 
 		process_input();
