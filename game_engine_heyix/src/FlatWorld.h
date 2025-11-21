@@ -8,10 +8,12 @@
 #include "IBroadPhase.h"
 #include "FlatSolver.h"
 #include "FlatConstraint.h"
+#include <memory>
 namespace FlatPhysics {
 	class FlatWorld {
 	public:
 		FlatWorld();
+		~FlatWorld();
 		friend class FlatBody;
 	public:
 		int GetBodyCount() { return bodies.size(); }
@@ -58,5 +60,8 @@ namespace FlatPhysics {
 		int velocity_iterations_{ 1 };
 		int position_iterations_{ 1 };
 		ContactEdgePool edge_pool_;
+
+		class BroadPhasePairCollector;
+		std::unique_ptr<BroadPhasePairCollector> collector_;
 	};
 }

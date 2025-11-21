@@ -128,38 +128,24 @@ namespace FlatPhysics {
 
 		using UserPair = std::pair<void*, void*>;
 
-#pragma omp parallel
-		{
-			std::vector<UserPair> localPairs;
-			localPairs.reserve(256);
-
-#pragma omp for schedule(static)
-			for (ProxyID i = 0; i < count; ++i) {
-				if (!IsActive(i)) continue;
-
-				Proxy& proxyA = proxies_[i];
-
-				QueryNode(root_, proxyA.fat_aabb, [&](ProxyID otherId) {
-					if (print_info)scanned[i]++;
-
-					if (otherId <= i || !IsActive(otherId))
-						return true;
-
-					Proxy& proxyB = proxies_[otherId];
-
-					if (!FlatAABB::IntersectAABB(proxyA.tight_aabb, proxyB.tight_aabb))
-						return true;
-
-					localPairs.emplace_back(proxyA.user_data, proxyB.user_data);
+#pragma omp parallel for schedule(dynamic)
+		for (ProxyID i = 0; i < count; i++) {
+			if (!IsActive(i))continue;
+			Proxy& proxyA = proxies_[i];
+			QueryNode(root_, proxyA.fat_aabb, [&](ProxyID otherId) {
+				if (print_info) scanned[i]++;
+				if (otherId <= i || !IsActive(otherId)) {
 					return true;
-					});
-			}
+				}
 
-#pragma omp critical(BPQ_UpdatePairs_AddPair)
-			{
-				for (auto& p : localPairs)
-					callback->AddPair(p.first, p.second);
-			}
+				Proxy& proxyB = proxies_[otherId];
+				if (!FlatAABB::IntersectAABB(proxyA.tight_aabb, proxyB.tight_aabb)) {
+					return true;
+				}
+
+				callback->AddPair(proxyA.user_data, proxyB.user_data);
+				return true;
+				});
 		}
 		if (print_info) {
 			long long total_scanned = 0;

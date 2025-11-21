@@ -11,44 +11,99 @@
 #include "BroadPhaseQuadTree.h"
 #include "FlatContact.h"
 #include "FlatHelper.h"
+#include <omp.h>
 namespace FlatPhysics {
 	namespace {
 		constexpr float kLinearSleepTolerance = 0.1f;             
 		constexpr float kLinearSleepToleranceSq = kLinearSleepTolerance * kLinearSleepTolerance;
 		constexpr float kAngularSleepTolerance = FlatMath::DegToRad(4.0f);
 		constexpr float kTimeToSleep = 0.5f;
-		class BroadphasePairCollector : public FlatPhysics::IPairCallback {
-		public:
-			explicit BroadphasePairCollector(std::vector<ContactPair>& out) : pairs_(out) {}
-			void AddPair(void* user_data_a, void* user_data_b) override {
-				auto* fixtureA = static_cast<FlatFixture*>(user_data_a);
-				auto* fixtureB = static_cast<FlatFixture*>(user_data_b);
-				if (!fixtureA || !fixtureB) {
-					return;
-				}
-
-				FlatBody* bodyA = fixtureA->GetBody();
-				FlatBody* bodyB = fixtureB->GetBody();
-				if (bodyA == bodyB) {
-					return;
-				}
-				if (bodyA && bodyB && bodyA->IsStatic() && bodyB->IsStatic()) {
-					return;
-				}
-				if (fixtureA && fixtureB) {
-					pairs_.push_back({ fixtureA, fixtureB });
-				}
-			}
-		private:
-			std::vector<ContactPair>& pairs_;
-		};
 	}
+	class FlatWorld::BroadPhasePairCollector : public FlatPhysics::IPairCallback {
+	public:
+		BroadPhasePairCollector(int max_threads) :per_thread_pairs_(max_threads) {}
+		void AddPair(void* user_data_a, void* user_data_b) override {
+			int tid = 0;
+#ifdef _OPENMP
+			if (omp_in_parallel()) {
+				tid = omp_get_thread_num();
+			}
+#endif
+			auto* fixtureA = static_cast<FlatFixture*>(user_data_a);
+			auto* fixtureB = static_cast<FlatFixture*>(user_data_b);
+			if (!fixtureA || !fixtureB) {
+				return;
+			}
+
+			FlatBody* bodyA = fixtureA->GetBody();
+			FlatBody* bodyB = fixtureB->GetBody();
+			if (bodyA == bodyB) {
+				return;
+			}
+			if (bodyA && bodyB && bodyA->IsStatic() && bodyB->IsStatic()) {
+				return;
+			}
+			std::vector<ContactPair>& vec = per_thread_pairs_[tid];
+			vec.push_back({ fixtureA, fixtureB });
+		}
+
+		void FlattenInfo(std::vector<ContactPair>& out) {
+			const int n = static_cast<int>(per_thread_pairs_.size());
+			std::size_t total = 0;
+			if (n == 0) {
+				out.clear();
+				total = 0;
+				return;
+			}
+
+			std::vector<std::size_t> sizes(n);
+			for (int i = 0; i < n; ++i) {
+				sizes[i] = per_thread_pairs_[i].size();
+			}
+
+			std::vector<std::size_t> offsets(n + 1);
+			offsets[0] = 0;
+			for (int i = 0; i < n; ++i) {
+				offsets[i + 1] = offsets[i] + sizes[i];
+			}
+
+			total = offsets[n];
+
+			out.clear();
+			out.resize(total);
+
+#pragma omp parallel for schedule(dynamic)
+			for (int i = 0; i < n; ++i) {
+				const auto& src = per_thread_pairs_[i];
+				if (src.empty()) continue;
+
+				const std::size_t offset = offsets[i];
+				std::copy(src.begin(), src.end(), out.begin() + offset);
+			}
+		}
+		void Clear() {
+			for (auto& v : per_thread_pairs_) {
+				v.clear();
+			}
+		}
+	private:
+		std::vector<std::vector<ContactPair>> per_thread_pairs_;
+	};
+
 
 	FlatWorld::FlatWorld()
 		: gravity({ 0.0f, 9.81f })
 	{
 		SetBroadPhase(std::make_unique<BroadPhaseQuadTree>());
 		SetSolver(std::make_unique<FlatSolverPGS>());
+		int max_threads = 1;
+#ifdef _OPENMP
+		max_threads = omp_get_max_threads();
+#endif
+		collector_ = std::make_unique<BroadPhasePairCollector>(max_threads);
+	}
+	FlatWorld::~FlatWorld()
+	{
 	}
 	void FlatWorld::AddBody(FlatBody* body)
 	{
@@ -491,9 +546,12 @@ namespace FlatPhysics {
 		}
 		contact_pairs.clear();
 		SynchronizeFixtures();
-		BroadphasePairCollector collector(contact_pairs);
-		this->broadphase_->UpdatePairs(&collector);
-		
+
+		//MeasureTime("Broadphase", [this]() {
+			this->broadphase_->UpdatePairs(this->collector_.get());		
+			this->collector_->FlattenInfo(contact_pairs);
+		//});
+		this->collector_->Clear();
 	}
 	void FlatWorld::NarrowPhase()
 	{
