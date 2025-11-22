@@ -11,6 +11,13 @@
 #include <memory>
 namespace FlatPhysics {
 	class FlatWorld {
+	private:
+		struct NarrowPhaseResult {
+			FlatFixture* fa = nullptr;
+			FlatFixture* fb = nullptr;
+			bool touching = false;
+			FixedSizeContainer<ContactPoint, 2> contact_points;
+		};
 	public:
 		FlatWorld();
 		~FlatWorld();
@@ -63,5 +70,6 @@ namespace FlatPhysics {
 
 		class BroadPhasePairCollector;
 		std::unique_ptr<BroadPhasePairCollector> collector_;
+		std::vector<NarrowPhaseResult> np_results;
 	};
 }

@@ -518,7 +518,9 @@ namespace FlatPhysics {
 		//	const double physics_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - step_start).count();
 		//	std::cout << physics_ms << " ms" << std::endl;
 		//}
-		NarrowPhase();
+		MeasureTime("NarrowPhase", [this]() {
+			NarrowPhase();
+		});
 		BuildIslands();
 		solver_->Initialize(contacts,constraints);
 		solver_->PreSolve(time);
@@ -558,50 +560,108 @@ namespace FlatPhysics {
 		for (FlatManifold& m : contacts) {
 			m.touched_this_step = false;
 		}
-		for (const ContactPair& pair : contact_pairs) {
+
+		const int pairCount = static_cast<int>(contact_pairs.size());
+
+		if (pairCount == 0) {
+			for (int i = static_cast<int>(contacts.size()) - 1; i >= 0; --i) {
+				DestroyContactManifold(i);
+			}
+			return;
+		}
+
+		np_results.resize(pairCount);
+
+#pragma omp parallel for schedule(static)
+		for (int i = 0; i < pairCount; ++i) {
+			const ContactPair& pair = contact_pairs[i];
 			FlatFixture* fa = pair.fixture_a;
 			FlatFixture* fb = pair.fixture_b;
+
+			NarrowPhaseResult& r = np_results[i];
+			r.fa = fa;
+			r.fb = fb;
+			r.touching = false;
+
 			if (!fa || !fb) {
 				continue;
 			}
+
 			FlatBody* bodyA = fa->GetBody();
 			FlatBody* bodyB = fb->GetBody();
-			FixedSizeContainer<ContactPoint, 2> contact_points;
-			const bool touching = Collision::DetectCollision(fa, fb, contact_points);
+
+			if (!bodyA->IsAwake() && !bodyB->IsAwake()) {
+				continue;
+			}
+
+			FixedSizeContainer<ContactPoint, 2> local_points;
+			const bool touching = Collision::DetectCollision(fa, fb, local_points);
+			r.touching = touching;
+
+			if (touching) {
+				r.contact_points = local_points;
+			}
+		}
+
+		for (int i = 0; i < pairCount; ++i) {
+			NarrowPhaseResult& r = np_results[i];
+			FlatFixture* fa = r.fa;
+			FlatFixture* fb = r.fb;
+			if (!fa || !fb) {
+				continue;
+			}
+
+			FlatBody* bodyA = fa->GetBody();
+			FlatBody* bodyB = fb->GetBody();
 
 			std::uint64_t key = MakeContactKey(fa, fb);
 			auto it = contact_map_.find(key);
 			const bool existed = (it != contact_map_.end());
 
-			if (!touching) {
+			const bool bothSleeping = !bodyA->IsAwake() && !bodyB->IsAwake();
+
+			// --- SPECIAL CASE: both sleeping ---
+			// we skipped collision, so r.touching is false,
+			// but if there was an old contact we want to keep it.
+			if (bothSleeping) {
 				if (existed) {
-					int idx = it->second;
+					FlatManifold& manifold = contacts[it->second];
+					manifold.touched_this_step = true;
+					manifold.is_new_contact = false;
+				}
+				// if not existed, we just don't create one while they sleep
+				continue;
+			}
+			if (!r.touching) {
+				if (existed) {
+					const int idx = it->second;
 					DestroyContactManifold(idx);
 				}
 				continue;
 			}
 
 			if (!existed) {
-				// New contact
-				int index = static_cast<int>(contacts.size());
+				const int index = static_cast<int>(contacts.size());
 				contacts.emplace_back(fa, fb);
 				FlatManifold& manifold = contacts.back();
+
 				manifold.touched_this_step = true;
-				manifold.contact_points = contact_points;
 				manifold.is_new_contact = true;
+				manifold.contact_points = r.contact_points;
+
 				contact_map_[key] = index;
 				AttachContactToBodies(index, manifold);
-	
+
 				if (!bodyA->IsStatic()) bodyA->SetAwake(true);
 				if (!bodyB->IsStatic()) bodyB->SetAwake(true);
 			}
 			else {
-				// Existing contact: update + warm start impulses, but don't wake
 				FlatManifold& manifold = contacts[it->second];
 				manifold.touched_this_step = true;
 				manifold.is_new_contact = false;
+
 				FixedSizeContainer<ContactPoint, 2> merged;
-				for (ContactPoint& new_point : contact_points) {
+				for (ContactPoint& new_point : r.contact_points) {
 					ContactPoint merged_point = new_point;
 					merged_point.normal_impulse = 0.0f;
 					merged_point.tangent_impulse = 0.0f;
