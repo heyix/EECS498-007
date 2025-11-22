@@ -6,18 +6,18 @@ std::string TextDB::folder_path = "fonts/";
 
 void TextDB::Clean_Loaded_Fonts_And_Texture_Then_Quit()
 {
-	for (auto& p : loaded_text_texture) {
-		for(auto& font:p.second)
-		if (font.second) {
-			SDL_DestroyTexture(font.second);
-		}
+	if (last_text_texture) {
+		SDL_DestroyTexture(last_text_texture);
+		last_text_texture = nullptr;
 	}
-	loaded_text_texture.clear();
+
 	for (auto& p : loaded_fonts) {
 		for (auto& font : p.second) {
 			TTF_CloseFont(font.second);
 		}
 	}
+	loaded_fonts.clear();
+
 	TTF_Quit();
 }
 
@@ -51,18 +51,25 @@ void TextDB::Lua_Draw(const std::string& str_content, float x, float y, const st
 
 SDL_Texture* TextDB::Load_Text_Texture(const std::string& font_name, const std::string& text_content, int font_size, SDL_Color& font_color, int x, int y)
 {
-	TTF_Font* font = Load_Font(font_name, font_size);
-	auto it = loaded_text_texture.find(font);
-	if (it != loaded_text_texture.end()) {
-		auto it2 = it->second.find(text_content);
-		if (it2 != it->second.end()) {
-			return it2->second;
-		}
+	if (last_text_texture) {
+		SDL_DestroyTexture(last_text_texture);
+		last_text_texture = nullptr;
 	}
-	SDL_Surface* text_surface = TTF_RenderText_Solid(font, text_content.c_str(), font_color);
-	SDL_Texture* text_texture = SDL_CreateTextureFromSurface(Engine::instance->renderer->sdl_renderer, text_surface);
+
+	TTF_Font* font = Load_Font(font_name, font_size);
+
+	SDL_Surface* text_surface =
+		TTF_RenderText_Solid(font, text_content.c_str(), font_color);
+
+	SDL_Texture* text_texture =
+		SDL_CreateTextureFromSurface(
+			Engine::instance->renderer->sdl_renderer,
+			text_surface
+		);
+
 	SDL_FreeSurface(text_surface);
-	loaded_text_texture[font][text_content] = text_texture;
+
+	last_text_texture = text_texture;
 	return text_texture;
 }
 
