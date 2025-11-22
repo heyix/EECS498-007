@@ -181,7 +181,7 @@ void DrawBodyComponent::On_Start()
     bodyDef.linear_damping = 0.2f;
     bodyDef.angular_damping = 0.5f;
     bodyDef.is_static = is_static;
-    bodyDef.allow_sleep = true;
+    bodyDef.allow_sleep = false;
     this->body = PhysicsDB::flat_world->CreateBody(bodyDef);
     if (shape == "Box") {
         std::unique_ptr<FlatPhysics::PolygonShape> polygon_shape = std::make_unique<FlatPhysics::PolygonShape>();

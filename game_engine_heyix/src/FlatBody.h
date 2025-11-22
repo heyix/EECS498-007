@@ -9,6 +9,7 @@
 namespace FlatPhysics {
 
     class FlatWorld;
+    class FlatSolverPGS;
     struct FlatContactEdge;
     class FlatBody {
     private:
@@ -20,6 +21,7 @@ namespace FlatPhysics {
             bool is_static_
         );
         friend FlatWorld;
+        friend FlatSolverPGS;
     private:
         FlatWorld* world_ = nullptr;
         std::vector<std::unique_ptr<FlatFixture>> fixtures_;
@@ -52,6 +54,7 @@ namespace FlatPhysics {
         FlatContactEdge* contact_list_ = nullptr;
         int awaken_island_index_ = -1;
         bool awaken_island_flag_ = false;
+        int solver_temp_index_ = -1;
         friend class FlatWorld;
     public:
         void SetWorld(FlatWorld* world) { world_ = world; }
@@ -97,14 +100,17 @@ namespace FlatPhysics {
         float GetSleepTime() const { return sleep_time_; }
         void AddSleepTime(float dt) { sleep_time_ += dt; }
         void SetSleepTime(float t) { sleep_time_ = t; }
-
-
+    private:
         FlatContactEdge* GetContactList()const { return contact_list_; }
         void SetContactList(FlatContactEdge* edge) { contact_list_ = edge; }
         int GetIslandIndex()const { return awaken_island_index_; }
         void SetIslandIndex(int idx) { awaken_island_index_ = idx; }
         bool GetIslandFlag()const { return awaken_island_flag_; }
         void SetIslandFlag(bool f) { awaken_island_flag_ = f; }
+
+
+        int  GetSolverTempIndex() const { return solver_temp_index_; }
+        void SetSolverTempIndex(int v) { solver_temp_index_ = v; }
     public:
         //User API
         void Move(const Vector2& amount, bool can_wake_up = true);
@@ -128,5 +134,6 @@ namespace FlatPhysics {
     private:
         void ResetMassData();
         void MarkFixturesDirty();
+
     };
 }

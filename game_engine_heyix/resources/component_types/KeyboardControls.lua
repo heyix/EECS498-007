@@ -1,5 +1,5 @@
 KeyboardControls = {
-	speed = 0.2,
+	speed = 0.5,
 	jump_power = 350,
 	jump_requested = false,
 
