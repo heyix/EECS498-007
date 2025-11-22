@@ -4,6 +4,13 @@ std::string AudioDB::folder_path = "audio/";
 std::unordered_map<std::string, Mix_Chunk*> AudioDB::loaded_audio;
 void AudioDB::Clean_Loaded_Audio()
 {
+	for (auto& p : loaded_audio) {
+		if (p.second) {
+			Mix_FreeChunk(p.second);
+		}
+	}
+	loaded_audio.clear();
+	Mix_CloseAudio();
 }
 
 Mix_Chunk* AudioDB::Load_Audio(const std::string& audio_name)

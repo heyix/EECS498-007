@@ -1,5 +1,12 @@
 #include "EventBus.h"
 
+EventBus::~EventBus()
+{
+	registered_events.clear();
+	pending_adding_subscription.clear();
+	pending_removing_subscription.clear();
+}
+
 void EventBus::Process_Subscription()
 {
 	for (auto& p : pending_adding_subscription) {

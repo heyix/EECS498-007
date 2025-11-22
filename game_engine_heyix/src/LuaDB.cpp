@@ -20,6 +20,36 @@
 #include "BoxCollider.h"
 #include "CircleCollider.h"
 #include "Time.h"
+LuaDB::LuaDB()
+{
+	lua_state = luaL_newstate();
+	luaL_openlibs(lua_state);
+	Init_Lua_Debug();
+	Init_Lua_Actor();
+	Init_Lua_Application();
+	Init_Lua_Input();
+	Init_Lua_Text();
+	Init_Lua_Audio();
+	Init_Lua_Image();
+	Init_Lua_Camera();
+	Init_Lua_Time();
+	Init_Lua_Scene();
+	Init_Lua_Vector2();
+	Init_Lua_Component();
+	Init_Lua_RigidBody();
+	Init_Lua_EventBus();
+	Init_Lua_Collision();
+	Init_Lua_Physics();
+	Init_Lua_ParticleSystem();
+	Init_Lua_Transform();
+	Init_Lua_Colliders();
+	Init_Lua_DrawBodyComponent();
+}
+LuaDB::~LuaDB()
+{
+	loaded_lua_tables.clear(); 
+	lua_close(lua_state);
+}
 void LuaDB::CppDebugLog(const std::string& message)
 {
 	std::cout << message << '\n';
@@ -328,35 +358,6 @@ void LuaDB::Init_Lua_RigidBody()
 		.endClass();
 }
 
-
-
-
-
-void LuaDB::Init_LuaDB()
-{
-	lua_state = luaL_newstate();
-	luaL_openlibs(lua_state);
-	Init_Lua_Debug();
-	Init_Lua_Actor();
-	Init_Lua_Application();
-	Init_Lua_Input();
-	Init_Lua_Text();
-	Init_Lua_Audio();
-	Init_Lua_Image();
-	Init_Lua_Camera();
-	Init_Lua_Time();
-	Init_Lua_Scene();
-	Init_Lua_Vector2();
-	Init_Lua_Component();
-	Init_Lua_RigidBody();
-	Init_Lua_EventBus();
-	Init_Lua_Collision();
-	Init_Lua_Physics();
-	Init_Lua_ParticleSystem();
-	Init_Lua_Transform();
-	Init_Lua_Colliders();
-	Init_Lua_DrawBodyComponent();
-}
 
 luabridge::LuaRef& LuaDB::Create_Template_Table_Using_Local_File(const std::string& table_name)
 {

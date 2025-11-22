@@ -129,6 +129,7 @@ private:
 		Vector2 minv;
 	};
 public:
+	~Renderer();
 	void init_renderer(const char* title, int x, int y, int w, int h, int index, Uint32 window_flags,Uint32 renderer_flags);
 	void clear_renderer();
 	void render_frame();
