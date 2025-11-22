@@ -27,11 +27,11 @@ void Engine::set_running_game(std::unique_ptr<Game>&& new_game)
 void Engine::run_game()
 {
 	running_game->game_loop();
-	running_game.reset();
 }
 
 Engine::~Engine()
 {
+	running_game.reset();
 	ImageDB::Clean_Loaded_Images();
 	TextDB::Clean_Loaded_Fonts_And_Texture_Then_Quit();
 	AudioDB::Clean_Loaded_Audio();

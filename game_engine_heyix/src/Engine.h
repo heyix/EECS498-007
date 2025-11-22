@@ -9,9 +9,10 @@ class Engine {
 public:
 	Engine();
 	~Engine();
-public:
+private:
 	std::unique_ptr<LuaDB> lua_db;
 	std::unique_ptr<EventBus> event_bus;
+public:
 	std::unique_ptr<Game> running_game;
 	static Engine* instance;
 	std::unique_ptr<Renderer> renderer;
