@@ -72,7 +72,7 @@ namespace FlatPhysics {
 			out.clear();
 			out.resize(total);
 
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(static)
 			for (int i = 0; i < n; ++i) {
 				const auto& src = per_thread_pairs_[i];
 				if (src.empty()) continue;
@@ -518,9 +518,7 @@ namespace FlatPhysics {
 		//	const double physics_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - step_start).count();
 		//	std::cout << physics_ms << " ms" << std::endl;
 		//}
-		MeasureTime("NarrowPhase", [this]() {
-			NarrowPhase();
-		});
+		NarrowPhase();
 		BuildIslands();
 		solver_->Initialize(contacts,constraints);
 		solver_->PreSolve(time);
@@ -555,6 +553,9 @@ namespace FlatPhysics {
 		//});
 		this->collector_->Clear();
 	}
+
+
+
 	void FlatWorld::NarrowPhase()
 	{
 		for (FlatManifold& m : contacts) {
@@ -571,37 +572,39 @@ namespace FlatPhysics {
 		}
 
 		np_results.resize(pairCount);
+		//MeasureTime("NarrowPhase", [this,pairCount]() {
+#pragma omp parallel for schedule(dynamic,64)
+			for (int i = 0; i < pairCount; ++i) {
+				const ContactPair& pair = contact_pairs[i];
+				FlatFixture* fa = pair.fixture_a;
+				FlatFixture* fb = pair.fixture_b;
 
-#pragma omp parallel for schedule(static)
-		for (int i = 0; i < pairCount; ++i) {
-			const ContactPair& pair = contact_pairs[i];
-			FlatFixture* fa = pair.fixture_a;
-			FlatFixture* fb = pair.fixture_b;
+				NarrowPhaseResult& r = np_results[i];
+				r.fa = fa;
+				r.fb = fb;
+				r.touching = false;
 
-			NarrowPhaseResult& r = np_results[i];
-			r.fa = fa;
-			r.fb = fb;
-			r.touching = false;
+				if (!fa || !fb) {
+					continue;
+				}
 
-			if (!fa || !fb) {
-				continue;
+				FlatBody* bodyA = fa->GetBody();
+				FlatBody* bodyB = fb->GetBody();
+
+				if (!bodyA->IsAwake() && !bodyB->IsAwake()) {
+					continue;
+				}
+
+				FixedSizeContainer<ContactPoint, 2> local_points;
+				const bool touching = Collision::DetectCollision(fa, fb, local_points);
+				r.touching = touching;
+
+				if (touching) {
+					r.contact_points = local_points;
+				}
 			}
+		//});
 
-			FlatBody* bodyA = fa->GetBody();
-			FlatBody* bodyB = fb->GetBody();
-
-			if (!bodyA->IsAwake() && !bodyB->IsAwake()) {
-				continue;
-			}
-
-			FixedSizeContainer<ContactPoint, 2> local_points;
-			const bool touching = Collision::DetectCollision(fa, fb, local_points);
-			r.touching = touching;
-
-			if (touching) {
-				r.contact_points = local_points;
-			}
-		}
 
 		for (int i = 0; i < pairCount; ++i) {
 			NarrowPhaseResult& r = np_results[i];
