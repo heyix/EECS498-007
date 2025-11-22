@@ -391,13 +391,13 @@ namespace FlatPhysics {
         }
 
         // ---- prepare colors & used arrays ----
-        auto& colors = island.colors;
-        if (static_cast<int>(colors.capacity()) < n) {
-            int newCap = colors.capacity() == 0 ? n : static_cast<int>(colors.capacity());
+        auto& constraint_to_colors = island.constraint_to_colors;
+        if (static_cast<int>(constraint_to_colors.capacity()) < n) {
+            int newCap = constraint_to_colors.capacity() == 0 ? n : static_cast<int>(constraint_to_colors.capacity());
             while (newCap < n) newCap *= 2;
-            colors.reserve(newCap);
+            constraint_to_colors.reserve(newCap);
         }
-        colors.assign(n, -1);
+        constraint_to_colors.assign(n, -1);
 
         auto& used = island.used;
         int usedNeeded = n + 1;
@@ -427,7 +427,7 @@ namespace FlatPhysics {
                 if (bi < 0) return;
                 const auto& inc = body_constraints[bi];
                 for (int idx : inc) {
-                    int c = colors[idx];
+                    int c = constraint_to_colors[idx];
                     if (c >= 0) used[c] = true;
                 }
                 };
@@ -438,7 +438,7 @@ namespace FlatPhysics {
             int c = 0;
             while (c <= maxColor && used[c]) ++c;
 
-            colors[ci] = c;
+            constraint_to_colors[ci] = c;
             if (c > maxColor) maxColor = c;
         }
 
@@ -458,7 +458,7 @@ namespace FlatPhysics {
         }
 
         for (int i = 0; i < n; ++i) {
-            int c = colors[i];
+            int c = constraint_to_colors[i];
             groups[c].push_back(i);
         }
 
