@@ -345,8 +345,10 @@ namespace FlatPhysics {
         const int bodyCount = static_cast<int>(bodies.size());
 
         std::vector<std::vector<int>>& body_constraints = island.body_constraints;
-        if (static_cast<int>(body_constraints.size()) < bodyCount) {
+        if ((int)body_constraints.capacity() < bodyCount) {
             body_constraints.reserve(bodyCount * 2);
+        }
+        if ((int)body_constraints.size() < bodyCount) {
             body_constraints.resize(bodyCount);
         }
         for (int i = 0; i < bodyCount; ++i) {
