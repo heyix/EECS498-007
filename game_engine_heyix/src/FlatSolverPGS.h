@@ -38,8 +38,8 @@ namespace FlatPhysics {
 
             std::vector<FlatBody*>                  bodies;            
             std::vector<std::vector<int>>           body_constraints;  
-            std::vector<int>                        constraint_to_colors;            
-            std::vector<bool>                       used;             
+            std::vector<int>                        constraint_to_color;            
+            std::vector<int>                       color_used_mark;             
             std::vector<std::vector<int>>           color_groups;      
             inline void Clear() {
                 penetration_constraints.clear();
@@ -50,8 +50,8 @@ namespace FlatPhysics {
                 for (auto& v : body_constraints) {
                     v.clear();                         
                 }
-                constraint_to_colors.clear();
-                used.clear();                         
+                constraint_to_color.clear();
+                color_used_mark.clear();
                 for (auto& g : color_groups) {
                     g.clear();                     
                 }

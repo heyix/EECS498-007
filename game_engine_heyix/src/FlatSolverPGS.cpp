@@ -19,9 +19,8 @@ namespace FlatPhysics {
         two_point_constraints_.clear();
         active_island_count_ = 0;
 
-        int islandCount = 0;
+        int island_count = 0;
 
-        // --- find max island index from contact manifolds ---
         for (FlatManifold& m : manifolds)
         {
             if (!m.island_flag)
@@ -37,11 +36,10 @@ namespace FlatPhysics {
 
             int idx = GetIslandIndex(bodyA, bodyB);
             if (idx >= 0) {
-                islandCount = std::max(islandCount, idx + 1);
+                island_count = std::max(island_count, idx + 1);
             }
         }
 
-        // --- also include joint/other constraints ---
         for (const std::unique_ptr<FlatConstraint>& uptr : constraints)
         {
             FlatConstraint* c = uptr.get();
@@ -52,25 +50,23 @@ namespace FlatPhysics {
 
             int idx = GetIslandIndex(bodyA, bodyB);
             if (idx >= 0) {
-                islandCount = std::max(islandCount, idx + 1);
+                island_count = std::max(island_count, idx + 1);
             }
         }
 
-        if (islandCount == 0) {
+        if (island_count == 0) {
             return;
         }
 
-        // grow island storage if needed (don’t shrink)
-        if (islandCount > static_cast<int>(islands_.size())) {
-            islands_.resize((islandCount * 3) / 2);
+        if (island_count > static_cast<int>(islands_.size())) {
+            islands_.resize((island_count * 3) / 2);
         }
-        active_island_count_ = islandCount;
+        active_island_count_ = island_count;
 
         for (int i = 0; i < active_island_count_; ++i) {
             islands_[i].Clear();
         }
 
-        // reserve contact constraint arrays
         if (manifolds.size() > one_point_constraints_.capacity()) {
             one_point_constraints_.reserve((manifolds.size() * 3) / 2);
         }
@@ -78,7 +74,6 @@ namespace FlatPhysics {
             two_point_constraints_.reserve((manifolds.size() * 3) / 2);
         }
 
-        // --- build penetration constraints per island ---
         for (FlatManifold& manifold : manifolds)
         {
             if (!manifold.island_flag)
@@ -175,7 +170,6 @@ namespace FlatPhysics {
             }
         }
 
-        // --- add joint/other constraints per island ---
         for (const std::unique_ptr<FlatConstraint>& uptr : constraints)
         {
             FlatConstraint* c = uptr.get();
@@ -198,7 +192,6 @@ namespace FlatPhysics {
             }
         }
 
-        // --- build graph coloring for each island ---
         for (int i = 0; i < active_island_count_; ++i) {
             BuildColoringForIslands(islands_[i]);
         }
@@ -209,7 +202,7 @@ namespace FlatPhysics {
         if (active_island_count_ == 0) return;
 
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic,8)
 #endif
         for (int i = 0; i < active_island_count_; ++i)
         {
@@ -238,15 +231,11 @@ namespace FlatPhysics {
         for (int iter = 0; iter < iterations; ++iter)
         {
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic,8)
 #endif
             for (int i = 0; i < active_island_count_; ++i)
             {
                 IslandConstraints& island = islands_[i];
-
-                // TODO: later you can use island.color_groups here
-                // for intra-island parallelization.
-
                 for (FlatConstraint* c : island.constraints)
                 {
                     if (CanFixtureCollide(c->a, c->b)) {
@@ -271,7 +260,7 @@ namespace FlatPhysics {
         for (int iter = 0; iter < iterations; ++iter)
         {
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic,8)
 #endif
             for (int i = 0; i < active_island_count_; ++i)
             {
@@ -314,7 +303,7 @@ namespace FlatPhysics {
         int idxB = bodyB ? bodyB->GetIslandIndex() : -1;
 
         if (idxA >= 0 && idxB >= 0) {
-            return idxA;             // both dynamic & awake, same island
+            return idxA;// both dynamic and awake, same island
         }
         if (idxA >= 0) return idxA;
         if (idxB >= 0) return idxB;
@@ -323,17 +312,16 @@ namespace FlatPhysics {
 
     void FlatSolverPGS::BuildColoringForIslands(IslandConstraints& island)
     {
-        auto& all = island.all_constraints;
-        const int n = static_cast<int>(all.size());
-        if (n == 0) return;
+        std::vector<IslandConstraints::ConstraintRef>& all_constraints = island.all_constraints;
+        const int constraint_num = static_cast<int>(all_constraints.size());
+        if (constraint_num == 0) return;
 
-        // ---- collect unique bodies & assign solver_temp_index ----
-        auto& bodies = island.bodies;
+        std::vector<FlatBody*>& bodies = island.bodies;
         bodies.clear();
 
-        for (int i = 0; i < n; ++i)
+        for (int i = 0; i < constraint_num; ++i)
         {
-            const auto& cr = all[i];
+            const auto& cr = all_constraints[i];
             FlatFixture* fa = cr.GetFixtureA();
             FlatFixture* fb = cr.GetFixtureB();
 
@@ -356,18 +344,18 @@ namespace FlatPhysics {
 
         const int bodyCount = static_cast<int>(bodies.size());
 
-        // ---- build per-body incident constraint lists ----
-        auto& body_constraints = island.body_constraints;
+        std::vector<std::vector<int>>& body_constraints = island.body_constraints;
         if (static_cast<int>(body_constraints.size()) < bodyCount) {
-            body_constraints.resize(bodyCount); // grow outer vector if needed
+            body_constraints.reserve(bodyCount * 2);
+            body_constraints.resize(bodyCount);
         }
         for (int i = 0; i < bodyCount; ++i) {
-            body_constraints[i].clear();       // keep capacity per inner vector
+            body_constraints[i].clear();
         }
 
-        for (int i = 0; i < n; ++i)
+        for (int i = 0; i < constraint_num; ++i)
         {
-            const auto& cr = all[i];
+            const IslandConstraints::ConstraintRef& cr = all_constraints[i];
             FlatFixture* fa = cr.GetFixtureA();
             FlatFixture* fb = cr.GetFixtureB();
 
@@ -390,65 +378,53 @@ namespace FlatPhysics {
             }
         }
 
-        // ---- prepare colors & used arrays ----
-        auto& constraint_to_colors = island.constraint_to_colors;
-        if (static_cast<int>(constraint_to_colors.capacity()) < n) {
-            int newCap = constraint_to_colors.capacity() == 0 ? n : static_cast<int>(constraint_to_colors.capacity());
-            while (newCap < n) newCap *= 2;
-            constraint_to_colors.reserve(newCap);
+        std::vector<int>& constraint_to_color = island.constraint_to_color;
+        if (static_cast<int>(constraint_to_color.capacity()) < constraint_num) {
+            constraint_to_color.reserve(constraint_num * 2);
         }
-        constraint_to_colors.assign(n, -1);
+        constraint_to_color.assign(constraint_num, -1);
 
-        auto& used = island.used;
-        int usedNeeded = n + 1;
-        if (static_cast<int>(used.capacity()) < usedNeeded) {
-            int newCap = used.capacity() == 0 ? usedNeeded : static_cast<int>(used.capacity());
-            while (newCap < usedNeeded) newCap *= 2;
-            used.reserve(newCap);
+        auto& color_used_mark = island.color_used_mark;
+        int usedNeeded = constraint_num + 1;
+        if (static_cast<int>(color_used_mark.capacity()) < usedNeeded) {
+            color_used_mark.reserve(usedNeeded * 2);
         }
-        used.assign(usedNeeded, false);
+        color_used_mark.assign(usedNeeded, 0);
 
         int maxColor = -1;
-
-        // ---- greedy coloring ----
-        for (int ci = 0; ci < n; ++ci)
+        int current_mark = 1;
+        for (int ci = 0; ci < constraint_num; ++ci)
         {
-            if (maxColor >= 0) {
-                std::fill(used.begin(), used.begin() + maxColor + 1, false);
-            }
-
-            FlatFixture* fa = all[ci].GetFixtureA();
-            FlatFixture* fb = all[ci].GetFixtureB();
+            current_mark++;
+            FlatFixture* fa = all_constraints[ci].GetFixtureA();
+            FlatFixture* fb = all_constraints[ci].GetFixtureB();
 
             auto mark = [&](FlatFixture* f) {
                 if (!f) return;
                 FlatBody* b = f->GetBody();
                 int bi = b->GetSolverTempIndex();
                 if (bi < 0) return;
-                const auto& inc = body_constraints[bi];
-                for (int idx : inc) {
-                    int c = constraint_to_colors[idx];
-                    if (c >= 0) used[c] = true;
+                const auto& constraint_indexes = body_constraints[bi];
+                for (int constraint_index : constraint_indexes) {
+                    int color = constraint_to_color[constraint_index];
+                    if (color >= 0) color_used_mark[color] = current_mark;
                 }
-                };
+            };
 
             mark(fa);
             mark(fb);
 
-            int c = 0;
-            while (c <= maxColor && used[c]) ++c;
+            int color = 0;
+            while (color <= maxColor && color_used_mark[color] == current_mark) ++color;
 
-            constraint_to_colors[ci] = c;
-            if (c > maxColor) maxColor = c;
+            constraint_to_color[ci] = color;
+            if (color > maxColor) maxColor = color;
         }
 
-        // ---- build color groups ----
         auto& groups = island.color_groups;
         int groupCount = maxColor + 1;
         if (static_cast<int>(groups.capacity()) < groupCount) {
-            int newCap = groups.capacity() == 0 ? groupCount : static_cast<int>(groups.capacity());
-            while (newCap < groupCount) newCap *= 2;
-            groups.reserve(newCap);
+            groups.reserve(groupCount * 2);
         }
         if (static_cast<int>(groups.size()) < groupCount) {
             groups.resize(groupCount);
@@ -457,15 +433,14 @@ namespace FlatPhysics {
             groups[c].clear();
         }
 
-        for (int i = 0; i < n; ++i) {
-            int c = constraint_to_colors[i];
-            groups[c].push_back(i);
+        for (int i = 0; i < constraint_num; ++i) {
+            int color = constraint_to_color[i];
+            groups[color].push_back(i);
         }
 
-        // ---- reset solver_temp_index for bodies ----
         for (FlatBody* b : bodies) {
             b->SetSolverTempIndex(-1);
         }
     }
 
-} // namespace FlatPhysics
+} 
