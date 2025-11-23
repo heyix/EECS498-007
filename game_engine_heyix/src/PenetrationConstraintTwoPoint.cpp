@@ -77,8 +77,8 @@ namespace FlatPhysics {
         Jn_(1, 5) = Vector2::Cross(r1b_, n);
 
 
-        MatMN<6, 6> inv_m = GetInverseM();   
-        JnT_cached_ = Jn_.Transpose();  
+        MatMN<6, 6> inv_m = GetInverseM();
+        JnT_cached_ = Jn_.Transpose();
         K_cached_ = Jn_ * inv_m * JnT_cached_;
 
         float oldN0 = normal_impulse0_ ? *normal_impulse0_ : 0.0f;
@@ -182,36 +182,161 @@ namespace FlatPhysics {
         FlatBody* bodyA = a->GetBody();
         FlatBody* bodyB = b->GetBody();
 
+        const Vector2& n = n_world_;
 
-        VecN<6> v = GetVelocities();
+        auto computeVn = [&](const Vector2& ra, const Vector2& rb) -> float
+            {
+                Vector2 vA = bodyA->GetLinearVelocity() +
+                    Vector2(-bodyA->GetAngularVelocity() * ra.y(), bodyA->GetAngularVelocity() * ra.x());
+                Vector2 vB = bodyB->GetLinearVelocity() +
+                    Vector2(-bodyB->GetAngularVelocity() * rb.y(), bodyB->GetAngularVelocity() * rb.x());
+                Vector2 vRel = vB - vA;
+                return Vector2::Dot(vRel, n);
+            };
 
-        VecN<2> rhs = Jn_ * v; 
-        rhs *= -1.0f;
-        rhs(0) -= normal_bias_(0);
-        rhs(1) -= normal_bias_(1);
+        float vn1 = computeVn(r0a_, r0b_);
+        float vn2 = computeVn(r1a_, r1b_);
 
-        VecN<2> delta_lambda = MatMN<2, 2>::SolveGS(K_cached_, rhs);
+        float a1 = normal_lambda_(0);
+        float a2 = normal_lambda_(1);
+
+        float b1 = normal_bias_(0);
+        float b2 = normal_bias_(1);
+
+        float k11 = K_cached_(0, 0);
+        float k12 = K_cached_(0, 1);
+        float k21 = K_cached_(1, 0);
+        float k22 = K_cached_(1, 1);
+
+        const float eps = 1e-8f;
+
+        float x1 = a1;
+        float x2 = a2;
+
+        bool solved = false;
+
+        auto computeDeltaVn1 = [&](float newX1, float newX2) -> float
+            {
+                float d1 = newX1 - a1;
+                float d2 = newX2 - a2;
+                return k11 * d1 + k12 * d2;
+            };
+
+        auto computeDeltaVn2 = [&](float newX1, float newX2) -> float
+            {
+                float d1 = newX1 - a1;
+                float d2 = newX2 - a2;
+                return k21 * d1 + k22 * d2;
+            };
+
+        {
+            float r1 = -(vn1 + b1) + (k11 * a1 + k12 * a2);
+            float r2 = -(vn2 + b2) + (k21 * a1 + k22 * a2);
+
+            float det = k11 * k22 - k12 * k21;
+
+            if (std::fabs(det) > eps)
+            {
+                float invDet = 1.0f / det;
+
+                float x1_candidate = (k22 * r1 - k12 * r2) * invDet;
+                float x2_candidate = (-k21 * r1 + k11 * r2) * invDet;
+
+                if (x1_candidate >= 0.0f && x2_candidate >= 0.0f)
+                {
+                    x1 = x1_candidate;
+                    x2 = x2_candidate;
+                    solved = true;
+                }
+            }
+        }
+
+        if (!solved)
+        {
+            float x2_candidate = 0.0f;
+
+            float r1 = -(vn1 + b1) + (k11 * a1 + k12 * a2);
+            float x1_candidate = a1;
+
+            if (k11 > eps)
+            {
+                x1_candidate = r1 / k11;
+            }
+            else
+            {
+                x1_candidate = 0.0f;
+            }
+
+            if (x1_candidate >= 0.0f)
+            {
+                float dvn2 = computeDeltaVn2(x1_candidate, x2_candidate);
+                float vn2_new = vn2 + dvn2;
+
+                if (vn2_new + b2 >= 0.0f)
+                {
+                    x1 = x1_candidate;
+                    x2 = x2_candidate;
+                    solved = true;
+                }
+            }
+        }
+
+        if (!solved)
+        {
+            float x1_candidate = 0.0f;
+
+            float r2 = -(vn2 + b2) + (k21 * a1 + k22 * a2);
+            float x2_candidate = a2;
+
+            if (k22 > eps)
+            {
+                x2_candidate = r2 / k22;
+            }
+            else
+            {
+                x2_candidate = 0.0f;
+            }
+
+            if (x2_candidate >= 0.0f)
+            {
+                float dvn1 = computeDeltaVn1(x1_candidate, x2_candidate);
+                float vn1_new = vn1 + dvn1;
+
+                if (vn1_new + b1 >= 0.0f)
+                {
+                    x1 = x1_candidate;
+                    x2 = x2_candidate;
+                    solved = true;
+                }
+            }
+        }
+
+        if (!solved)
+        {
+            x1 = 0.0f;
+            x2 = 0.0f;
+
+        }
+
+        if (x1 < 0.0f) x1 = 0.0f;
+        if (x2 < 0.0f) x2 = 0.0f;
 
         VecN<2> old_lambda = normal_lambda_;
-        normal_lambda_ += delta_lambda;
+        normal_lambda_(0) = x1;
+        normal_lambda_(1) = x2;
 
-        if (normal_lambda_(0) < 0.0f) normal_lambda_(0) = 0.0f;
-        if (normal_lambda_(1) < 0.0f) normal_lambda_(1) = 0.0f;
-
-        delta_lambda = normal_lambda_ - old_lambda;
+        VecN<2> delta_lambda;
+        delta_lambda(0) = normal_lambda_(0) - old_lambda(0);
+        delta_lambda(1) = normal_lambda_(1) - old_lambda(1);
 
         VecN<6> impulses = JnT_cached_ * delta_lambda;
-
         bodyA->ApplyImpulseLinear({ impulses(0), impulses(1) }, false);
         bodyA->ApplyImpulseAngular(impulses(2), false);
-
         bodyB->ApplyImpulseLinear({ impulses(3), impulses(4) }, false);
         bodyB->ApplyImpulseAngular(impulses(5), false);
 
-
         if (friction_ > 0.0f)
         {
-            const Vector2& n = n_world_;
             Vector2 t = t_world_;
             if (t.LengthSquared() == 0.0f)
                 t = n.NormalDirection().Normalized();
@@ -222,27 +347,20 @@ namespace FlatPhysics {
             const float invIB = invIB_;
 
             auto solveFrictionForPoint =
-                [&](int normalIndex,
-                    float& tangentImpulse,
-                    const Vector2& ra,
-                    const Vector2& rb)
+                [&](int normalIndex, float& tangentImpulse, const Vector2& ra, const Vector2& rb)
                 {
-                    Vector2 vA = bodyA->GetLinearVelocity()
-                        + Vector2(-bodyA->GetAngularVelocity() * ra.y(),
-                            bodyA->GetAngularVelocity() * ra.x());
-                    Vector2 vB = bodyB->GetLinearVelocity()
-                        + Vector2(-bodyB->GetAngularVelocity() * rb.y(),
-                            bodyB->GetAngularVelocity() * rb.x());
+                    Vector2 vA = bodyA->GetLinearVelocity() +
+                        Vector2(-bodyA->GetAngularVelocity() * ra.y(), bodyA->GetAngularVelocity() * ra.x());
+                    Vector2 vB = bodyB->GetLinearVelocity() +
+                        Vector2(-bodyB->GetAngularVelocity() * rb.y(), bodyB->GetAngularVelocity() * rb.x());
                     Vector2 vRel = vB - vA;
 
                     float vt = Vector2::Dot(vRel, t);
-
                     float rtA = Vector2::Cross(ra, t);
                     float rtB = Vector2::Cross(rb, t);
 
                     float kT = invMassA + invMassB + invIA * rtA * rtA + invIB * rtB * rtB;
-                    if (kT <= 0.0f)
-                        return;
+                    if (kT <= 0.0f) return;
 
                     float lambda = -vt / kT;
 
@@ -255,7 +373,6 @@ namespace FlatPhysics {
 
                     bodyA->ApplyImpulseLinear(-P, false);
                     bodyA->ApplyImpulseAngular(-Vector2::Cross(ra, P), false);
-
                     bodyB->ApplyImpulseLinear(P, false);
                     bodyB->ApplyImpulseAngular(Vector2::Cross(rb, P), false);
 

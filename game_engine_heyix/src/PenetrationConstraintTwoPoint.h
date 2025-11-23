@@ -30,8 +30,8 @@ namespace FlatPhysics {
 
         MatMN<2, 6> Jn_;
 
-        VecN<2> normal_lambda_;  
-        VecN<2> normal_bias_;  
+        VecN<2> normal_lambda_;
+        VecN<2> normal_bias_;
 
         float friction_ = 0.0f;
 

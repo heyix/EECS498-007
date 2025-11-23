@@ -2,9 +2,9 @@
 #include <iostream>
 #include <algorithm>
 namespace FlatPhysics {
-	PenetrationConstraintSinglePoint::PenetrationConstraintSinglePoint(FlatFixture *a, FlatFixture* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal, float* normal_impulse_ptr, float* tangent_impulse_ptr, bool is_new_contact)
-		:PenetrationConstraintBase(a,b,a->GetBody()->WorldToLocal(collision_point_a), b->GetBody()->WorldToLocal(collision_point_b)), normal(a->GetBody()->WorldToLocal(normal)), bias(0), jacobian(0), cached_lambda(0),friction(std::max(a->GetFriction(), b->GetFriction())),
-		normal_impulse_(normal_impulse_ptr),tangent_impulse_(tangent_impulse_ptr),is_new_contact_(is_new_contact)
+	PenetrationConstraintSinglePoint::PenetrationConstraintSinglePoint(FlatFixture* a, FlatFixture* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal, float* normal_impulse_ptr, float* tangent_impulse_ptr, bool is_new_contact)
+		:PenetrationConstraintBase(a, b, a->GetBody()->WorldToLocal(collision_point_a), b->GetBody()->WorldToLocal(collision_point_b)), normal(a->GetBody()->WorldToLocal(normal)), bias(0), jacobian(0), cached_lambda(0), friction(std::max(a->GetFriction(), b->GetFriction())),
+		normal_impulse_(normal_impulse_ptr), tangent_impulse_(tangent_impulse_ptr), is_new_contact_(is_new_contact)
 	{
 	}
 	void FlatPhysics::PenetrationConstraintSinglePoint::PreSolve(float dt)
@@ -66,6 +66,7 @@ namespace FlatPhysics {
 			bias += (e * v_rel_dot_normal);
 		}
 
+
 		if (cached_lambda(0) != 0.0f || cached_lambda(1) != 0.0f) {
 			MatMN<6, 2> jt = jacobian.Transpose();
 			VecN<6> impulses = jt * cached_lambda;
@@ -75,16 +76,6 @@ namespace FlatPhysics {
 			bodyB->ApplyImpulseAngular(impulses(5), false);
 		}
 
-
-	}
-
-	void FlatPhysics::PenetrationConstraintSinglePoint::Solve()
-	{ 
-#pragma region DirectComputeVersion
-		FlatBody* bodyA = a->GetBody();
-		FlatBody* bodyB = b->GetBody();
-
-		VecN<6> v = GetVelocities();
 		MatMN<6, 6> MInv = GetInverseM();
 
 		const float j00 = jacobian(0, 0);
@@ -108,95 +99,83 @@ namespace FlatPhysics {
 		const float m4 = MInv(4, 4);
 		const float m5 = MInv(5, 5);
 
-		const float lhs00 =
-			j00 * j00 * m0 +
-			j01 * j01 * m1 +
-			j02 * j02 * m2 +
-			j03 * j03 * m3 +
-			j04 * j04 * m4 +
-			j05 * j05 * m5;
+		lhs00_ =
+			j00 * j00 * m0 + j01 * j01 * m1 + j02 * j02 * m2 +
+			j03 * j03 * m3 + j04 * j04 * m4 + j05 * j05 * m5;
 
-		const float lhs01 =
-			j00 * j10 * m0 +
-			j01 * j11 * m1 +
-			j02 * j12 * m2 +
-			j03 * j13 * m3 +
-			j04 * j14 * m4 +
-			j05 * j15 * m5;
+		lhs01_ =
+			j00 * j10 * m0 + j01 * j11 * m1 + j02 * j12 * m2 +
+			j03 * j13 * m3 + j04 * j14 * m4 + j05 * j15 * m5;
 
-		const float lhs10 = lhs01;
+		lhs11_ =
+			j10 * j10 * m0 + j11 * j11 * m1 + j12 * j12 * m2 +
+			j13 * j13 * m3 + j14 * j14 * m4 + j15 * j15 * m5;
 
-		const float lhs11 =
-			j10 * j10 * m0 +
-			j11 * j11 * m1 +
-			j12 * j12 * m2 +
-			j13 * j13 * m3 +
-			j14 * j14 * m4 +
-			j15 * j15 * m5;
+		float det = lhs00_ * lhs11_ - lhs01_ * lhs01_;
+		invDet_ = (fabs(det) > 1e-6f ? 1.0f / det : 0.0f);
 
+	}
 
-		const float v0 = v(0);
-		const float v1 = v(1);
-		const float v2 = v(2);
-		const float v3 = v(3);
-		const float v4 = v(4);
-		const float v5 = v(5);
+	void FlatPhysics::PenetrationConstraintSinglePoint::Solve()
+	{
+#pragma region DirectComputeVersion
+		VecN<6> v = GetVelocities();
+
+		const float j00 = jacobian(0, 0);
+		const float j01 = jacobian(0, 1);
+		const float j02 = jacobian(0, 2);
+		const float j03 = jacobian(0, 3);
+		const float j04 = jacobian(0, 4);
+		const float j05 = jacobian(0, 5);
+
+		const float j10 = jacobian(1, 0);
+		const float j11 = jacobian(1, 1);
+		const float j12 = jacobian(1, 2);
+		const float j13 = jacobian(1, 3);
+		const float j14 = jacobian(1, 4);
+		const float j15 = jacobian(1, 5);
 
 		float rhs0 =
-			-(j00 * v0 + j01 * v1 + j02 * v2 +
-				j03 * v3 + j04 * v4 + j05 * v5);
+			-(j00 * v(0) + j01 * v(1) + j02 * v(2) +
+				j03 * v(3) + j04 * v(4) + j05 * v(5));
+
 		float rhs1 =
-			-(j10 * v0 + j11 * v1 + j12 * v2 +
-				j13 * v3 + j14 * v4 + j15 * v5);
+			-(j10 * v(0) + j11 * v(1) + j12 * v(2) +
+				j13 * v(3) + j14 * v(4) + j15 * v(5));
 
 		rhs0 -= bias;
 
+		float lambda0 = (rhs0 * lhs11_ - rhs1 * lhs01_) * invDet_;
+		float lambda1 = (-rhs0 * lhs01_ + rhs1 * lhs00_) * invDet_;
 
-		float lambda0 = 0.0f;
-		float lambda1 = 0.0f;
-
-		const float det = lhs00 * lhs11 - lhs01 * lhs10;
-		if (std::fabs(det) > 1e-6f)
-		{
-			const float invDet = 1.0f / det;
-
-			lambda0 = (rhs0 * lhs11 - rhs1 * lhs01) * invDet;
-			lambda1 = (-rhs0 * lhs10 + rhs1 * lhs00) * invDet;
-		}
-		else
-		{
-			lambda0 = 0.0f;
-			lambda1 = 0.0f;
-		}
-
-		VecN<2> delta_lambda;
-		delta_lambda(0) = lambda0;
-		delta_lambda(1) = lambda1;
-
-
-		VecN<2> old_lambda = cached_lambda;
-		cached_lambda += delta_lambda;
+		VecN<2> delta;
+		delta(0) = lambda0;
+		delta(1) = lambda1;
+		VecN<2> old = cached_lambda;
+		cached_lambda += delta;
 
 		if (cached_lambda(0) < 0.0f)
 			cached_lambda(0) = 0.0f;
 
 		if (friction > 0.0f)
 		{
-			float max_friction = cached_lambda(0) * friction;
-			cached_lambda(1) = std::clamp(cached_lambda(1), -max_friction, max_friction);
+			float maxT = friction * cached_lambda(0);
+			cached_lambda(1) = std::clamp(cached_lambda(1), -maxT, maxT);
 		}
 
-		delta_lambda = cached_lambda - old_lambda;
-		lambda0 = delta_lambda(0);
-		lambda1 = delta_lambda(1);
+		delta = cached_lambda - old;
+		lambda0 = delta(0);
+		lambda1 = delta(1);
 
+		float i0 = j00 * lambda0 + j10 * lambda1;
+		float i1 = j01 * lambda0 + j11 * lambda1;
+		float i2 = j02 * lambda0 + j12 * lambda1;
+		float i3 = j03 * lambda0 + j13 * lambda1;
+		float i4 = j04 * lambda0 + j14 * lambda1;
+		float i5 = j05 * lambda0 + j15 * lambda1;
 
-		const float i0 = j00 * lambda0 + j10 * lambda1;
-		const float i1 = j01 * lambda0 + j11 * lambda1;
-		const float i2 = j02 * lambda0 + j12 * lambda1;
-		const float i3 = j03 * lambda0 + j13 * lambda1;
-		const float i4 = j04 * lambda0 + j14 * lambda1;
-		const float i5 = j05 * lambda0 + j15 * lambda1;
+		FlatBody* bodyA = a->GetBody();
+		FlatBody* bodyB = b->GetBody();
 
 		bodyA->ApplyImpulseLinear({ i0, i1 }, false);
 		bodyA->ApplyImpulseAngular(i2, false);
@@ -204,11 +183,8 @@ namespace FlatPhysics {
 		bodyB->ApplyImpulseLinear({ i3, i4 }, false);
 		bodyB->ApplyImpulseAngular(i5, false);
 
-
-		if (normal_impulse_)
-			*normal_impulse_ = cached_lambda(0);
-		if (tangent_impulse_)
-			*tangent_impulse_ = cached_lambda(1);
+		if (normal_impulse_)  *normal_impulse_ = cached_lambda(0);
+		if (tangent_impulse_) *tangent_impulse_ = cached_lambda(1);
 #pragma endregion
 #pragma region MatrixComputeVersion
 
@@ -256,23 +232,22 @@ namespace FlatPhysics {
 		const Vector2 ra = pa - bodyA->GetMassCenterWorld();
 		const Vector2 rb = pb - bodyB->GetMassCenterWorld();
 
-		const float invMassA =  bodyA->GetInverseMass();
-		const float invMassB =  bodyB->GetInverseMass();
-		const float invIA =  bodyA->GetInverseInertia();
-		const float invIB =  bodyB->GetInverseInertia();
+		const float invMassA = bodyA->GetInverseMass();
+		const float invMassB = bodyB->GetInverseMass();
+		const float invIA = bodyA->GetInverseInertia();
+		const float invIB = bodyB->GetInverseInertia();
 
-		// rotational contribution: (r x n)^2 * invI
 		const float rnA = Vector2::Cross(ra, n);
 		const float rnB = Vector2::Cross(rb, n);
 
 		float K = invMassA + invMassB + rnA * rnA * invIA + rnB * rnB * invIB;
-		if (K <= 0.0f) return; 
+		if (K <= 0.0f) return;
 
 		const float linearSlop = 0.01f;
 		const float percent = 0.2f;
-		const float maxCorr = 0.02f; 
-		
-		float C = Vector2::Dot(pb - pa, -n);    
+		const float maxCorr = 0.02f;
+
+		float C = Vector2::Dot(pb - pa, -n);
 		float error = std::max(-C - linearSlop, 0.0f);
 		float correction = std::min(percent * error, maxCorr);
 		float impulseN = correction / std::max(K, 1e-8f);
@@ -284,4 +259,3 @@ namespace FlatPhysics {
 
 	}
 }
-

@@ -514,50 +514,79 @@ namespace FlatPhysics {
 		for (FlatManifold& m : contacts) {
 			m.touched_this_step = false;
 		}
-		for (const ContactPair& pair : contact_pairs) {
+
+		const int pairCount = static_cast<int>(contact_pairs.size());
+
+		if (pairCount == 0) {
+			for (int i = static_cast<int>(contacts.size()) - 1; i >= 0; --i) {
+				DestroyContactManifold(i);
+			}
+			return;
+		}
+
+		for (int i = 0; i < pairCount; ++i)
+		{
+			const ContactPair& pair = contact_pairs[i];
 			FlatFixture* fa = pair.fixture_a;
 			FlatFixture* fb = pair.fixture_b;
 			if (!fa || !fb) {
 				continue;
 			}
+
 			FlatBody* bodyA = fa->GetBody();
 			FlatBody* bodyB = fb->GetBody();
-			FixedSizeContainer<ContactPoint, 2> contact_points;
-			const bool touching = Collision::DetectCollision(fa, fb, contact_points);
 
 			std::uint64_t key = MakeContactKey(fa, fb);
 			auto it = contact_map_.find(key);
 			const bool existed = (it != contact_map_.end());
 
+			const bool bothSleeping = !bodyA->IsAwake() && !bodyB->IsAwake();
+
+
+			if (bothSleeping) {
+				if (existed) {
+					FlatManifold& manifold = contacts[it->second];
+					manifold.touched_this_step = true;
+					manifold.is_new_contact = false;
+				}
+				continue;
+			}
+
+			FixedSizeContainer<ContactPoint, 2> local_points;
+			const bool touching = Collision::DetectCollision(fa, fb, local_points);
+
 			if (!touching) {
 				if (existed) {
-					int idx = it->second;
+					const int idx = it->second;
 					DestroyContactManifold(idx);
 				}
 				continue;
 			}
 
-			if (!existed) {
-				// New contact
-				int index = static_cast<int>(contacts.size());
+			if (!existed)
+			{
+				const int index = static_cast<int>(contacts.size());
 				contacts.emplace_back(fa, fb);
 				FlatManifold& manifold = contacts.back();
+
 				manifold.touched_this_step = true;
-				manifold.contact_points = contact_points;
 				manifold.is_new_contact = true;
+				manifold.contact_points = local_points;
+
 				contact_map_[key] = index;
 				AttachContactToBodies(index, manifold);
-	
+
 				if (!bodyA->IsStatic()) bodyA->SetAwake(true);
 				if (!bodyB->IsStatic()) bodyB->SetAwake(true);
 			}
-			else {
-				// Existing contact: update + warm start impulses, but don't wake
+			else
+			{
 				FlatManifold& manifold = contacts[it->second];
 				manifold.touched_this_step = true;
 				manifold.is_new_contact = false;
+
 				FixedSizeContainer<ContactPoint, 2> merged;
-				for (ContactPoint& new_point : contact_points) {
+				for (ContactPoint& new_point : local_points) {
 					ContactPoint merged_point = new_point;
 					merged_point.normal_impulse = 0.0f;
 					merged_point.tangent_impulse = 0.0f;
@@ -569,8 +598,10 @@ namespace FlatPhysics {
 							break;
 						}
 					}
+
 					merged.Push_Back(merged_point);
 				}
+
 				manifold.contact_points = merged;
 			}
 		}
