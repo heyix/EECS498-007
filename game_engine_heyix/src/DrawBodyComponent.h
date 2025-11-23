@@ -40,5 +40,6 @@ private:
     void Rotate();
     void DrawAABB();
     void DrawTime();
+    void DrawContactPoints();
     void GetTime();
 };

@@ -205,7 +205,7 @@ namespace FlatPhysics {
         if (!enable_intra_island_parallel_)
         {
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic,8)
+#pragma omp parallel for schedule(dynamic,3)
 #endif
             for (int i = 0; i < active_island_count_; ++i)
             {
@@ -272,7 +272,7 @@ namespace FlatPhysics {
             for (int iter = 0; iter < iterations; ++iter)
             {
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic,8)
+#pragma omp parallel for schedule(dynamic,3)
 #endif
                 for (int i = 0; i < active_island_count_; ++i)
                 {
@@ -393,7 +393,7 @@ namespace FlatPhysics {
             for (int iter = 0; iter < iterations; ++iter)
             {
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic,8)
+#pragma omp parallel for schedule(dynamic,3)
 #endif
                 for (int i = 0; i < active_island_count_; ++i)
                 {
@@ -521,9 +521,7 @@ namespace FlatPhysics {
         if ((int)body_constraints.capacity() < bodyCount) {
             body_constraints.reserve(bodyCount * 2);
         }
-        if ((int)body_constraints.size() < bodyCount) {
-            body_constraints.resize(bodyCount);
-        }
+        body_constraints.resize(bodyCount);
         for (int i = 0; i < bodyCount; ++i) {
             body_constraints[i].clear();
         }
@@ -609,9 +607,7 @@ namespace FlatPhysics {
         if (static_cast<int>(groups.capacity()) < groupCount) {
             groups.reserve(groupCount * 2);
         }
-        if (static_cast<int>(groups.size()) < groupCount) {
-            groups.resize(groupCount);
-        }
+        groups.resize(groupCount);
         for (int c = 0; c < groupCount; ++c) {
             groups[c].clear();
         }
@@ -632,7 +628,6 @@ namespace FlatPhysics {
         if (!enable_intra_island_parallel_)
         {
             global_max_color_ = 0;
-            per_color_work_.clear();
             return;
         }
 
@@ -675,8 +670,22 @@ namespace FlatPhysics {
 
         global_max_color_ = local_max_color;
 
-        per_color_work_.clear();
-        per_color_work_.resize(global_max_color_);
+        if (global_max_color_ == 0) {
+            return;
+        }
+
+        const int needed = global_max_color_;
+
+        int current_capacity = static_cast<int>(per_color_work_.capacity());
+        if (current_capacity < needed)
+        {
+            per_color_work_.reserve(needed * 2);
+        }
+        per_color_work_.resize(needed);
+
+        for (int c = 0; c < global_max_color_; ++c) {
+            per_color_work_[c].clear();
+        }
 
         for (int islandIndex = 0; islandIndex < active_island_count_; ++islandIndex)
         {
@@ -688,13 +697,16 @@ namespace FlatPhysics {
                 if (group.empty()) continue;
 
                 auto& list = per_color_work_[color];
-                list.reserve(list.size() + group.size());
+
+                const std::size_t needed_inner = list.size() + group.size();
+                if (list.capacity() < needed_inner)
+                {
+                    list.reserve(needed_inner * 2);
+                }
 
                 for (int idx : group)
                 {
-                    per_color_work_[color].push_back(
-                        ConstraintWorkItem{ &island, idx }
-                    );
+                    list.push_back(ConstraintWorkItem{ &island, idx });
                 }
             }
         }

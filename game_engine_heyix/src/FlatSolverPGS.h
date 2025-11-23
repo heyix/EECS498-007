@@ -84,7 +84,7 @@ namespace FlatPhysics {
         std::vector<IslandConstraints> islands_;
         int active_island_count_ = 0;
 
-        bool enable_intra_island_parallel_ = true;
+        bool enable_intra_island_parallel_ = false;
         int global_max_color_ = -1;
         std::vector<std::vector<ConstraintWorkItem>> per_color_work_;
 

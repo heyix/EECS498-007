@@ -2,8 +2,6 @@
 #include "FlatFixture.h"
 #include "Collision.h"
 #include <algorithm>
-#include "Renderer.h"
-#include "Engine.h"
 #include "FlatMath.h"
 #include "BroadPhaseNaive.h"
 #include "FlatSolverNaive.h"
@@ -523,10 +521,10 @@ namespace FlatPhysics {
 		//MeasureTime("solver initialize", [this]() {
 		 	solver_->Initialize(contacts, constraints);
 		//});
-		MeasureTime("island", [this,time]() {
+		//MeasureTime("island", [this,time]() {
 			solver_->PreSolve(time);
 			solver_->Solve(time, 15);
-		});
+		//});
 		for (std::unique_ptr<FlatBody>& body : bodies) {
 			body->IntegrateVelocities(time);
 		}
@@ -691,28 +689,6 @@ namespace FlatPhysics {
 				DestroyContactManifold(i);
 			}
 		}
-	}
-	void FlatWorld::DrawContactPoints()
-	{
-		for (FlatManifold& manifold : contacts) {
-			for (ContactPoint& point : manifold.contact_points) {
-				Vector2 contact_point = point.end; {
-					constexpr float kMarkerHalfSize = 0.03f;
-					static const std::vector<Vector2> markerVerts = {
-						{ -kMarkerHalfSize, -kMarkerHalfSize },
-						{  kMarkerHalfSize, -kMarkerHalfSize },
-						{  kMarkerHalfSize,  kMarkerHalfSize },
-						{ -kMarkerHalfSize,  kMarkerHalfSize }
-					};
-
-					auto queueMarker = [&](const Vector2& p) {
-						Engine::instance->renderer->draw_polygon(markerVerts, p, 0.0f, 255, 0, 0, 255, false,1);
-						};
-					queueMarker(contact_point);
-				}
-			}
-		}
-		
 	}
 
 	void FlatWorld::SetBroadPhase(std::unique_ptr<IBroadPhase> bp)

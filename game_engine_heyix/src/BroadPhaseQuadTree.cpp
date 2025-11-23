@@ -127,8 +127,7 @@ namespace FlatPhysics {
 		if (print_info)scanned = std::vector<int>(count, 0);
 
 		using UserPair = std::pair<void*, void*>;
-
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic,64)
 		for (ProxyID i = 0; i < count; i++) {
 			if (!IsActive(i))continue;
 			Proxy& proxyA = proxies_[i];

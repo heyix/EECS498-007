@@ -32,11 +32,9 @@ namespace FlatPhysics {
 		void AddConstraint(std::unique_ptr<FlatConstraint> constraint);
 		std::vector<std::unique_ptr<FlatConstraint>>& GetConstraints();
 	public:
-		void DrawContactPoints();
 		void SetBroadPhase(std::unique_ptr<IBroadPhase> bp);
 		void SetSolver(std::unique_ptr<IFlatSolver> solver);
-
-
+		const std::vector<FlatManifold>& GetContactPoints() const { return contacts; }
 	private:
 		void AddBody(FlatBody* body);
 		void SynchronizeFixtures();
