@@ -2,9 +2,9 @@
 #include <iostream>
 #include <algorithm>
 namespace FlatPhysics {
-	PenetrationConstraintSinglePoint::PenetrationConstraintSinglePoint(FlatFixture* a, FlatFixture* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal, float* normal_impulse_ptr, float* tangent_impulse_ptr, bool is_new_contact)
-		:PenetrationConstraintBase(a, b, a->GetBody()->WorldToLocal(collision_point_a), b->GetBody()->WorldToLocal(collision_point_b)), normal(a->GetBody()->WorldToLocal(normal)), bias(0), jacobian(0), cached_lambda(0), friction(std::max(a->GetFriction(), b->GetFriction())),
-		normal_impulse_(normal_impulse_ptr), tangent_impulse_(tangent_impulse_ptr), is_new_contact_(is_new_contact)
+	PenetrationConstraintSinglePoint::PenetrationConstraintSinglePoint(FlatFixture *a, FlatFixture* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal, float* normal_impulse_ptr, float* tangent_impulse_ptr, bool is_new_contact)
+		:PenetrationConstraintBase(a,b,a->GetBody()->WorldToLocal(collision_point_a), b->GetBody()->WorldToLocal(collision_point_b)), normal(a->GetBody()->WorldToLocal(normal)), bias(0), jacobian(0), cached_lambda(0),friction(std::max(a->GetFriction(), b->GetFriction())),
+		normal_impulse_(normal_impulse_ptr),tangent_impulse_(tangent_impulse_ptr),is_new_contact_(is_new_contact)
 	{
 	}
 	void FlatPhysics::PenetrationConstraintSinglePoint::PreSolve(float dt)
@@ -117,7 +117,7 @@ namespace FlatPhysics {
 	}
 
 	void FlatPhysics::PenetrationConstraintSinglePoint::Solve()
-	{
+	{ 
 #pragma region DirectComputeVersion
 		VecN<6> v = GetVelocities();
 
@@ -232,22 +232,22 @@ namespace FlatPhysics {
 		const Vector2 ra = pa - bodyA->GetMassCenterWorld();
 		const Vector2 rb = pb - bodyB->GetMassCenterWorld();
 
-		const float invMassA = bodyA->GetInverseMass();
-		const float invMassB = bodyB->GetInverseMass();
-		const float invIA = bodyA->GetInverseInertia();
-		const float invIB = bodyB->GetInverseInertia();
+		const float invMassA =  bodyA->GetInverseMass();
+		const float invMassB =  bodyB->GetInverseMass();
+		const float invIA =  bodyA->GetInverseInertia();
+		const float invIB =  bodyB->GetInverseInertia();
 
 		const float rnA = Vector2::Cross(ra, n);
 		const float rnB = Vector2::Cross(rb, n);
 
 		float K = invMassA + invMassB + rnA * rnA * invIA + rnB * rnB * invIB;
-		if (K <= 0.0f) return;
+		if (K <= 0.0f) return; 
 
 		const float linearSlop = 0.01f;
 		const float percent = 0.2f;
-		const float maxCorr = 0.02f;
-
-		float C = Vector2::Dot(pb - pa, -n);
+		const float maxCorr = 0.02f; 
+		
+		float C = Vector2::Dot(pb - pa, -n);    
 		float error = std::max(-C - linearSlop, 0.0f);
 		float correction = std::min(percent * error, maxCorr);
 		float impulseN = correction / std::max(K, 1e-8f);
@@ -259,3 +259,4 @@ namespace FlatPhysics {
 
 	}
 }
+

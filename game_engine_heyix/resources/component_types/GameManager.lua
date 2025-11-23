@@ -102,7 +102,7 @@ GameManager = {
 		local WALL_WIDTH    = 2 
 		local WALL_HEIGHT   = 20
 
-		local GRID_SIZE = 3         -- n × n grid, change this to whatever you want
+		local GRID_SIZE = 6         -- n × n grid, change this to whatever you want
 
 		local ground_tf = new_body:GetComponent("Transform")
 		local gx0 = ground_tf:GetWorldPosition().x    -- top-left cell ground center X

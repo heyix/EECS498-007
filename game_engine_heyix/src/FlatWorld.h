@@ -8,10 +8,19 @@
 #include "IBroadPhase.h"
 #include "FlatSolver.h"
 #include "FlatConstraint.h"
+#include <memory>
 namespace FlatPhysics {
 	class FlatWorld {
+	private:
+		struct NarrowPhaseResult {
+			FlatFixture* fa = nullptr;
+			FlatFixture* fb = nullptr;
+			bool touching = false;
+			FixedSizeContainer<ContactPoint, 2> contact_points;
+		};
 	public:
 		FlatWorld();
+		~FlatWorld();
 		friend class FlatBody;
 	public:
 		int GetBodyCount() { return bodies.size(); }
@@ -23,11 +32,9 @@ namespace FlatPhysics {
 		void AddConstraint(std::unique_ptr<FlatConstraint> constraint);
 		std::vector<std::unique_ptr<FlatConstraint>>& GetConstraints();
 	public:
-		void DrawContactPoints();
 		void SetBroadPhase(std::unique_ptr<IBroadPhase> bp);
 		void SetSolver(std::unique_ptr<IFlatSolver> solver);
-
-
+		const std::vector<FlatManifold>& GetContactPoints() const { return contacts; }
 	private:
 		void AddBody(FlatBody* body);
 		void SynchronizeFixtures();
@@ -58,5 +65,9 @@ namespace FlatPhysics {
 		int velocity_iterations_{ 1 };
 		int position_iterations_{ 1 };
 		ContactEdgePool edge_pool_;
+
+		class BroadPhasePairCollector;
+		std::unique_ptr<BroadPhasePairCollector> collector_;
+		std::vector<NarrowPhaseResult> np_results;
 	};
 }

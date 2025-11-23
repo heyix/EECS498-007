@@ -102,11 +102,10 @@ namespace FlatPhysics {
 		}
 	}
 
-	void FlatPhysics::BroadPhaseQuadTree::UpdatePairs(IPairCallback* callback)
+	void BroadPhaseQuadTree::UpdatePairs(IPairCallback* callback)
 	{
-		if (!callback) {
-			return;
-		}
+		if (!callback) return;
+
 		int target_capacity = ComputeTargetLeafCapacity();
 		if (target_capacity != max_leaf_capacity_) {
 			max_leaf_capacity_ = target_capacity;
@@ -117,29 +116,63 @@ namespace FlatPhysics {
 			max_depth_ = target_depth;
 			tree_dirty_ = true;
 		}
+
 		FlushDirty();
-		if (!root_) {
-			return;
-		}
-		//PrintLevelItemCounts();
+		if (!root_) return;
+
 		const ProxyID count = static_cast<ProxyID>(proxies_.size());
+
+		bool print_info = false;
+		std::vector<int> scanned;
+		if (print_info)scanned = std::vector<int>(count, 0);
+
+		using UserPair = std::pair<void*, void*>;
+#pragma omp parallel for schedule(dynamic,64)
 		for (ProxyID i = 0; i < count; i++) {
-			if (!IsActive(i)) {
-				continue;
-			}
+			if (!IsActive(i))continue;
 			Proxy& proxyA = proxies_[i];
 			QueryNode(root_, proxyA.fat_aabb, [&](ProxyID otherId) {
+				if (print_info) scanned[i]++;
 				if (otherId <= i || !IsActive(otherId)) {
 					return true;
 				}
+
 				Proxy& proxyB = proxies_[otherId];
 				if (!FlatAABB::IntersectAABB(proxyA.tight_aabb, proxyB.tight_aabb)) {
 					return true;
 				}
+
 				callback->AddPair(proxyA.user_data, proxyB.user_data);
 				return true;
+				});
+		}
+		if (print_info) {
+			long long total_scanned = 0;
+			int active_proxies = 0;
+			int max_scanned = 0;
+			ProxyID max_proxy = -1;
+
+			for (ProxyID i = 0; i < count; ++i) {
+				if (!IsActive(i)) continue;
+
+				total_scanned += scanned[i];
+				active_proxies++;
+
+				if (scanned[i] > max_scanned) {
+					max_scanned = scanned[i];
+					max_proxy = i;
+				}
 			}
-			);
+
+			double avg = (active_proxies > 0) ? (double)total_scanned / active_proxies : 0.0;
+
+			printf("Broadphase scan summary:\n");
+			printf("  Active proxies    = %d\n", active_proxies);
+			printf("  Total scanned     = %lld\n", total_scanned);
+			printf("  Average per proxy = %.2f\n", avg);
+			if (max_proxy >= 0)
+				printf("  Max scanned       = %d (proxy %d)\n", max_scanned, max_proxy);
+			printf("----------------------------------\n");
 		}
 	}
 

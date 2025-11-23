@@ -31,6 +31,7 @@
     <ClCompile Include="src\ComponentDB.cpp" />
     <ClCompile Include="src\ContactListener.cpp" />
     <ClCompile Include="src\CppComponent.cpp" />
+    <ClCompile Include="src\FlatHelper.cpp" />
     <ClCompile Include="src\FlatSolverPGS.cpp" />
     <ClCompile Include="src\JointConstraint.cpp" />
     <ClCompile Include="src\DrawBodyComponent.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="src\ComponentGroup.h" />
     <ClInclude Include="src\ContactListener.h" />
     <ClInclude Include="src\CppComponent.h" />
+    <ClInclude Include="src\FlatHelper.h" />
     <ClInclude Include="src\FlatSolverPGS.h" />
     <ClInclude Include="src\JointConstraint.h" />
     <ClInclude Include="src\DrawBodyComponent.h" />
@@ -359,6 +361,10 @@
     <LibraryPath>$(ProjectDir)ThirdParty\SDL2\lib\;$(ProjectDir)ThirdParty\SDL2_image\lib\;$(ProjectDir)ThirdParty\SDL2_mixer\lib\;$(ProjectDir)ThirdParty\SDL2_ttf\lib\;$(LibraryPath)</LibraryPath>
     <IncludePath>$(PorjectDir)ThirdParty\SDL2;$(PorjectDir)ThirdParty\SDL2_image;$(PorjectDir)ThirdParty\SDL2_mixer;$(PorjectDir)ThirdParty\SDL2_ttf;$(PorjectDir)ThirdParty\SDL2_gfx;$(IncludePath)</IncludePath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(PorjectDir)ThirdParty\SDL2;$(PorjectDir)ThirdParty\SDL2_image;$(PorjectDir)ThirdParty\SDL2_mixer;$(PorjectDir)ThirdParty\SDL2_ttf;$(PorjectDir)ThirdParty\SDL2_gfx;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)ThirdParty\SDL2\lib\;$(ProjectDir)ThirdParty\SDL2_image\lib\;$(ProjectDir)ThirdParty\SDL2_mixer\lib\;$(ProjectDir)ThirdParty\SDL2_ttf\lib\;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -391,12 +397,16 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>%(ProjectDir)ThirdParty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>SDL2main.lib;SDL2.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -409,6 +419,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>%(ProjectDir)ThirdParty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

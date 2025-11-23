@@ -5,6 +5,8 @@
 #include "LuaBridge/LuaBridge.h"
 #include <vector>
 class EventBus {
+public:
+	~EventBus();
 private:
 	using Subscription = std::pair<luabridge::LuaRef, luabridge::LuaRef>;
 	static inline std::unordered_map < std::string, std::vector<Subscription> > registered_events;

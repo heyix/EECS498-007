@@ -2,52 +2,106 @@
 #include "FlatFixture.h"
 #include "Collision.h"
 #include <algorithm>
-#include "Renderer.h"
-#include "Engine.h"
 #include "FlatMath.h"
 #include "BroadPhaseNaive.h"
 #include "FlatSolverNaive.h"
 #include "FlatSolverPGS.h"
 #include "BroadPhaseQuadTree.h"
 #include "FlatContact.h"
+#include "FlatHelper.h"
+#include <omp.h>
 namespace FlatPhysics {
 	namespace {
 		constexpr float kLinearSleepTolerance = 0.1f;             
 		constexpr float kLinearSleepToleranceSq = kLinearSleepTolerance * kLinearSleepTolerance;
 		constexpr float kAngularSleepTolerance = FlatMath::DegToRad(4.0f);
 		constexpr float kTimeToSleep = 0.5f;
-		class BroadphasePairCollector : public FlatPhysics::IPairCallback {
-		public:
-			explicit BroadphasePairCollector(std::vector<ContactPair>& out) : pairs_(out) {}
-			void AddPair(void* user_data_a, void* user_data_b) override {
-				auto* fixtureA = static_cast<FlatFixture*>(user_data_a);
-				auto* fixtureB = static_cast<FlatFixture*>(user_data_b);
-				if (!fixtureA || !fixtureB) {
-					return;
-				}
-
-				FlatBody* bodyA = fixtureA->GetBody();
-				FlatBody* bodyB = fixtureB->GetBody();
-				if (bodyA == bodyB) {
-					return;
-				}
-				if (bodyA && bodyB && bodyA->IsStatic() && bodyB->IsStatic()) {
-					return;
-				}
-				if (fixtureA && fixtureB) {
-					pairs_.push_back({ fixtureA, fixtureB });
-				}
-			}
-		private:
-			std::vector<ContactPair>& pairs_;
-		};
 	}
+	class FlatWorld::BroadPhasePairCollector : public FlatPhysics::IPairCallback {
+	public:
+		BroadPhasePairCollector(int max_threads) :per_thread_pairs_(max_threads) {}
+		void AddPair(void* user_data_a, void* user_data_b) override {
+			int tid = 0;
+#ifdef _OPENMP
+			if (omp_in_parallel()) {
+				tid = omp_get_thread_num();
+			}
+#endif
+			auto* fixtureA = static_cast<FlatFixture*>(user_data_a);
+			auto* fixtureB = static_cast<FlatFixture*>(user_data_b);
+			if (!fixtureA || !fixtureB) {
+				return;
+			}
+
+			FlatBody* bodyA = fixtureA->GetBody();
+			FlatBody* bodyB = fixtureB->GetBody();
+			if (bodyA == bodyB) {
+				return;
+			}
+			if (bodyA && bodyB && bodyA->IsStatic() && bodyB->IsStatic()) {
+				return;
+			}
+			std::vector<ContactPair>& vec = per_thread_pairs_[tid];
+			vec.push_back({ fixtureA, fixtureB });
+		}
+
+		void FlattenInfo(std::vector<ContactPair>& out) {
+			const int n = static_cast<int>(per_thread_pairs_.size());
+			std::size_t total = 0;
+			if (n == 0) {
+				out.clear();
+				total = 0;
+				return;
+			}
+
+			std::vector<std::size_t> sizes(n);
+			for (int i = 0; i < n; ++i) {
+				sizes[i] = per_thread_pairs_[i].size();
+			}
+
+			std::vector<std::size_t> offsets(n + 1);
+			offsets[0] = 0;
+			for (int i = 0; i < n; ++i) {
+				offsets[i + 1] = offsets[i] + sizes[i];
+			}
+
+			total = offsets[n];
+
+			out.clear();
+			out.resize(total);
+
+#pragma omp parallel for schedule(static)
+			for (int i = 0; i < n; ++i) {
+				const auto& src = per_thread_pairs_[i];
+				if (src.empty()) continue;
+
+				const std::size_t offset = offsets[i];
+				std::copy(src.begin(), src.end(), out.begin() + offset);
+			}
+		}
+		void Clear() {
+			for (auto& v : per_thread_pairs_) {
+				v.clear();
+			}
+		}
+	private:
+		std::vector<std::vector<ContactPair>> per_thread_pairs_;
+	};
+
 
 	FlatWorld::FlatWorld()
 		: gravity({ 0.0f, 9.81f })
 	{
 		SetBroadPhase(std::make_unique<BroadPhaseQuadTree>());
 		SetSolver(std::make_unique<FlatSolverPGS>());
+		int max_threads = 1;
+#ifdef _OPENMP
+		max_threads = omp_get_max_threads();
+#endif
+		collector_ = std::make_unique<BroadPhasePairCollector>(max_threads);
+	}
+	FlatWorld::~FlatWorld()
+	{
 	}
 	void FlatWorld::AddBody(FlatBody* body)
 	{
@@ -443,7 +497,7 @@ namespace FlatPhysics {
 			body->Step(time, gravity);
 		}*/
 		//int count = 0;
-		//for (FlatBody* body : bodies) {
+		//for (std::unique_ptr<FlatBody>& body : bodies) {
 		//	if (!body->IsStatic()) {
 		//		if (!body->IsAwake()) {
 		//			count++;
@@ -464,9 +518,13 @@ namespace FlatPhysics {
 		//}
 		NarrowPhase();
 		BuildIslands();
-		solver_->Initialize(contacts,constraints);
-		solver_->PreSolve(time);
-		solver_->Solve(time, 15);
+		//MeasureTime("solver initialize", [this]() {
+		 	solver_->Initialize(contacts, constraints);
+		//});
+		//MeasureTime("island", [this,time]() {
+			solver_->PreSolve(time);
+			solver_->Solve(time, 15);
+		//});
 		for (std::unique_ptr<FlatBody>& body : bodies) {
 			body->IntegrateVelocities(time);
 		}
@@ -482,22 +540,6 @@ namespace FlatPhysics {
 	{
 		return constraints;
 	}
-	//void FlatWorld::CollisionDetectionStep(float dt)
-	//{
-	//	contacts.clear();
-	//	contact_pairs.clear();
-
-	//	BroadPhase();
-	//	NarrowPhase();
-
-	//	if (!contacts.empty() && solver_) {
-	//		solver_->Initialize(contacts);
-	//		solver_->PreSolve();
-	//		solver_->Solve(dt, velocity_iterations_);
-	//		solver_->PostSolve(dt, position_iterations_);
-	//		solver_->StoreImpulses();
-	//	}
-	//}
 
 	void FlatWorld::BroadPhase()
 	{
@@ -506,9 +548,16 @@ namespace FlatPhysics {
 		}
 		contact_pairs.clear();
 		SynchronizeFixtures();
-		BroadphasePairCollector collector(contact_pairs);
-		broadphase_->UpdatePairs(&collector);
+
+		//MeasureTime("Broadphase", [this]() {
+			this->broadphase_->UpdatePairs(this->collector_.get());		
+			this->collector_->FlattenInfo(contact_pairs);
+		//});
+		this->collector_->Clear();
 	}
+
+
+
 	void FlatWorld::NarrowPhase()
 	{
 		for (FlatManifold& m : contacts) {
@@ -524,11 +573,45 @@ namespace FlatPhysics {
 			return;
 		}
 
-		for (int i = 0; i < pairCount; ++i)
-		{
-			const ContactPair& pair = contact_pairs[i];
-			FlatFixture* fa = pair.fixture_a;
-			FlatFixture* fb = pair.fixture_b;
+		np_results.resize(pairCount);
+		//MeasureTime("NarrowPhase", [this,pairCount]() {
+#pragma omp parallel for schedule(dynamic,64)
+			for (int i = 0; i < pairCount; ++i) {
+				const ContactPair& pair = contact_pairs[i];
+				FlatFixture* fa = pair.fixture_a;
+				FlatFixture* fb = pair.fixture_b;
+
+				NarrowPhaseResult& r = np_results[i];
+				r.fa = fa;
+				r.fb = fb;
+				r.touching = false;
+
+				if (!fa || !fb) {
+					continue;
+				}
+
+				FlatBody* bodyA = fa->GetBody();
+				FlatBody* bodyB = fb->GetBody();
+
+				if (!bodyA->IsAwake() && !bodyB->IsAwake()) {
+					continue;
+				}
+
+				FixedSizeContainer<ContactPoint, 2> local_points;
+				const bool touching = Collision::DetectCollision(fa, fb, local_points);
+				r.touching = touching;
+
+				if (touching) {
+					r.contact_points = local_points;
+				}
+			}
+		//});
+
+
+		for (int i = 0; i < pairCount; ++i) {
+			NarrowPhaseResult& r = np_results[i];
+			FlatFixture* fa = r.fa;
+			FlatFixture* fb = r.fb;
 			if (!fa || !fb) {
 				continue;
 			}
@@ -542,20 +625,19 @@ namespace FlatPhysics {
 
 			const bool bothSleeping = !bodyA->IsAwake() && !bodyB->IsAwake();
 
-
+			// --- SPECIAL CASE: both sleeping ---
+			// we skipped collision, so r.touching is false,
+			// but if there was an old contact we want to keep it.
 			if (bothSleeping) {
 				if (existed) {
 					FlatManifold& manifold = contacts[it->second];
 					manifold.touched_this_step = true;
 					manifold.is_new_contact = false;
 				}
+				// if not existed, we just don't create one while they sleep
 				continue;
 			}
-
-			FixedSizeContainer<ContactPoint, 2> local_points;
-			const bool touching = Collision::DetectCollision(fa, fb, local_points);
-
-			if (!touching) {
+			if (!r.touching) {
 				if (existed) {
 					const int idx = it->second;
 					DestroyContactManifold(idx);
@@ -563,15 +645,14 @@ namespace FlatPhysics {
 				continue;
 			}
 
-			if (!existed)
-			{
+			if (!existed) {
 				const int index = static_cast<int>(contacts.size());
 				contacts.emplace_back(fa, fb);
 				FlatManifold& manifold = contacts.back();
 
 				manifold.touched_this_step = true;
 				manifold.is_new_contact = true;
-				manifold.contact_points = local_points;
+				manifold.contact_points = r.contact_points;
 
 				contact_map_[key] = index;
 				AttachContactToBodies(index, manifold);
@@ -579,14 +660,13 @@ namespace FlatPhysics {
 				if (!bodyA->IsStatic()) bodyA->SetAwake(true);
 				if (!bodyB->IsStatic()) bodyB->SetAwake(true);
 			}
-			else
-			{
+			else {
 				FlatManifold& manifold = contacts[it->second];
 				manifold.touched_this_step = true;
 				manifold.is_new_contact = false;
 
 				FixedSizeContainer<ContactPoint, 2> merged;
-				for (ContactPoint& new_point : local_points) {
+				for (ContactPoint& new_point : r.contact_points) {
 					ContactPoint merged_point = new_point;
 					merged_point.normal_impulse = 0.0f;
 					merged_point.tangent_impulse = 0.0f;
@@ -598,10 +678,8 @@ namespace FlatPhysics {
 							break;
 						}
 					}
-
 					merged.Push_Back(merged_point);
 				}
-
 				manifold.contact_points = merged;
 			}
 		}
@@ -611,28 +689,6 @@ namespace FlatPhysics {
 				DestroyContactManifold(i);
 			}
 		}
-	}
-	void FlatWorld::DrawContactPoints()
-	{
-		for (FlatManifold& manifold : contacts) {
-			for (ContactPoint& point : manifold.contact_points) {
-				Vector2 contact_point = point.end; {
-					constexpr float kMarkerHalfSize = 0.03f;
-					static const std::vector<Vector2> markerVerts = {
-						{ -kMarkerHalfSize, -kMarkerHalfSize },
-						{  kMarkerHalfSize, -kMarkerHalfSize },
-						{  kMarkerHalfSize,  kMarkerHalfSize },
-						{ -kMarkerHalfSize,  kMarkerHalfSize }
-					};
-
-					auto queueMarker = [&](const Vector2& p) {
-						Engine::instance->renderer->draw_polygon(markerVerts, p, 0.0f, 255, 0, 0, 255, false,1);
-						};
-					queueMarker(contact_point);
-				}
-			}
-		}
-		
 	}
 
 	void FlatWorld::SetBroadPhase(std::unique_ptr<IBroadPhase> bp)

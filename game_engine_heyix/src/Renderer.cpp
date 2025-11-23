@@ -39,6 +39,27 @@ namespace {
 		return true;
 	}
 }
+Renderer::~Renderer()
+{
+	for (auto& entry : polygon_cache_) {
+		if (entry.texture) {
+			SDL_DestroyTexture(entry.texture);
+			entry.texture = nullptr;
+		}
+	}
+	polygon_cache_.clear();
+	polygon_cache_buckets_.clear();
+
+	if (sdl_renderer) {
+		SDL_DestroyRenderer(sdl_renderer);
+		sdl_renderer = nullptr;
+	}
+	if (sdl_window) {
+		SDL_DestroyWindow(sdl_window);
+		sdl_window = nullptr;
+	}
+	SDL_Quit();
+}
 void Renderer::init_renderer(const char* title, int x, int y, int w, int h, int index, Uint32 window_flags, Uint32 renderer_flags)
 {
 	sdl_window = Helper::SDL_CreateWindow(title, x, y, w, h, window_flags);

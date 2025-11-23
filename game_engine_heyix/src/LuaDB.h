@@ -5,6 +5,9 @@
 #include <string>
 #include <memory>
 class LuaDB {
+public:
+	LuaDB();
+	~LuaDB();
 private:
 	static void CppDebugLog(const std::string& message);
 	static void Init_Lua_Debug();
@@ -28,7 +31,6 @@ private:
 	static void Init_Lua_Colliders();
 	static void Init_Lua_DrawBodyComponent();
 public:
-	static void Init_LuaDB();
 	static luabridge::LuaRef& Create_Template_Table_Using_Local_File(const std::string& table_name);
 	static luabridge::LuaRef Create_Object_Table(const std::string& template_name,bool use_local_file = true);
 	static void Establish_Inheritance(luabridge::LuaRef& instance_table, luabridge::LuaRef& parent_table);

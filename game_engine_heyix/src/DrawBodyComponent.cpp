@@ -164,12 +164,13 @@ void DrawBodyComponent::On_Update()
     if(this->holder_object->ID == 5)DrawTime();
     DrawBody();
     DrawAABB();
-    if(holder_object->ID == 5)PhysicsDB::flat_world->DrawContactPoints();
+    DrawContactPoints();
     //std::cout << transform->Get_World_Position().x() << " " << transform->Get_World_Position().y() << std::endl;
 }
 
 void DrawBodyComponent::On_Start()
 {
+    active_body++;
     bool is_static = false;
     if (shape == "Box") {
         is_static = true;
@@ -180,6 +181,7 @@ void DrawBodyComponent::On_Start()
     bodyDef.linear_damping = 0.2f;
     bodyDef.angular_damping = 0.5f;
     bodyDef.is_static = is_static;
+    bodyDef.allow_sleep = false;
     this->body = PhysicsDB::flat_world->CreateBody(bodyDef);
     if (shape == "Box") {
         std::unique_ptr<FlatPhysics::PolygonShape> polygon_shape = std::make_unique<FlatPhysics::PolygonShape>();
@@ -352,7 +354,7 @@ void DrawBodyComponent::DrawBody()
             int pr, pg, pb;
             PastelColorFromID(holder_object->ID, pr, pg, pb);
 
-            Engine::instance->renderer->draw_polygon(vertices, body->GetPosition(), body->GetAngle(), pr, pg, pb, 255, true);
+            Engine::instance->renderer->draw_polygon(vertices, body->GetPosition(), body->GetAngle(), pr, pg, pb, 255, false);
             break;
         }
         }
@@ -384,6 +386,9 @@ void DrawBodyComponent::DrawAABB()
 
     for (const auto& fixture : body->GetFixtures()) {
         FlatPhysics::FlatAABB aabb = fixture->GetAABB();
+        if (!IsAABBVisible(aabb)) {
+            continue;
+        }
         AABB[0] = { aabb.min.x(), aabb.min.y() };
         AABB[1] = { aabb.max.x(), aabb.min.y() };
         AABB[2] = { aabb.max.x(), aabb.max.y() };
@@ -398,6 +403,7 @@ void DrawBodyComponent::DrawTime()
     Engine::instance->renderer->draw_text("NotoSans-Regular", "FPS: " + std::to_string(fps), 24, {0,0,0},dimension.x / 200,dimension.y/20 );
     Engine::instance->renderer->draw_text("NotoSans-Regular", "Physics Step Time: " + std::to_string(physics_step_time) + " ms", 24, { 0,0,0 }, dimension.x / 200, dimension.y / 12);
     Engine::instance->renderer->draw_text("NotoSans-Regular", "Physics FPS: " + std::to_string(physics_fps), 24, { 0,0,0 }, dimension.x / 200, dimension.y / 8.5);
+    Engine::instance->renderer->draw_text("NotoSans-Regular", "Current Bodies: " + std::to_string(active_body), 24, { 0,0,0 }, dimension.x / 200, dimension.y / 6.7);
 }
 
 void DrawBodyComponent::GetTime()
@@ -405,4 +411,45 @@ void DrawBodyComponent::GetTime()
     fps = Engine::instance->running_game->GetFPS();;
     physics_step_time = Engine::instance->running_game->GetPhysicsStepTime();
     physics_fps = Engine::instance->running_game->GetPhysicsFPS();
+}
+void DrawBodyComponent::DrawContactPoints() {
+    if (holder_object->ID == 5)
+    {
+        auto& manifolds = PhysicsDB::flat_world->GetContactPoints();
+
+        for (const FlatPhysics::FlatManifold& m : manifolds)
+        {
+            for (const FlatPhysics::ContactPoint& cp : m.contact_points)
+            {
+                constexpr float kMarkerHalfSize = 0.03f;
+                static const std::vector<Vector2> markerVerts = {
+                    { -kMarkerHalfSize, -kMarkerHalfSize },
+                    {  kMarkerHalfSize, -kMarkerHalfSize },
+                    {  kMarkerHalfSize,  kMarkerHalfSize },
+                    { -kMarkerHalfSize,  kMarkerHalfSize }
+                };
+
+                Vector2 c = cp.end;
+
+                Vector2 p0 = c + markerVerts[0];
+                Vector2 p1 = c + markerVerts[1];
+                Vector2 p2 = c + markerVerts[2];
+                Vector2 p3 = c + markerVerts[3];
+
+                FlatPhysics::FlatAABB aabb;
+                aabb.min = { std::min(std::min(p0.x(), p1.x()), std::min(p2.x(), p3.x())),
+                             std::min(std::min(p0.y(), p1.y()), std::min(p2.y(), p3.y())) };
+
+                aabb.max = { std::max(std::max(p0.x(), p1.x()), std::max(p2.x(), p3.x())),
+                             std::max(std::max(p0.y(), p1.y()), std::max(p2.y(), p3.y())) };
+
+                if (!IsAABBVisible(aabb))
+                    continue;
+
+                Engine::instance->renderer->draw_polygon(
+                    markerVerts, cp.end, 0.0f, 255, 0, 0, 255, false, 1
+                );
+            }
+        }
+    }
 }

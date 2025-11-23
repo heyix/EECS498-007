@@ -579,6 +579,9 @@
     <ClCompile Include="src\FlatSolverPGS.cpp">
       <Filter>Source Files\FlatPhysics\Solver</Filter>
     </ClCompile>
+    <ClCompile Include="src\FlatHelper.cpp">
+      <Filter>Source Files\FlatPhysics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThirdParty\lua\lapi.h">
@@ -1003,6 +1006,9 @@
     </ClInclude>
     <ClInclude Include="ThirdParty\SDL2_gfx\SDL2_rotozoom.h">
       <Filter>Header Files\SDL\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatHelper.h">
+      <Filter>Header Files\FlatPhysics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
