@@ -39,7 +39,7 @@ namespace FlatPhysics {
             std::vector<std::vector<int>>           body_constraints;
             std::vector<int>                        constraint_to_color;
             std::vector<int>                        color_used_mark;
-            std::vector<std::vector<int>>           color_groups;
+            std::vector<std::vector<int>>           color_to_constraints;
             int max_color_plus_one = 0;
             inline void Clear() {
                 penetration_constraints.clear();
@@ -52,7 +52,7 @@ namespace FlatPhysics {
                 }
                 constraint_to_color.clear();
                 color_used_mark.clear();
-                for (auto& g : color_groups) {
+                for (auto& g : color_to_constraints) {
                     g.clear();
                 }
                 max_color_plus_one = 0;
@@ -84,7 +84,7 @@ namespace FlatPhysics {
         std::vector<IslandConstraints> islands_;
         int active_island_count_ = 0;
 
-        bool enable_intra_island_parallel_ = false;
+        bool enable_intra_island_parallel_ = true;
         int global_max_color_ = -1;
         std::vector<std::vector<ConstraintWorkItem>> per_color_work_;
 

@@ -562,13 +562,13 @@ namespace FlatPhysics {
         constraint_to_color.assign(constraint_num, -1);
 
         auto& color_used_mark = island.color_used_mark;
-        int usedNeeded = constraint_num + 1;
-        if (static_cast<int>(color_used_mark.capacity()) < usedNeeded) {
-            color_used_mark.reserve(usedNeeded * 2);
+        int used_needed = constraint_num + 1;
+        if (static_cast<int>(color_used_mark.capacity()) < used_needed) {
+            color_used_mark.reserve(used_needed * 2);
         }
-        color_used_mark.assign(usedNeeded, 0);
+        color_used_mark.assign(used_needed, 0);
 
-        int maxColor = -1;
+        int max_color = -1;
         int current_mark = 1;
         for (int ci = 0; ci < constraint_num; ++ci)
         {
@@ -594,33 +594,33 @@ namespace FlatPhysics {
             mark(fb);
 
             int color = 0;
-            while (color <= maxColor && color_used_mark[color] == current_mark) {
+            while (color <= max_color && color_used_mark[color] == current_mark) {
                 ++color;
             }
 
             constraint_to_color[ci] = color;
-            if (color > maxColor) maxColor = color;
+            if (color > max_color) max_color = color;
         }
 
-        auto& groups = island.color_groups;
-        int   groupCount = maxColor + 1;
-        if (static_cast<int>(groups.capacity()) < groupCount) {
-            groups.reserve(groupCount * 2);
+        auto& color_to_constraints = island.color_to_constraints;
+        int   color_count = max_color + 1;
+        if (static_cast<int>(color_to_constraints.capacity()) < color_count) {
+            color_to_constraints.reserve(color_count * 2);
         }
-        groups.resize(groupCount);
-        for (int c = 0; c < groupCount; ++c) {
-            groups[c].clear();
+        color_to_constraints.resize(color_count);
+        for (int c = 0; c < color_count; ++c) {
+            color_to_constraints[c].clear();
         }
 
         for (int i = 0; i < constraint_num; ++i) {
             int color = constraint_to_color[i];
-            groups[color].push_back(i);
+            color_to_constraints[color].push_back(i);
         }
 
         for (FlatBody* b : bodies) {
             b->SetSolverTempIndex(-1);
         }
-        island.max_color_plus_one = groupCount;
+        island.max_color_plus_one = color_count;
     }
 
     void FlatSolverPGS::HandleGraphColoring()
@@ -687,26 +687,31 @@ namespace FlatPhysics {
             per_color_work_[c].clear();
         }
 
-        for (int islandIndex = 0; islandIndex < active_island_count_; ++islandIndex)
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic)
+#endif
+        for (int color = 0; color < global_max_color_; ++color)
         {
-            IslandConstraints& island = islands_[islandIndex];
-            const int maxColor = island.max_color_plus_one;
-            for (int color = 0; color < maxColor; ++color)
+            auto& color_work = per_color_work_[color];
+            color_work.clear();
+
+            for (int islandIndex = 0; islandIndex < active_island_count_; ++islandIndex)
             {
-                const auto& group = island.color_groups[color];
-                if (group.empty()) continue;
+                IslandConstraints& island = islands_[islandIndex];
+                if (color >= island.max_color_plus_one) continue;
 
-                auto& list = per_color_work_[color];
+                const auto& color_to_constraints = island.color_to_constraints[color];
+                if (color_to_constraints.empty()) continue;
 
-                const std::size_t needed_inner = list.size() + group.size();
-                if (list.capacity() < needed_inner)
+                std::size_t needed_inner = color_work.size() + color_to_constraints.size();
+                if (color_work.capacity() < needed_inner)
                 {
-                    list.reserve(needed_inner * 2);
+                    color_work.reserve(needed_inner * 2);
                 }
 
-                for (int idx : group)
+                for (int idx : color_to_constraints)
                 {
-                    list.push_back(ConstraintWorkItem{ &island, idx });
+                    color_work.push_back(ConstraintWorkItem{ &island, idx });
                 }
             }
         }
