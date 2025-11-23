@@ -63,6 +63,9 @@ namespace FlatPhysics {
         }
         active_island_count_ = island_count;
 
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
         for (int i = 0; i < active_island_count_; ++i) {
             islands_[i].Clear();
         }
@@ -191,37 +194,70 @@ namespace FlatPhysics {
                 island.all_constraints.push_back(ref);
             }
         }
-#ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic, 4)
-#endif
-        for (int i = 0; i < active_island_count_; ++i) {
-            BuildColoringForIslands(islands_[i]);
-        }
-
     }
+
+
 
     void FlatSolverPGS::PreSolve(float dt)
     {
         if (active_island_count_ == 0) return;
-
+        HandleGraphColoring();
+        if (!enable_intra_island_parallel_)
+        {
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,8)
 #endif
-        for (int i = 0; i < active_island_count_; ++i)
-        {
-            IslandConstraints& island = islands_[i];
-
-            for (FlatConstraint* c : island.constraints)
+            for (int i = 0; i < active_island_count_; ++i)
             {
-                if (CanFixtureCollide(c->a, c->b)) {
-                    c->PreSolve(dt);
+                IslandConstraints& island = islands_[i];
+
+                for (FlatConstraint* c : island.constraints)
+                {
+                    if (CanFixtureCollide(c->a, c->b)) {
+                        c->PreSolve(dt);
+                    }
+                }
+
+                for (PenetrationConstraintBase* pc : island.penetration_constraints)
+                {
+                    if (CanFixtureCollide(pc->a, pc->b)) {
+                        pc->PreSolve(dt);
+                    }
                 }
             }
+            return;
+        }
 
-            for (PenetrationConstraintBase* pc : island.penetration_constraints)
+        const int maxColor = global_max_color_;
+        for (int color = 0; color < maxColor; ++color)
+        {
+            auto& work = per_color_work_[color];
+            const int workCount = static_cast<int>(work.size());
+            if (workCount == 0) continue;
+
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+            for (int wi = 0; wi < workCount; ++wi)
             {
-                if (CanFixtureCollide(pc->a, pc->b)) {
-                    pc->PreSolve(dt);
+                ConstraintWorkItem& item = work[wi];
+                IslandConstraints* island = item.island;
+                IslandConstraints::ConstraintRef& cr =
+                    island->all_constraints[item.constraint_index];
+
+                if (cr.type == IslandConstraints::ConstraintRef::Type::Other)
+                {
+                    FlatConstraint* c = cr.other;
+                    if (c && CanFixtureCollide(c->a, c->b)) {
+                        c->PreSolve(dt);
+                    }
+                }
+                else
+                {
+                    PenetrationConstraintBase* pc = cr.penetration;
+                    if (pc && CanFixtureCollide(pc->a, pc->b)) {
+                        pc->PreSolve(dt);
+                    }
                 }
             }
         }
@@ -231,55 +267,189 @@ namespace FlatPhysics {
     {
         if (active_island_count_ == 0) return;
 
-        for (int iter = 0; iter < iterations; ++iter)
+        if (!enable_intra_island_parallel_)
         {
+            for (int iter = 0; iter < iterations; ++iter)
+            {
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,8)
 #endif
-            for (int i = 0; i < active_island_count_; ++i)
-            {
-                IslandConstraints& island = islands_[i];
-                for (FlatConstraint* c : island.constraints)
+                for (int i = 0; i < active_island_count_; ++i)
                 {
-                    if (CanFixtureCollide(c->a, c->b)) {
-                        c->Solve();
+                    IslandConstraints& island = islands_[i];
+
+                    for (FlatConstraint* c : island.constraints)
+                    {
+                        if (CanFixtureCollide(c->a, c->b)) {
+                            c->Solve();
+                        }
+                    }
+
+                    for (PenetrationConstraintBase* pc : island.penetration_constraints)
+                    {
+                        if (CanFixtureCollide(pc->a, pc->b)) {
+                            pc->Solve();
+                        }
                     }
                 }
+            }
+            return;
+        }
 
-                for (PenetrationConstraintBase* pc : island.penetration_constraints)
+        const int maxColor = global_max_color_;
+
+        for (int iter = 0; iter < iterations; ++iter)
+        {
+            for (int color = 0; color < maxColor; ++color)
+            {
+                auto& work = per_color_work_[color];
+                const int workCount = static_cast<int>(work.size());
+                if (workCount == 0) continue;
+
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+                for (int wi = 0; wi < workCount; ++wi)
                 {
-                    if (CanFixtureCollide(pc->a, pc->b)) {
-                        pc->Solve();
+                    ConstraintWorkItem& item = work[wi];
+                    IslandConstraints* island = item.island;
+                    IslandConstraints::ConstraintRef& cr =
+                        island->all_constraints[item.constraint_index];
+
+                    if (cr.type == IslandConstraints::ConstraintRef::Type::Other)
+                    {
+                        FlatConstraint* c = cr.other;
+                        if (c && CanFixtureCollide(c->a, c->b)) {
+                            c->Solve();
+                        }
+                    }
+                    else
+                    {
+                        PenetrationConstraintBase* pc = cr.penetration;
+                        if (pc && CanFixtureCollide(pc->a, pc->b)) {
+                            pc->Solve();
+                        }
                     }
                 }
             }
         }
     }
-
+//    void FlatSolverPGS::Solve(float dt, int iterations)
+//    {
+//        if (active_island_count_ == 0) return;
+//
+//        // Fallback: original inter-island parallelization
+//        if (!enable_intra_island_parallel_)
+//        {
+//            for (int iter = 0; iter < iterations; ++iter)
+//            {
+//#ifdef _OPENMP
+//#pragma omp parallel for schedule(dynamic,8)
+//#endif
+//                for (int i = 0; i < active_island_count_; ++i)
+//                {
+//                    IslandConstraints& island = islands_[i];
+//
+//                    for (FlatConstraint* c : island.constraints)
+//                    {
+//                        if (CanFixtureCollide(c->a, c->b)) {
+//                            c->Solve();
+//                        }
+//                    }
+//
+//                    for (PenetrationConstraintBase* pc : island.penetration_constraints)
+//                    {
+//                        if (CanFixtureCollide(pc->a, pc->b)) {
+//                            pc->Solve();
+//                        }
+//                    }
+//                }
+//            }
+//            return;
+//        }
+//
+//        // --- New path: ignore GS color sweep order ---
+//        const int workCount = static_cast<int>(color_work_items_.size());
+//        if (workCount == 0) return;
+//
+//        for (int iter = 0; iter < iterations; ++iter)
+//        {
+//#ifdef _OPENMP
+//#pragma omp parallel for schedule(dynamic,8)
+//#endif
+//            for (int wi = 0; wi < workCount; ++wi)
+//            {
+//                const ColorWorkItem& item = color_work_items_[wi];
+//                SolveColorGroup(item);
+//            }
+//        }
+//    }
     void FlatSolverPGS::PostSolve(float dt, int iterations)
     {
         if (active_island_count_ == 0) return;
 
-        for (int iter = 0; iter < iterations; ++iter)
+        if (!enable_intra_island_parallel_)
         {
+            for (int iter = 0; iter < iterations; ++iter)
+            {
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,8)
 #endif
-            for (int i = 0; i < active_island_count_; ++i)
-            {
-                IslandConstraints& island = islands_[i];
-
-                for (FlatConstraint* c : island.constraints)
+                for (int i = 0; i < active_island_count_; ++i)
                 {
-                    if (CanFixtureCollide(c->a, c->b)) {
-                        c->PostSolve();
+                    IslandConstraints& island = islands_[i];
+
+                    for (FlatConstraint* c : island.constraints)
+                    {
+                        if (CanFixtureCollide(c->a, c->b)) {
+                            c->PostSolve();
+                        }
+                    }
+
+                    for (PenetrationConstraintBase* pc : island.penetration_constraints)
+                    {
+                        if (CanFixtureCollide(pc->a, pc->b)) {
+                            pc->PostSolve();
+                        }
                     }
                 }
+            }
+            return;
+        }
 
-                for (PenetrationConstraintBase* pc : island.penetration_constraints)
+        const int maxColor = global_max_color_;
+
+        for (int iter = 0; iter < iterations; ++iter)
+        {
+            for (int color = 0; color < maxColor; ++color)
+            {
+                auto& work = per_color_work_[color];
+                const int workCount = static_cast<int>(work.size());
+                if (workCount == 0) continue;
+
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+                for (int wi = 0; wi < workCount; ++wi)
                 {
-                    if (CanFixtureCollide(pc->a, pc->b)) {
-                        pc->PostSolve();
+                    ConstraintWorkItem& item = work[wi];
+                    IslandConstraints* island = item.island;
+                    IslandConstraints::ConstraintRef& cr =
+                        island->all_constraints[item.constraint_index];
+
+                    if (cr.type == IslandConstraints::ConstraintRef::Type::Other)
+                    {
+                        FlatConstraint* c = cr.other;
+                        if (c && CanFixtureCollide(c->a, c->b)) {
+                            c->PostSolve();
+                        }
+                    }
+                    else
+                    {
+                        PenetrationConstraintBase* pc = cr.penetration;
+                        if (pc && CanFixtureCollide(pc->a, pc->b)) {
+                            pc->PostSolve();
+                        }
                     }
                 }
             }
@@ -306,7 +476,7 @@ namespace FlatPhysics {
         int idxB = bodyB ? bodyB->GetIslandIndex() : -1;
 
         if (idxA >= 0 && idxB >= 0) {
-            return idxA;// both dynamic and awake, same island
+            return idxA;
         }
         if (idxA >= 0) return idxA;
         if (idxB >= 0) return idxB;
@@ -338,7 +508,7 @@ namespace FlatPhysics {
 
             if (fb) {
                 FlatBody* b = fb->GetBody();
-                if (b && !b->IsStatic() && b->GetSolverTempIndex() < 0) { 
+                if (b && !b->IsStatic() && b->GetSolverTempIndex() < 0) {
                     b->SetSolverTempIndex(static_cast<int>(bodies.size()));
                     bodies.push_back(b);
                 }
@@ -366,7 +536,7 @@ namespace FlatPhysics {
 
             if (fa) {
                 FlatBody* bodyA = fa->GetBody();
-                if (bodyA && !bodyA->IsStatic()) {                
+                if (bodyA && !bodyA->IsStatic()) {
                     int idxA = bodyA->GetSolverTempIndex();
                     if (idxA >= 0 && idxA < bodyCount) {
                         body_constraints[idxA].push_back(i);
@@ -376,9 +546,9 @@ namespace FlatPhysics {
 
             if (fb) {
                 FlatBody* bodyB = fb->GetBody();
-                if (bodyB && !bodyB->IsStatic()) {      
+                if (bodyB && !bodyB->IsStatic()) {
                     int idxB = bodyB->GetSolverTempIndex();
-                    if (idxB >= 0 && idxB < bodyCount) { 
+                    if (idxB >= 0 && idxB < bodyCount) {
                         if (!fa || bodyB != fa->GetBody()) {
                             body_constraints[idxB].push_back(i);
                         }
@@ -411,7 +581,7 @@ namespace FlatPhysics {
             auto mark = [&](FlatFixture* f) {
                 if (!f) return;
                 FlatBody* b = f->GetBody();
-                if (!b || b->IsStatic()) return;      
+                if (!b || b->IsStatic()) return;
                 int bi = b->GetSolverTempIndex();
                 if (bi < 0 || bi >= bodyCount) return;
 
@@ -420,20 +590,22 @@ namespace FlatPhysics {
                     int color = constraint_to_color[constraint_index];
                     if (color >= 0) color_used_mark[color] = current_mark;
                 }
-            };
+                };
 
             mark(fa);
             mark(fb);
 
             int color = 0;
-            while (color <= maxColor && color_used_mark[color] == current_mark) ++color;
+            while (color <= maxColor && color_used_mark[color] == current_mark) {
+                ++color;
+            }
 
             constraint_to_color[ci] = color;
             if (color > maxColor) maxColor = color;
         }
 
         auto& groups = island.color_groups;
-        int groupCount = maxColor + 1;
+        int   groupCount = maxColor + 1;
         if (static_cast<int>(groups.capacity()) < groupCount) {
             groups.reserve(groupCount * 2);
         }
@@ -452,6 +624,80 @@ namespace FlatPhysics {
         for (FlatBody* b : bodies) {
             b->SetSolverTempIndex(-1);
         }
+        island.max_color_plus_one = groupCount;
     }
 
-} 
+    void FlatSolverPGS::HandleGraphColoring()
+    {
+        if (!enable_intra_island_parallel_)
+        {
+            global_max_color_ = 0;
+            per_color_work_.clear();
+            return;
+        }
+
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic, 4)
+#endif
+        for (int i = 0; i < active_island_count_; ++i) {
+            BuildColoringForIslands(islands_[i]);
+        }
+
+        global_max_color_ = 0;
+        int local_max_color = 0;
+#ifdef _OPENMP
+#pragma omp parallel
+        {
+            int thread_max = 0;
+
+#pragma omp for nowait
+            for (int i = 0; i < active_island_count_; ++i)
+            {
+                int mc = islands_[i].max_color_plus_one;
+                if (mc > thread_max)
+                    thread_max = mc;
+            }
+
+#pragma omp critical
+            {
+                if (thread_max > local_max_color)
+                    local_max_color = thread_max;
+            }
+        }
+#else
+        for (int i = 0; i < active_island_count_; ++i)
+        {
+            int mc = islands_[i].max_color_plus_one;
+            if (mc > local_max_color)
+                local_max_color = mc;
+        }
+#endif
+
+        global_max_color_ = local_max_color;
+
+        per_color_work_.clear();
+        per_color_work_.resize(global_max_color_);
+
+        for (int islandIndex = 0; islandIndex < active_island_count_; ++islandIndex)
+        {
+            IslandConstraints& island = islands_[islandIndex];
+            const int maxColor = island.max_color_plus_one;
+            for (int color = 0; color < maxColor; ++color)
+            {
+                const auto& group = island.color_groups[color];
+                if (group.empty()) continue;
+
+                auto& list = per_color_work_[color];
+                list.reserve(list.size() + group.size());
+
+                for (int idx : group)
+                {
+                    per_color_work_[color].push_back(
+                        ConstraintWorkItem{ &island, idx }
+                    );
+                }
+            }
+        }
+    }
+
+}

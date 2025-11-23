@@ -35,33 +35,38 @@ namespace FlatPhysics {
             std::vector<FlatConstraint*>            constraints;
             std::vector<ConstraintRef>              all_constraints;
 
-            std::vector<FlatBody*>                  bodies;            
-            std::vector<std::vector<int>>           body_constraints;  
-            std::vector<int>                        constraint_to_color;            
-            std::vector<int>                       color_used_mark;             
-            std::vector<std::vector<int>>           color_groups;      
+            std::vector<FlatBody*>                  bodies;
+            std::vector<std::vector<int>>           body_constraints;
+            std::vector<int>                        constraint_to_color;
+            std::vector<int>                        color_used_mark;
+            std::vector<std::vector<int>>           color_groups;
+            int max_color_plus_one = 0;
             inline void Clear() {
                 penetration_constraints.clear();
                 constraints.clear();
                 all_constraints.clear();
 
-                bodies.clear();                       
+                bodies.clear();
                 for (auto& v : body_constraints) {
-                    v.clear();                         
+                    v.clear();
                 }
                 constraint_to_color.clear();
                 color_used_mark.clear();
                 for (auto& g : color_groups) {
-                    g.clear();                     
+                    g.clear();
                 }
+                max_color_plus_one = 0;
             }
         };
-
+        struct ConstraintWorkItem {
+            IslandConstraints* island;
+            int                constraint_index;
+        };
     public:
         FlatSolverPGS() = default;
 
         void Initialize(std::vector<FlatManifold>& manifolds,
-            const std::vector<std::unique_ptr<FlatConstraint>>& constraints) override;
+        const std::vector<std::unique_ptr<FlatConstraint>>& constraints) override;
         void PreSolve(float dt) override;
         void Solve(float dt, int iterations) override;
         void PostSolve(float dt, int iterations) override;
@@ -70,6 +75,7 @@ namespace FlatPhysics {
         bool CanFixtureCollide(FlatFixture* fixtureA, FlatFixture* fixtureB);
         int  GetIslandIndex(FlatBody* bodyA, FlatBody* bodyB) const;
         void BuildColoringForIslands(IslandConstraints& island);
+        void HandleGraphColoring();
 
     private:
         std::vector<PenetrationConstraintSinglePoint> one_point_constraints_;
@@ -77,6 +83,11 @@ namespace FlatPhysics {
 
         std::vector<IslandConstraints> islands_;
         int active_island_count_ = 0;
+
+        bool enable_intra_island_parallel_ = true;
+        int global_max_color_ = -1;
+        std::vector<std::vector<ConstraintWorkItem>> per_color_work_;
+
     };
 
-} 
+}

@@ -521,12 +521,12 @@ namespace FlatPhysics {
 		NarrowPhase();
 		BuildIslands();
 		//MeasureTime("solver initialize", [this]() {
-			solver_->Initialize(contacts, constraints);
+		 	solver_->Initialize(contacts, constraints);
 		//});
-		//MeasureTime("island", [this,time]() {
+		MeasureTime("island", [this,time]() {
 			solver_->PreSolve(time);
 			solver_->Solve(time, 15);
-		//});
+		});
 		for (std::unique_ptr<FlatBody>& body : bodies) {
 			body->IntegrateVelocities(time);
 		}
