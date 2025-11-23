@@ -159,7 +159,7 @@ namespace FlatPhysics {
 				return true;
 			}
 			return callback.ReportProxy(id, proxy.user_data);
-			});
+			}); 
 	}
 	void BroadPhaseQuadTree::SetLooseFactor(float factor)
 	{
