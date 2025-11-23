@@ -105,7 +105,7 @@ namespace FlatPhysics {
         void SetContactList(FlatContactEdge* edge) { contact_list_ = edge; }
         int GetIslandIndex()const { return awaken_island_index_; }
         void SetIslandIndex(int idx) { awaken_island_index_ = idx; }
-        bool GetIslandFlag()const { return awaken_island_flag_; }
+        bool GetIslandFlag()const { if (IsStatic())return -1; return awaken_island_flag_; }
         void SetIslandFlag(bool f) { awaken_island_flag_ = f; }
 
 

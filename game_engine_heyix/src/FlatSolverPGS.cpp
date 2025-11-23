@@ -191,10 +191,13 @@ namespace FlatPhysics {
                 island.all_constraints.push_back(ref);
             }
         }
-
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic, 4)
+#endif
         for (int i = 0; i < active_island_count_; ++i) {
             BuildColoringForIslands(islands_[i]);
         }
+
     }
 
     void FlatSolverPGS::PreSolve(float dt)
@@ -327,7 +330,7 @@ namespace FlatPhysics {
 
             if (fa) {
                 FlatBody* b = fa->GetBody();
-                if (b->GetSolverTempIndex() < 0) {
+                if (b && !b->IsStatic() && b->GetSolverTempIndex() < 0) {
                     b->SetSolverTempIndex(static_cast<int>(bodies.size()));
                     bodies.push_back(b);
                 }
@@ -335,7 +338,7 @@ namespace FlatPhysics {
 
             if (fb) {
                 FlatBody* b = fb->GetBody();
-                if (b->GetSolverTempIndex() < 0) {
+                if (b && !b->IsStatic() && b->GetSolverTempIndex() < 0) { 
                     b->SetSolverTempIndex(static_cast<int>(bodies.size()));
                     bodies.push_back(b);
                 }
@@ -363,18 +366,22 @@ namespace FlatPhysics {
 
             if (fa) {
                 FlatBody* bodyA = fa->GetBody();
-                int idxA = bodyA->GetSolverTempIndex();
-                if (idxA >= 0) {
-                    body_constraints[idxA].push_back(i);
+                if (bodyA && !bodyA->IsStatic()) {                
+                    int idxA = bodyA->GetSolverTempIndex();
+                    if (idxA >= 0 && idxA < bodyCount) {
+                        body_constraints[idxA].push_back(i);
+                    }
                 }
             }
 
             if (fb) {
                 FlatBody* bodyB = fb->GetBody();
-                int idxB = bodyB->GetSolverTempIndex();
-                if (idxB >= 0) {
-                    if (!fa || bodyB != fa->GetBody()) {
-                        body_constraints[idxB].push_back(i);
+                if (bodyB && !bodyB->IsStatic()) {      
+                    int idxB = bodyB->GetSolverTempIndex();
+                    if (idxB >= 0 && idxB < bodyCount) { 
+                        if (!fa || bodyB != fa->GetBody()) {
+                            body_constraints[idxB].push_back(i);
+                        }
                     }
                 }
             }
@@ -404,8 +411,10 @@ namespace FlatPhysics {
             auto mark = [&](FlatFixture* f) {
                 if (!f) return;
                 FlatBody* b = f->GetBody();
+                if (!b || b->IsStatic()) return;      
                 int bi = b->GetSolverTempIndex();
-                if (bi < 0) return;
+                if (bi < 0 || bi >= bodyCount) return;
+
                 const auto& constraint_indexes = body_constraints[bi];
                 for (int constraint_index : constraint_indexes) {
                     int color = constraint_to_color[constraint_index];

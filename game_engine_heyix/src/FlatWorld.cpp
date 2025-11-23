@@ -520,7 +520,9 @@ namespace FlatPhysics {
 		//}
 		NarrowPhase();
 		BuildIslands();
-		solver_->Initialize(contacts, constraints);
+		//MeasureTime("solver initialize", [this]() {
+			solver_->Initialize(contacts, constraints);
+		//});
 		//MeasureTime("island", [this,time]() {
 			solver_->PreSolve(time);
 			solver_->Solve(time, 15);

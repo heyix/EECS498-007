@@ -6,7 +6,6 @@
 
 #include <vector>
 #include <cstdint>
-
 namespace FlatPhysics {
 
     class FlatSolverPGS : public IFlatSolver {
