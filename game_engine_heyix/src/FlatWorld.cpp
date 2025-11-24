@@ -23,9 +23,7 @@ namespace FlatPhysics {
 		void AddPair(void* user_data_a, void* user_data_b) override {
 			int tid = 0;
 #ifdef _OPENMP
-			if (omp_in_parallel()) {
-				tid = omp_get_thread_num();
-			}
+			tid = omp_get_thread_num();
 #endif
 			auto* fixtureA = static_cast<FlatFixture*>(user_data_a);
 			auto* fixtureB = static_cast<FlatFixture*>(user_data_b);
@@ -549,10 +547,8 @@ namespace FlatPhysics {
 		contact_pairs.clear();
 		SynchronizeFixtures();
 
-		//MeasureTime("Broadphase", [this]() {
-			this->broadphase_->UpdatePairs(this->collector_.get());		
-			this->collector_->FlattenInfo(contact_pairs);
-		//});
+		this->broadphase_->UpdatePairs(this->collector_.get());		
+		this->collector_->FlattenInfo(contact_pairs);
 		this->collector_->Clear();
 	}
 
