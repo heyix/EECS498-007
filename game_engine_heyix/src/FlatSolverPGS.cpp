@@ -515,14 +515,14 @@ namespace FlatPhysics {
             }
         }
 
-        const int bodyCount = static_cast<int>(bodies.size());
+        const int body_count = static_cast<int>(bodies.size());
 
         std::vector<std::vector<int>>& body_constraints = island.body_constraints;
-        if ((int)body_constraints.capacity() < bodyCount) {
-            body_constraints.reserve(bodyCount * 2);
+        if ((int)body_constraints.capacity() < body_count) {
+            body_constraints.reserve(body_count * 2);
         }
-        body_constraints.resize(bodyCount);
-        for (int i = 0; i < bodyCount; ++i) {
+        body_constraints.resize(body_count);
+        for (int i = 0; i < body_count; ++i) {
             body_constraints[i].clear();
         }
 
@@ -536,7 +536,7 @@ namespace FlatPhysics {
                 FlatBody* bodyA = fa->GetBody();
                 if (bodyA && !bodyA->IsStatic()) {
                     int idxA = bodyA->GetSolverTempIndex();
-                    if (idxA >= 0 && idxA < bodyCount) {
+                    if (idxA >= 0 && idxA < body_count) {
                         body_constraints[idxA].push_back(i);
                     }
                 }
@@ -546,7 +546,7 @@ namespace FlatPhysics {
                 FlatBody* bodyB = fb->GetBody();
                 if (bodyB && !bodyB->IsStatic()) {
                     int idxB = bodyB->GetSolverTempIndex();
-                    if (idxB >= 0 && idxB < bodyCount) {
+                    if (idxB >= 0 && idxB < body_count) {
                         if (!fa || bodyB != fa->GetBody()) {
                             body_constraints[idxB].push_back(i);
                         }
@@ -581,7 +581,7 @@ namespace FlatPhysics {
                 FlatBody* b = f->GetBody();
                 if (!b || b->IsStatic()) return;
                 int bi = b->GetSolverTempIndex();
-                if (bi < 0 || bi >= bodyCount) return;
+                if (bi < 0 || bi >= body_count) return;
 
                 const auto& constraint_indexes = body_constraints[bi];
                 for (int constraint_index : constraint_indexes) {
