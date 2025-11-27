@@ -11,12 +11,13 @@ void PhysicsDB::Init_PhysicsDB()
 
 void PhysicsDB::Physics_Step()
 {
+	float dt = Engine::instance->running_game->Fixed_Delta_Time();
 	if (!physics_world) {
 		return;
 	}
-	physics_world->Step(Engine::instance->running_game->Fixed_Delta_Time(), 8, 3);
-	if (flat_world) {
-		flat_world->Step(Engine::instance->running_game->Fixed_Delta_Time());
+	physics_world->Step(dt, 8, 3);
+	if (distributed_domain) {
+		distributed_domain->Step(dt);
 	}
 }
 
@@ -33,6 +34,25 @@ b2Body* PhysicsDB::Create_Body(b2BodyDef* body)
 void PhysicsDB::Destroy_Body(b2Body* body)
 {
 	physics_world->DestroyBody(body);
+
+}
+
+void PhysicsDB::Destroy_Body(FlatPhysics::FlatBody* body)
+{
+	if (distributed_domain) {
+		return distributed_domain->DestroyBody(body);
+	}
+}
+
+FlatPhysics::FlatBody* PhysicsDB::Create_Flat_Body(const FlatPhysics::BodyDef& def)
+{
+	if (distributed_domain) {
+		return distributed_domain->CreateBody(def);
+	}
+	if (flat_world) {
+		return flat_world->CreateBody(def);
+	}
+	return nullptr;
 }
 
 void PhysicsDB::Init_Physics_World()
@@ -45,7 +65,20 @@ void PhysicsDB::Init_Physics_World()
 	contact_listener = std::make_unique<ContactListener>();
 	physics_world->SetContactListener(contact_listener.get());
 
-	flat_world = std::make_unique<FlatPhysics::FlatWorld>();
+	FlatPhysics::FlatAABB world_bounds;
+	world_bounds.min = Vector2(-10.0f, -10.0f);
+	world_bounds.max = Vector2(150.0f, 150.0f);
+
+	int grid_nx = 1;
+	int grid_ny = 1;
+
+	distributed_domain = std::make_unique<FlatPhysics::DistributedDomain>(
+		grid_nx,
+		grid_ny,
+		world_bounds
+	);
+
+	flat_world = nullptr;
 }
 
 luabridge::LuaRef PhysicsDB::Lua_Raycast(const Vector2& pos, const Vector2& dir, float dist)

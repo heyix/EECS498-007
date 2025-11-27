@@ -6,6 +6,8 @@ namespace FlatPhysics {
 		cells_.resize(nx_ * ny_);
 		const float dx = (world_bound.max.x() - world_bound.min.x()) / nx_;
 		const float dy = (world_bound.max.y() - world_bound.min.y()) / ny_;
+		cell_width_ = dx;
+		cell_height_ = dy;
 
 		for (int iy = 0; iy < ny_; ++iy) {
 			for (int ix = 0; ix < nx_; ++ix) {
@@ -44,69 +46,84 @@ namespace FlatPhysics {
 		int ix = cell_index % nx_;
 		return { ix, iy };
 	}
-    void DistributedDomain::RebuildGhostsFromPrimaries()
-    {
+	void DistributedDomain::RebuildGhostsFromPrimaries()
+	{
 		for (GridCell& cell : cells_) {
 			if (cell.world) {
 				RemoveGhostBodies(*cell.world);
 			}
 		}
-
 		pending_ghosts_.clear();
 
-		const int cellCount = static_cast<int>(cells_.size());
+		const int cell_count = static_cast<int>(cells_.size());
 
-		for (int ownerIndex = 0; ownerIndex < cellCount; ++ownerIndex) {
-			GridCell& ownerCell = cells_[ownerIndex];
-			if (!ownerCell.world) continue;
+		for (int owner_index = 0; owner_index < cell_count; ++owner_index) {
+			GridCell& owner_cell = cells_[owner_index];
+			if (!owner_cell.world) continue;
 
-			FlatWorld& ownerWorld = *ownerCell.world;
-			auto& bodies = ownerWorld.GetBodies();
+			FlatWorld& owner_world = *owner_cell.world;
+			auto& bodies = owner_world.GetBodies();
 
-			auto [ownerX, ownerY] = GetCellCoordFromIndex(ownerIndex);
-
-			for (const auto& bodyUPtr : bodies) {
-				FlatBody* body = bodyUPtr.get();
+			for (const auto& body_uptr : bodies) {
+				FlatBody* body = body_uptr.get();
 				if (!body) continue;
 
 				if (body->IsGhost()) continue;
-				if (body->GetOwnerCell() != ownerIndex) continue;
+				if (body->GetOwnerCell() != owner_index) continue;
 
 				FlatAABB aabb = body->ComputeBodyAABB();
 
-				for (int dy = -1; dy <= 1; ++dy) {
-					int ny = ownerY + dy;
-					if (ny < 0 || ny >= ny_) continue;
+				float min_x = aabb.min.x();
+				float max_x = aabb.max.x();
+				float min_y = aabb.min.y();
+				float max_y = aabb.max.y();
 
-					for (int dx = -1; dx <= 1; ++dx) {
-						int nx = ownerX + dx;
-						if (nx < 0 || nx >= nx_) continue;
+				int min_ix = static_cast<int>((min_x - world_bounds_.min.x()) / cell_width_);
+				int max_ix = static_cast<int>((max_x - world_bounds_.min.x()) / cell_width_);
+				int min_iy = static_cast<int>((min_y - world_bounds_.min.y()) / cell_height_);
+				int max_iy = static_cast<int>((max_y - world_bounds_.min.y()) / cell_height_);
 
-						int neighborIndex = CellIndex(nx, ny);
-						if (neighborIndex == ownerIndex) continue;
+				if (min_ix < 0)      min_ix = 0;
+				if (max_ix >= nx_)   max_ix = nx_ - 1;
+				if (min_iy < 0)      min_iy = 0;
+				if (max_iy >= ny_)   max_iy = ny_ - 1;
 
-						GridCell& neighborCell = cells_[neighborIndex];
-						if (!neighborCell.world) continue;
-
-						if (!FlatAABB::IntersectAABB(aabb, neighborCell.bound)) {
+				for (int iy = min_iy; iy <= max_iy; ++iy) {
+					for (int ix = min_ix; ix <= max_ix; ++ix) {
+						int neighbor_index = CellIndex(ix, iy);
+						if (neighbor_index == owner_index) {
 							continue;
 						}
 
-						SendGhostToCell(body, ownerIndex, neighborIndex);
+						GridCell& neighbor_cell = cells_[neighbor_index];
+						if (!neighbor_cell.world) continue;
+
+						if (!FlatAABB::IntersectAABB(aabb, neighbor_cell.bound)) {
+							continue;
+						}
+
+						SendGhostToCell(body, owner_index, neighbor_index);
 					}
 				}
 			}
 		}
+
 		ApplyGhostsLocalFromPending();
-    }
+	}
 	void DistributedDomain::RemoveGhostBodies(FlatWorld& world)
 	{
 		std::vector<std::unique_ptr<FlatBody>>& bodies = world.GetBodies();
-		for (int i = static_cast<int>(bodies.size()) - 1; i >= 0; --i) {
-			FlatBody* b = bodies[i].get();
-			if (b->IsGhost()) {
-				world.DestroyBody(b);
+		std::vector<FlatBody*> ghosts_to_destroy;
+
+		for (const auto& body_uptr : bodies) {
+			FlatBody* b = body_uptr.get();
+			if (b && b->IsGhost()) {
+				ghosts_to_destroy.push_back(b);
 			}
+		}
+
+		for (FlatBody* ghost : ghosts_to_destroy) {
+			world.DestroyBody(ghost);
 		}
 	}
 	void DistributedDomain::MigratePrimaries()
@@ -179,6 +196,7 @@ namespace FlatPhysics {
 			dstBody->SetGlobalID(srcBody->GetGlobalID());
 			dstBody->MarkFixturesDirty();
 
+			primary_by_id_[dstBody->GetGlobalID()] = dstBody;
 			srcWorld.DestroyBody(srcBody);
 		}
 	}
@@ -274,7 +292,33 @@ namespace FlatPhysics {
 		body->SetOwnerCell(cellIndex);
 		body->SetGlobalID(next_global_id_++);
 
+		primary_by_id_[body->GetGlobalID()] = body;
 		return body;
+	}
+	void DistributedDomain::DestroyBody(FlatBody* body) {
+		if (!body) return;
+
+		const int target_id = body->GetGlobalID();
+
+		primary_by_id_.erase(target_id);
+		for (GridCell& cell : cells_)
+		{
+			if (!cell.world) continue;
+
+			FlatWorld& world = *cell.world;
+			auto& bodies = world.GetBodies();
+
+			for (int i = static_cast<int>(bodies.size()) - 1; i >= 0; --i)
+			{
+				FlatBody* b = bodies[i].get();
+				if (!b) continue;
+
+				if (b->GetGlobalID() == target_id)
+				{
+					world.DestroyBody(b);
+				}
+			}
+		}
 	}
 	void DistributedDomain::Step(float dt) {
 		RebuildGhostsFromPrimaries();
@@ -282,5 +326,21 @@ namespace FlatPhysics {
 			cells_[i].world->Step(dt);
 		}
 		MigratePrimaries();
+	}
+	void DistributedDomain::ForEachWorld(const std::function<void(FlatWorld&)>& func)
+	{
+		for (GridCell& cell : cells_) {
+			if (cell.world) {
+				func(*cell.world);
+			}
+		}
+	}
+	FlatBody* DistributedDomain::FindPrimaryBodyByID(int global_id) const
+	{
+		auto it = primary_by_id_.find(global_id);
+		if (it == primary_by_id_.end()) {
+			return nullptr;
+		}
+		return it->second;
 	}
 }

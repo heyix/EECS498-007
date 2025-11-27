@@ -182,7 +182,10 @@ void DrawBodyComponent::On_Start()
     bodyDef.angular_damping = 0.5f;
     bodyDef.is_static = is_static;
     bodyDef.allow_sleep = false;
-    this->body = PhysicsDB::flat_world->CreateBody(bodyDef);
+    FlatPhysics::FlatBody* body = PhysicsDB::Create_Flat_Body(bodyDef);
+    if (body) {
+        body_global_id = body->GetGlobalID();
+    }
     if (shape == "Box") {
         std::unique_ptr<FlatPhysics::PolygonShape> polygon_shape = std::make_unique<FlatPhysics::PolygonShape>();
         polygon_shape->SetAsBox(width, height);
@@ -247,7 +250,11 @@ void DrawBodyComponent::On_Start()
 void DrawBodyComponent::On_Fixed_Update()
 {
     if (this->holder_object->ID == 5)GetTime();
-    MoveFirstBody();
+    //MoveFirstBody();
+}
+
+void DrawBodyComponent::On_Destroy()
+{
 }
 
 void DrawBodyComponent::Add_Int_Property(const std::string& key, int new_property)
@@ -316,6 +323,8 @@ void DrawBodyComponent::Add_Bool_Property(const std::string& key, bool new_prope
 
 void DrawBodyComponent::DrawBody()
 {
+    FlatPhysics::FlatBody* body = GetBodySafe();
+    if (!body) return;
     for (const std::unique_ptr<FlatPhysics::FlatFixture>& fixture : body->GetFixtures()) {
         FlatPhysics::FlatAABB aabb = fixture->GetAABB();
         if (!IsAABBVisible(aabb)) {
@@ -363,18 +372,19 @@ void DrawBodyComponent::DrawBody()
 
 void DrawBodyComponent::MoveFirstBody()
 {
-    if (holder_object->ID != 7)return;
-    float len = move_dir.Length();
-    if (len > 0.0f) {
-        move_dir = move_dir * (1.0f / len);               
-        const Vector2 delta = move_dir * 2.5;
-        //body->Move(delta * Engine::instance->running_game->Delta_Time()); 
-        body->AddForce(delta);
-    }
+    //if (holder_object->ID != 7)return;
+    //float len = move_dir.Length();
+    //if (len > 0.0f) {
+    //    move_dir = move_dir * (1.0f / len);               
+    //    const Vector2 delta = move_dir * 2.5;
+    //    //body->Move(delta * Engine::instance->running_game->Delta_Time()); 
+    //    body->AddForce(delta);
+    //}
 }
 
 void DrawBodyComponent::Rotate()
 {
+    FlatPhysics::FlatBody* body = GetBodySafe();
     if (!body) return;
     float rotation_speed = 360 * Engine::instance->running_game->Delta_Time();
     body->Rotate(FlatPhysics::FlatMath::DegToRad(rotation_speed));
@@ -382,6 +392,8 @@ void DrawBodyComponent::Rotate()
 
 void DrawBodyComponent::DrawAABB()
 {
+    FlatPhysics::FlatBody* body = GetBodySafe();
+    if (!body) return;
     Vector2 bodyPos = body->GetPosition();
 
     for (const auto& fixture : body->GetFixtures()) {
@@ -412,44 +424,60 @@ void DrawBodyComponent::GetTime()
     physics_step_time = Engine::instance->running_game->GetPhysicsStepTime();
     physics_fps = Engine::instance->running_game->GetPhysicsFPS();
 }
+FlatPhysics::FlatBody* DrawBodyComponent::GetBodySafe()
+{
+    FlatPhysics::FlatBody* resolved =
+        PhysicsDB::distributed_domain->FindPrimaryBodyByID(body_global_id);
+
+    return resolved;
+}
 void DrawBodyComponent::DrawContactPoints() {
-    if (holder_object->ID == 5)
-    {
-        auto& manifolds = PhysicsDB::flat_world->GetContactPoints();
+    if (holder_object->ID != 5) {
+        return;
+    }
 
-        for (const FlatPhysics::FlatManifold& m : manifolds)
+    if (!PhysicsDB::distributed_domain) {
+        return;
+    }
+
+    PhysicsDB::distributed_domain->ForEachWorld(
+        [](FlatPhysics::FlatWorld& world)
         {
-            for (const FlatPhysics::ContactPoint& cp : m.contact_points)
+            const auto& manifolds = world.GetContactPoints();
+
+            for (const FlatPhysics::FlatManifold& m : manifolds)
             {
-                constexpr float kMarkerHalfSize = 0.03f;
-                static const std::vector<Vector2> markerVerts = {
-                    { -kMarkerHalfSize, -kMarkerHalfSize },
-                    {  kMarkerHalfSize, -kMarkerHalfSize },
-                    {  kMarkerHalfSize,  kMarkerHalfSize },
-                    { -kMarkerHalfSize,  kMarkerHalfSize }
-                };
+                for (const FlatPhysics::ContactPoint& cp : m.contact_points)
+                {
+                    constexpr float kMarkerHalfSize = 0.03f;
+                    static const std::vector<Vector2> marker_verts = {
+                        { -kMarkerHalfSize, -kMarkerHalfSize },
+                        {  kMarkerHalfSize, -kMarkerHalfSize },
+                        {  kMarkerHalfSize,  kMarkerHalfSize },
+                        { -kMarkerHalfSize,  kMarkerHalfSize }
+                    };
 
-                Vector2 c = cp.end;
+                    Vector2 c = cp.end;
+                    Vector2 p0 = c + marker_verts[0];
+                    Vector2 p1 = c + marker_verts[1];
+                    Vector2 p2 = c + marker_verts[2];
+                    Vector2 p3 = c + marker_verts[3];
 
-                Vector2 p0 = c + markerVerts[0];
-                Vector2 p1 = c + markerVerts[1];
-                Vector2 p2 = c + markerVerts[2];
-                Vector2 p3 = c + markerVerts[3];
+                    FlatPhysics::FlatAABB aabb;
+                    aabb.min = { std::min(std::min(p0.x(), p1.x()), std::min(p2.x(), p3.x())),
+                                 std::min(std::min(p0.y(), p1.y()), std::min(p2.y(), p3.y())) };
 
-                FlatPhysics::FlatAABB aabb;
-                aabb.min = { std::min(std::min(p0.x(), p1.x()), std::min(p2.x(), p3.x())),
-                             std::min(std::min(p0.y(), p1.y()), std::min(p2.y(), p3.y())) };
+                    aabb.max = { std::max(std::max(p0.x(), p1.x()), std::max(p2.x(), p3.x())),
+                                 std::max(std::max(p0.y(), p1.y()), std::max(p2.y(), p3.y())) };
 
-                aabb.max = { std::max(std::max(p0.x(), p1.x()), std::max(p2.x(), p3.x())),
-                             std::max(std::max(p0.y(), p1.y()), std::max(p2.y(), p3.y())) };
+                    if (!IsAABBVisible(aabb))
+                        continue;
 
-                if (!IsAABBVisible(aabb))
-                    continue;
-
-                Engine::instance->renderer->draw_polygon(
-                    markerVerts, cp.end, 0.0f, 255, 0, 0, 255, false, 1
-                );
+                    Engine::instance->renderer->draw_polygon(
+                        marker_verts, cp.end, 0.0f, 255, 0, 0, 255, false, 1
+                    );
+                }
             }
         }
-    }
+    );
 }

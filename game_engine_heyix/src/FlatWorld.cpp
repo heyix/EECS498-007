@@ -104,7 +104,7 @@ namespace FlatPhysics {
 	void FlatWorld::AddBody(FlatBody* body)
 	{
 		if (!body || index_map.count(body))return;
-		const int index = static_cast<int>(bodies.size());
+		const int index = static_cast<int>(bodies.size()) - 1;
 		index_map[body] = index;
 
 		body->SetWorld(this);
@@ -122,6 +122,7 @@ namespace FlatPhysics {
 		if (it == index_map.end()) {
 			return false;
 		}
+		body->SetWorld(nullptr);
 		UnregisterAllFixtureContactEdges(body);
 		if (broadphase_) {
 			for (const auto& fixture_uptr : body->GetFixtures()) {
@@ -136,9 +137,7 @@ namespace FlatPhysics {
 			index_map[bodies[index].get()] = index;
 		}
 		bodies.pop_back();
-		index_map.erase(it);
-
-		body->SetWorld(nullptr);
+		index_map.erase(it); 
 		return true;
 	}
 
@@ -168,7 +167,7 @@ namespace FlatPhysics {
 		if (!fixture || !broadphase_) {
 			return;
 		}
-
+		
 		FlatAABB aabb = fixture->GetAABB();
 		ProxyID id = broadphase_->CreateProxy(aabb, fixture->GetBroadPhaseUserData());
 		fixture->SetProxyID(id);
@@ -451,7 +450,6 @@ namespace FlatPhysics {
 		if (!broadphase_) {
 			return;
 		}
-
 		for (std::unique_ptr<FlatBody>& body : bodies) {
 			const auto& fixtures = body->GetFixtures();
 			for (const auto& fixture_uptr : fixtures) {

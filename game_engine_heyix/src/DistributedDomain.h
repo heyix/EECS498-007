@@ -20,7 +20,10 @@ namespace FlatPhysics {
 		DistributedDomain(int nx, int ny, const FlatAABB& world_bound);
 	public:
 		FlatBody* CreateBody(const BodyDef& def);
+		void DestroyBody(FlatBody* body);
 		void Step(float dt);
+		void ForEachWorld(const std::function<void(FlatWorld&)>& func);
+		FlatBody* FindPrimaryBodyByID(int global_id) const;
 	private:
 		int CellIndex(int ix, int iy)const { return iy * nx_ + ix; }
 		GridCell& CellAt(int ix, int iy) { return cells_[CellIndex(ix, iy)]; }
@@ -42,9 +45,12 @@ namespace FlatPhysics {
 		int nx_;
 		int ny_;
 		FlatAABB world_bounds_;
+	public:
 		std::vector<GridCell> cells_;
 		int next_global_id_ = 1;
-
+		float cell_width_ = 1.0f; 
+		float cell_height_ = 1.0f; 
 		std::vector<GhostSendRecord> pending_ghosts_;
+		std::unordered_map<int, FlatBody*> primary_by_id_;
 	};
 }

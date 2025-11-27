@@ -62,7 +62,6 @@ namespace FlatPhysics {
 		proxies_[id] = Proxy{};
 		proxies_[id].active = false;
 		free_list_.push_back(id);
-
 		destroyed_since_rebuild_++;
 		int total_slots = proxies_.size();
 		int free_slots = free_list_.size();
@@ -126,6 +125,7 @@ namespace FlatPhysics {
 
 			bool print_info = false;
 			std::vector<int> scanned;
+			if (print_info)scanned = std::vector<int>(count, 0);
 			using UserPair = std::pair<void*, void*>;
 #pragma omp parallel for schedule(dynamic,64)
 			for (ProxyID i = 0; i < count; i++) {

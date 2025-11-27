@@ -26,6 +26,8 @@ public:
 	static void Rigidbody_Instantiated();
 	static b2Body* Create_Body(b2BodyDef* body);
 	static void Destroy_Body(b2Body* body);
+	static void Destroy_Body(FlatPhysics::FlatBody* body);
+	static FlatPhysics::FlatBody* Create_Flat_Body(const FlatPhysics::BodyDef& def);
 public:
 	static luabridge::LuaRef Lua_Raycast(const Vector2& pos, const Vector2& dir, float dist);
 	static luabridge::LuaRef Lua_Raycast_All(const Vector2& pos, const Vector2& dir, float dist);

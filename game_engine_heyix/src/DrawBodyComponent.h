@@ -16,6 +16,7 @@ public:
     void On_Update()override;
     void On_Start()override;
     void On_Fixed_Update()override;
+    void On_Destroy()override;
     void Add_Int_Property(const std::string& key, int new_property) override;
     void Add_Float_Property(const std::string& key, float new_property) override;
     void Add_String_Property(const std::string& key, const std::string& new_property)override;
@@ -23,7 +24,7 @@ public:
 public:
     std::string shape = "Polygon";
 private:
-    FlatPhysics::FlatBody* body = nullptr;
+    int body_global_id = -1;
     Vector2 move_dir{ 0,0 };
     float width = 1.0f;
     float height = 1.0f;
@@ -42,4 +43,5 @@ private:
     void DrawTime();
     void DrawContactPoints();
     void GetTime();
+    FlatPhysics::FlatBody* GetBodySafe();
 };

@@ -105,17 +105,7 @@ namespace FlatPhysics {
         float GetSleepTime() const { return sleep_time_; }
         void AddSleepTime(float dt) { sleep_time_ += dt; }
         void SetSleepTime(float t) { sleep_time_ = t; }
-    private:
-        FlatContactEdge* GetContactList()const { return contact_list_; }
-        void SetContactList(FlatContactEdge* edge) { contact_list_ = edge; }
-        int GetIslandIndex()const { return awaken_island_index_; }
-        void SetIslandIndex(int idx) { awaken_island_index_ = idx; }
-        bool GetIslandFlag()const { if (IsStatic())return -1; return awaken_island_flag_; }
-        void SetIslandFlag(bool f) { awaken_island_flag_ = f; }
 
-
-        int  GetSolverTempIndex() const { return solver_temp_index_; }
-        void SetSolverTempIndex(int v) { solver_temp_index_ = v; }
 
         bool IsGhost() { return is_ghost_; }
         void SetGhost(bool g) { is_ghost_ = g; }
@@ -123,6 +113,18 @@ namespace FlatPhysics {
         void SetOwnerCell(int idx) { owner_cell_ = idx; }
         int GetGlobalID()const { return global_id_; }
         void SetGlobalID(int id) { global_id_ = id; }
+    private:
+        FlatContactEdge* GetContactList()const { return contact_list_; }
+        void SetContactList(FlatContactEdge* edge) { contact_list_ = edge; }
+        int GetIslandIndex()const { return awaken_island_index_; }
+        void SetIslandIndex(int idx) { awaken_island_index_ = idx; }
+        bool GetIslandFlag()const { if (IsStatic())return false; return awaken_island_flag_; }
+        void SetIslandFlag(bool f) { awaken_island_flag_ = f; }
+
+
+        int  GetSolverTempIndex() const { return solver_temp_index_; }
+        void SetSolverTempIndex(int v) { solver_temp_index_ = v; }
+
     public:
         //User API
         void Move(const Vector2& amount, bool can_wake_up = true);
