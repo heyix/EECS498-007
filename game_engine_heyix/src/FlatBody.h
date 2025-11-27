@@ -11,6 +11,7 @@ namespace FlatPhysics {
     class FlatWorld;
     class FlatSolverPGS;
     struct FlatContactEdge;
+    class DistributedDomain;
     class FlatBody {
     private:
         FlatBody(
@@ -22,6 +23,7 @@ namespace FlatPhysics {
         );
         friend FlatWorld;
         friend FlatSolverPGS;
+        friend DistributedDomain;
     private:
         FlatWorld* world_ = nullptr;
         std::vector<std::unique_ptr<FlatFixture>> fixtures_;
@@ -55,7 +57,10 @@ namespace FlatPhysics {
         int awaken_island_index_ = -1;
         bool awaken_island_flag_ = false;
         int solver_temp_index_ = -1;
-        friend class FlatWorld;
+
+        bool is_ghost_ = false;
+        int owner_cell_ = -1;
+        int global_id_ = 0;
     public:
         void SetWorld(FlatWorld* world) { world_ = world; }
         FlatWorld* GetWorld() const { return world_; }
@@ -66,12 +71,12 @@ namespace FlatPhysics {
         FlatFixture* CreateFixture(const FixtureDef& def);
         void DestroyFixture(FlatFixture* fixture);
         const FlatTransform& GetTransform();
-
+        FlatAABB ComputeBodyAABB()const;
 
         const Vector2& GetPosition() const { return position; }
         float GetAngle()const { return angle_rad; }
-        const Vector2& GetLinearVelocity() { return linear_velocity; }
-        float GetAngularVelocity() { return angular_velocity; }
+        const Vector2& GetLinearVelocity()const { return linear_velocity; }
+        float GetAngularVelocity() const { return angular_velocity; }
         float GetMass() { return mass; }
         float GetInverseMass() { return inverse_mass; }
         float GetInertia() { return inertia; }
@@ -111,6 +116,13 @@ namespace FlatPhysics {
 
         int  GetSolverTempIndex() const { return solver_temp_index_; }
         void SetSolverTempIndex(int v) { solver_temp_index_ = v; }
+
+        bool IsGhost() { return is_ghost_; }
+        void SetGhost(bool g) { is_ghost_ = g; }
+        int GetOwnerCell()const { return owner_cell_; }
+        void SetOwnerCell(int idx) { owner_cell_ = idx; }
+        int GetGlobalID()const { return global_id_; }
+        void SetGlobalID(int id) { global_id_ = id; }
     public:
         //User API
         void Move(const Vector2& amount, bool can_wake_up = true);

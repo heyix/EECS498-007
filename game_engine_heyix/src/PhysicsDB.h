@@ -6,6 +6,7 @@
 #include "lua/lua.hpp"
 #include "LuaBridge/LuaBridge.h"
 #include "FlatWorld.h"
+#include "DistributedDomain.h"
 class HitResult {
 public:
 	GameObject* actor;
@@ -32,4 +33,5 @@ public:
 	static inline std::unique_ptr<ContactListener> contact_listener = nullptr;
 public:
 	static inline std::unique_ptr<FlatPhysics::FlatWorld> flat_world = nullptr;
+	static inline std::unique_ptr<FlatPhysics::DistributedDomain> distributed_domain = nullptr;
 };

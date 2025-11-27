@@ -121,7 +121,7 @@ namespace FlatPhysics {
 		FlushDirty();
 		if (!root_) return;
 
-		MeasureTime("Broadphase", [this,&callback]() {
+		//MeasureTime("Broadphase", [this,&callback]() {
 			const ProxyID count = static_cast<ProxyID>(proxies_.size());
 
 			bool print_info = false;
@@ -174,7 +174,7 @@ namespace FlatPhysics {
 					printf("  Max scanned       = %d (proxy %d)\n", max_scanned, max_proxy);
 				printf("----------------------------------\n");
 			}
-		});
+		//});
 		
 	}
 

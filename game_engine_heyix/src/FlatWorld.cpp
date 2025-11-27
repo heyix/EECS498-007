@@ -504,6 +504,9 @@ namespace FlatPhysics {
 		//}
 		//std::cout << count<<std::endl;
 		for (std::unique_ptr<FlatBody>& body : bodies) {
+			if (body->IsGhost()) {
+				continue;
+			}
 			body->IntegrateForces(time,gravity);
 			body->ApplyDampling(time);
 		}
@@ -527,7 +530,7 @@ namespace FlatPhysics {
 			body->IntegrateVelocities(time);
 		}
 		solver_->PostSolve(time, 2);
-		UpdateSleeping(time);
+		//UpdateSleeping(time);
 		//CollisionDetectionStep(time);
 	}
 	void FlatWorld::AddConstraint(std::unique_ptr<FlatConstraint> constraint)

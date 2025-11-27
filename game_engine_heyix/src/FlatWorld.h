@@ -24,6 +24,7 @@ namespace FlatPhysics {
 		friend class FlatBody;
 	public:
 		int GetBodyCount() { return bodies.size(); }
+		std::vector<std::unique_ptr<FlatBody>>& GetBodies() { return bodies; }
 	public:
 		bool DestroyBody(FlatBody* body);
 		FlatBody* CreateBody(const BodyDef& def);

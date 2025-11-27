@@ -70,6 +70,33 @@ const FlatTransform& FlatPhysics::FlatBody::GetTransform()
     }
     return current_transform;
 }
+FlatAABB FlatPhysics::FlatBody::ComputeBodyAABB() const
+{
+    FlatAABB combined;
+    bool first = true;
+
+    const auto& fixtures = GetFixtures();
+    for (const auto& f_uptr : fixtures) {
+        FlatFixture* f = f_uptr.get();
+        FlatAABB aabb = f->GetAABB();
+        if (first) {
+            combined = aabb;
+            first = false;
+        }
+        else {
+            combined.min.x() = (std::min(combined.min.x(), aabb.min.x()));
+            combined.min.y() = (std::min(combined.min.y(), aabb.min.y()));
+            combined.max.x() = (std::max(combined.max.x(), aabb.max.x()));
+            combined.max.y() = (std::max(combined.max.y(), aabb.max.y()));
+        }
+    }
+
+    if (first) {
+        Vector2 p = GetPosition();
+        combined = FlatAABB(p.x(), p.y(), p.x(), p.y());
+    }
+    return combined;
+}
 void FlatBody::MarkFixturesDirty()
 {
     for (auto& fixture : fixtures_) {
