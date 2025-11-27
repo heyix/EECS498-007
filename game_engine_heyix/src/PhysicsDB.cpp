@@ -67,10 +67,10 @@ void PhysicsDB::Init_Physics_World()
 
 	FlatPhysics::FlatAABB world_bounds;
 	world_bounds.min = Vector2(-10.0f, -10.0f);
-	world_bounds.max = Vector2(150.0f, 150.0f);
+	world_bounds.max = Vector2(170.0f, 160.0f);
 
-	int grid_nx = 1;
-	int grid_ny = 1;
+	int grid_nx = 2;
+	int grid_ny = 2;
 
 	distributed_domain = std::make_unique<FlatPhysics::DistributedDomain>(
 		grid_nx,

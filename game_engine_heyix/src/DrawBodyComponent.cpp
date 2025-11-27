@@ -363,7 +363,7 @@ void DrawBodyComponent::DrawBody()
             int pr, pg, pb;
             PastelColorFromID(holder_object->ID, pr, pg, pb);
 
-            Engine::instance->renderer->draw_polygon(vertices, body->GetPosition(), body->GetAngle(), pr, pg, pb, 255, false);
+            Engine::instance->renderer->draw_polygon(vertices, body->GetPosition(), body->GetAngle(), pr, pg, pb, 255, true);
             break;
         }
         }
