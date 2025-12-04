@@ -525,6 +525,9 @@ namespace FlatPhysics {
 			solver_->Solve(time, 15);
 		//});
 		for (std::unique_ptr<FlatBody>& body : bodies) {
+			if (body->IsGhost()) {
+				continue;
+			}
 			body->IntegrateVelocities(time);
 		}
 		solver_->PostSolve(time, 2);
@@ -590,6 +593,10 @@ namespace FlatPhysics {
 				FlatBody* bodyA = fa->GetBody();
 				FlatBody* bodyB = fb->GetBody();
 
+				if (bodyA->IsGhost() && bodyB->IsGhost()) {
+					continue;
+				}
+
 				if (!bodyA->IsAwake() && !bodyB->IsAwake()) {
 					continue;
 				}
@@ -620,6 +627,13 @@ namespace FlatPhysics {
 			auto it = contact_map_.find(key);
 			const bool existed = (it != contact_map_.end());
 
+			if (bodyA->IsGhost() && bodyB->IsGhost()) {
+				if (existed) {
+					const int idx = it->second;
+					DestroyContactManifold(idx);
+				}
+				continue;
+			}
 			const bool bothSleeping = !bodyA->IsAwake() && !bodyB->IsAwake();
 
 			// --- SPECIAL CASE: both sleeping ---

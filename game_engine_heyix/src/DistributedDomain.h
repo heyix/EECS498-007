@@ -4,16 +4,20 @@
 #include "FlatAABB.h"
 #include "FlatDefs.h"
 #include <memory>
+#include <unordered_set>
 namespace FlatPhysics {
 	struct GridCell {
 		FlatAABB bound;
 		std::unique_ptr<FlatWorld> world = nullptr;
+		std::unordered_map<int, FlatBody*> ghosts_by_id;
+		std::unordered_set<int> ghosts_touched_this_step;
 	};
 	class DistributedDomain {
 	private:
 		struct GhostSendRecord {
 			int owner_cell = -1;
 			int neighbor_cell = -1;
+			int global_id = -1;
 			const FlatBody* source = nullptr;
 		};
 	public:
@@ -41,6 +45,8 @@ namespace FlatPhysics {
 		void SendGhostToCell(const FlatBody* src, int owner_cell_index, int neighbor_cell_index);
 		void ApplyGhostsLocalFromPending();
 
+		void RemoveStaleGhostsForCell(GridCell& cell);
+		void HandleIncomingGhostForCell(GridCell& cell, const GhostSendRecord& rec);
 	private:
 		int nx_;
 		int ny_;

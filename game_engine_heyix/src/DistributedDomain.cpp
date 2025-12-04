@@ -49,9 +49,7 @@ namespace FlatPhysics {
 	void DistributedDomain::RebuildGhostsFromPrimaries()
 	{
 		for (GridCell& cell : cells_) {
-			if (cell.world) {
-				RemoveGhostBodies(*cell.world);
-			}
+			cell.ghosts_touched_this_step.clear();
 		}
 		pending_ghosts_.clear();
 
@@ -83,10 +81,10 @@ namespace FlatPhysics {
 				int min_iy = static_cast<int>((min_y - world_bounds_.min.y()) / cell_height_);
 				int max_iy = static_cast<int>((max_y - world_bounds_.min.y()) / cell_height_);
 
-				if (min_ix < 0)      min_ix = 0;
-				if (max_ix >= nx_)   max_ix = nx_ - 1;
-				if (min_iy < 0)      min_iy = 0;
-				if (max_iy >= ny_)   max_iy = ny_ - 1;
+				if (min_ix < 0)       min_ix = 0;
+				if (max_ix >= nx_)    max_ix = nx_ - 1;
+				if (min_iy < 0)       min_iy = 0;
+				if (max_iy >= ny_)    max_iy = ny_ - 1;
 
 				for (int iy = min_iy; iy <= max_iy; ++iy) {
 					for (int ix = min_ix; ix <= max_ix; ++ix) {
@@ -109,6 +107,10 @@ namespace FlatPhysics {
 		}
 
 		ApplyGhostsLocalFromPending();
+
+		for (GridCell& cell : cells_) {
+			RemoveStaleGhostsForCell(cell);
+		}
 	}
 	void DistributedDomain::RemoveGhostBodies(FlatWorld& world)
 	{
@@ -248,35 +250,86 @@ namespace FlatPhysics {
 	}
 	void DistributedDomain::SendGhostToCell(const FlatBody* src, int owner_cell_index, int neighbor_cell_index)
 	{
+		if (!src) return;
 		GhostSendRecord record;
 		record.owner_cell = owner_cell_index;
 		record.neighbor_cell = neighbor_cell_index;
+		record.global_id = src->GetGlobalID();
 		record.source = src;
 		pending_ghosts_.push_back(record);
 	}
 	void DistributedDomain::ApplyGhostsLocalFromPending()
 	{
 		for (const GhostSendRecord& rec : pending_ghosts_) {
-			if (!rec.source) continue;
+			if (rec.neighbor_cell < 0 ||
+				rec.neighbor_cell >= static_cast<int>(cells_.size())) {
+				continue;
+			}
 
-			GridCell& neighborCell = cells_[rec.neighbor_cell];
-			if (!neighborCell.world) continue;
+			GridCell& neighbor_cell = cells_[rec.neighbor_cell];
+			HandleIncomingGhostForCell(neighbor_cell, rec);
+		}
 
-			FlatWorld& neighborWorld = *neighborCell.world;
+		pending_ghosts_.clear();
+	}
+	void DistributedDomain::RemoveStaleGhostsForCell(GridCell& cell)
+	{
+		if (!cell.world) return;
+		FlatWorld& world = *cell.world;
 
+		auto it = cell.ghosts_by_id.begin();
+		while (it != cell.ghosts_by_id.end()) {
+			int gid = it->first;
+
+			if (cell.ghosts_touched_this_step.find(gid) ==
+				cell.ghosts_touched_this_step.end()) {
+				FlatBody* ghost = it->second;
+				if (ghost) {
+					world.DestroyBody(ghost);
+				}
+				it = cell.ghosts_by_id.erase(it);
+			}
+			else {
+				++it;
+			}
+		}
+
+		cell.ghosts_touched_this_step.clear();
+	}
+	void DistributedDomain::HandleIncomingGhostForCell(GridCell& cell, const GhostSendRecord& rec)
+	{
+		if (!cell.world) return;
+		FlatWorld& world = *cell.world;
+
+		const int gid = rec.global_id;
+		if (gid <= 0) return;
+		if (!rec.source) return;
+
+		cell.ghosts_touched_this_step.insert(gid);
+
+		auto it = cell.ghosts_by_id.find(gid);
+		if (it != cell.ghosts_by_id.end()) {
+			FlatBody* ghost = it->second;
+			if (!ghost) return;
+
+			CopyBodyState(rec.source, ghost);
+			ghost->SetOwnerCell(rec.owner_cell);
+			ghost->SetGhost(true);
+			ghost->MarkFixturesDirty();
+		}
+		else {
 			BodyDef ghostDef = MakeBodyDefFrom(rec.source);
-			FlatBody* ghost = neighborWorld.CreateBody(ghostDef);
+			FlatBody* ghost = world.CreateBody(ghostDef);
 
 			CopyFixtures(rec.source, ghost);
 			CopyBodyState(rec.source, ghost);
 
 			ghost->SetGhost(true);
 			ghost->SetOwnerCell(rec.owner_cell);
-			ghost->SetGlobalID(rec.source->GetGlobalID());
+			ghost->SetGlobalID(gid);
 			ghost->MarkFixturesDirty();
+			cell.ghosts_by_id.emplace(gid, ghost);
 		}
-
-		pending_ghosts_.clear();
 	}
 	FlatBody* DistributedDomain::CreateBody(const BodyDef& def) {
 		auto [ix, iy] = GetCellCoordFromPosition(def.position);
