@@ -31,7 +31,6 @@ namespace FlatPhysics {
 		float restitution = 0.3f;
 		bool is_trigger = false;
 		Filter filter{};
-		void* user_data = nullptr;
 	};
 	struct BodyDef {
 		Vector2 position{ 0.0f, 0.0f };

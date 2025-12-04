@@ -243,8 +243,6 @@ namespace FlatPhysics {
 			def.restitution = f->GetRestitution();
 			def.is_trigger = f->GetIsTrigger();
 			def.filter = const_cast<FlatFixture*>(f)->GetFilter();
-			def.user_data = f->GetUserData();
-
 			dst->CreateFixture(def);
 		}
 	}

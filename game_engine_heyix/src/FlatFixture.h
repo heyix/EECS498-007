@@ -29,7 +29,6 @@ namespace FlatPhysics {
         float   GetDensity()       const { return density_; }
         float   GetFriction()      const { return friction_; }
         float   GetRestitution()   const { return restitution_; }
-        void* GetUserData()      const { return user_data_; }
 
     public:
         FlatAABB       GetLastAABB()     const { return last_aabb_; }
@@ -57,7 +56,6 @@ namespace FlatPhysics {
     private:
         FlatBody* body_{ nullptr };
         std::unique_ptr<Shape> shape_;
-        void* user_data_{ nullptr };
         Vector2 local_center;
         float density_{ 1.0f };
         float friction_{ 0.3f };

@@ -27,8 +27,7 @@ namespace FlatPhysics {
         friction_(def.friction),
         restitution_(def.restitution),
         is_trigger_(def.is_trigger),
-        filter_(def.filter),
-        user_data_(def.user_data)
+        filter_(def.filter)
     {
         local_center = ComputeLocalCenter();
         proxy_dirty_ = true;
@@ -169,7 +168,6 @@ namespace FlatPhysics {
 
         std::cout << " is_trigger=" << (is_trigger_ ? "true" : "false") << "\n";
 
-        std::cout << " user_data=" << user_data_ << "\n";
 
         if (has_last_aabb_) {
             std::cout << " last_aabb=[("
