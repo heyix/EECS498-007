@@ -18,7 +18,7 @@ namespace FlatPhysics {
 			int owner_cell = -1;
 			int neighbor_cell = -1;
 			int global_id = -1;
-			const FlatBody* source = nullptr;
+			std::vector<std::uint8_t> serialized;
 		};
 	public:
 		DistributedDomain(int nx, int ny, const FlatAABB& world_bound);
@@ -37,10 +37,6 @@ namespace FlatPhysics {
 		void RebuildGhostsFromPrimaries();
 		void RemoveGhostBodies(FlatWorld& world);
 		void MigratePrimaries();
-
-		BodyDef MakeBodyDefFrom(const FlatBody* src) const;
-		void CopyBodyState(const FlatBody* src, FlatBody* dst)const;
-		void CopyFixtures(const FlatBody* src, FlatBody* dst)const;
 
 		void SendGhostToCell(const FlatBody* src, int owner_cell_index, int neighbor_cell_index);
 		void ApplyGhostsLocalFromPending();

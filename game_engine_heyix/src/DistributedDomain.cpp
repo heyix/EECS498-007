@@ -1,4 +1,6 @@
 #include "DistributedDomain.h"
+#include "FlatBodySerialization.h"
+#include "FlatHelper.h"
 namespace FlatPhysics {
 	DistributedDomain::DistributedDomain(int nx, int ny, const FlatAABB& world_bound)
 		:nx_(nx),ny_(ny),world_bounds_(world_bound)
@@ -149,7 +151,6 @@ namespace FlatPhysics {
 			for (const auto& bodyUPtr : bodies) {
 				FlatBody* body = bodyUPtr.get();
 				if (!body) continue;
-
 				if (body->IsGhost()) continue;
 
 				Vector2 com = body->GetMassCenterWorld();
@@ -171,7 +172,8 @@ namespace FlatPhysics {
 		if (moves.empty()) {
 			return;
 		}
-
+		std::vector<std::uint8_t> buf;
+		buf.reserve(256);
 		for (const MoveInfo& mv : moves) {
 			if (mv.from_cell < 0 || mv.from_cell >= cellCount) continue;
 			if (mv.to_cell < 0 || mv.to_cell >= cellCount) continue;
@@ -186,83 +188,51 @@ namespace FlatPhysics {
 			FlatWorld& dstWorld = *toCell.world;
 
 			FlatBody* srcBody = mv.body;
+			const int gid = srcBody->GetGlobalID();
 
-			BodyDef def = MakeBodyDefFrom(srcBody);
-			FlatBody* dstBody = dstWorld.CreateBody(def);
+			SerializeFlatBody(*srcBody, buf);
 
-			CopyFixtures(srcBody, dstBody);
-			CopyBodyState(srcBody, dstBody);
+			srcWorld.DestroyBody(srcBody);
+
+			primary_by_id_.erase(gid);
+
+			std::size_t offset = 0;
+			FlatBody* dstBody = DeserializeFlatBody(
+				dstWorld,
+				buf.data(),
+				buf.size(),
+				offset,
+				nullptr
+			);
+
+			if (!dstBody) {
+				continue;
+			}
 
 			dstBody->SetGhost(false);
 			dstBody->SetOwnerCell(mv.to_cell);
-			dstBody->SetGlobalID(srcBody->GetGlobalID());
-			dstBody->MarkFixturesDirty();
 
-			primary_by_id_[dstBody->GetGlobalID()] = dstBody;
-			srcWorld.DestroyBody(srcBody);
-		}
-	}
-	BodyDef DistributedDomain::MakeBodyDefFrom(const FlatBody* src) const
-	{
-		BodyDef def;
-		def.position = src->GetPosition();
-		def.angle_rad = src->GetAngle();
-		def.is_static = src->IsStatic();
-		def.linear_damping = src->linear_dampling;
-		def.angular_damping = src->angular_dampling;
-		def.gravity_scale = src->GetGravityScale();
-		def.allow_sleep = src->GetCanSleep();
-		def.awake = src->IsAwake();
-		return def;
-	}
-	void DistributedDomain::CopyBodyState(const FlatBody* src, FlatBody* dst) const
-	{
-		dst->MoveTo(src->GetPosition(), false);
-		float angleDelta = src->GetAngle() - dst->GetAngle();
-		if (angleDelta != 0.0f) {
-			dst->Rotate(angleDelta, false);
-		}
-
-		dst->SetLinearVelocity(src->GetLinearVelocity(), false);
-		dst->SetAngularVelocity(src->GetAngularVelocity(), false);
-
-		dst->SetGravityScale(src->GetGravityScale());
-		dst->SetCanSleep(src->GetCanSleep());
-		dst->SetSleepTime(src->GetSleepTime());
-		dst->SetAwake(src->IsAwake());
-	}
-	void DistributedDomain::CopyFixtures(const FlatBody* src, FlatBody* dst) const
-	{
-		const auto& fixtures = src->GetFixtures();
-		for (const auto& fUPtr : fixtures) {
-			const FlatFixture* f = fUPtr.get();
-			if (!f) continue;
-
-			FixtureDef def;
-			def.shape = &f->GetShape();
-			def.density = f->GetDensity();
-			def.friction = f->GetFriction();
-			def.restitution = f->GetRestitution();
-			def.is_trigger = f->GetIsTrigger();
-			def.filter = const_cast<FlatFixture*>(f)->GetFilter();
-			dst->CreateFixture(def);
+			primary_by_id_[gid] = dstBody;
 		}
 	}
 	void DistributedDomain::SendGhostToCell(const FlatBody* src, int owner_cell_index, int neighbor_cell_index)
 	{
 		if (!src) return;
-		GhostSendRecord record;
-		record.owner_cell = owner_cell_index;
-		record.neighbor_cell = neighbor_cell_index;
-		record.global_id = src->GetGlobalID();
-		record.source = src;
-		pending_ghosts_.push_back(record);
+
+		GhostSendRecord& rec = pending_ghosts_.emplace_back();
+
+		rec.owner_cell = owner_cell_index;
+		rec.neighbor_cell = neighbor_cell_index;
+		rec.global_id = src->GetGlobalID();
+
+		SerializeFlatBody(*src, rec.serialized); 
 	}
 	void DistributedDomain::ApplyGhostsLocalFromPending()
 	{
+		const int cellCount = static_cast<int>(cells_.size());
+
 		for (const GhostSendRecord& rec : pending_ghosts_) {
-			if (rec.neighbor_cell < 0 ||
-				rec.neighbor_cell >= static_cast<int>(cells_.size())) {
+			if (rec.neighbor_cell < 0 || rec.neighbor_cell >= cellCount) {
 				continue;
 			}
 
@@ -303,33 +273,37 @@ namespace FlatPhysics {
 
 		const int gid = rec.global_id;
 		if (gid <= 0) return;
-		if (!rec.source) return;
+		if (rec.serialized.empty()) return;
 
 		cell.ghosts_touched_this_step.insert(gid);
 
+		FlatBody* existing = nullptr;
 		auto it = cell.ghosts_by_id.find(gid);
 		if (it != cell.ghosts_by_id.end()) {
-			FlatBody* ghost = it->second;
-			if (!ghost) return;
-
-			CopyBodyState(rec.source, ghost);
-			ghost->SetOwnerCell(rec.owner_cell);
-			ghost->SetGhost(true);
-			ghost->MarkFixturesDirty();
+			existing = it->second;
 		}
-		else {
-			BodyDef ghostDef = MakeBodyDefFrom(rec.source);
-			FlatBody* ghost = world.CreateBody(ghostDef);
 
-			CopyFixtures(rec.source, ghost);
-			CopyBodyState(rec.source, ghost);
+		std::size_t offset = 0;
+		FlatBody* ghost = DeserializeFlatBody(
+			*cell.world,
+			rec.serialized.data(),
+			rec.serialized.size(),
+			offset,
+			existing
+		);
 
-			ghost->SetGhost(true);
-			ghost->SetOwnerCell(rec.owner_cell);
-			ghost->SetGlobalID(gid);
-			ghost->MarkFixturesDirty();
+		if (!ghost) {
+			return;
+		}
+
+		ghost->SetGhost(true);
+		ghost->SetOwnerCell(rec.owner_cell);
+
+		if (!existing) {
 			cell.ghosts_by_id.emplace(gid, ghost);
 		}
+
+		ghost->MarkFixturesDirty();  
 	}
 	FlatBody* DistributedDomain::CreateBody(const BodyDef& def) {
 		auto [ix, iy] = GetCellCoordFromPosition(def.position);
@@ -372,11 +346,16 @@ namespace FlatPhysics {
 		}
 	}
 	void DistributedDomain::Step(float dt) {
-		RebuildGhostsFromPrimaries();
+		//MeasureTime("Rebuild", [this]() {
+			RebuildGhostsFromPrimaries();
+		//});
 		for (int i = 0; i < static_cast<int>(cells_.size()); i++) {
 			cells_[i].world->Step(dt);
 		}
-		MigratePrimaries();
+		//MeasureTime("MigratePrimaries", [this]() {
+			MigratePrimaries();
+		//});
+		
 	}
 	void DistributedDomain::ForEachWorld(const std::function<void(FlatWorld&)>& func)
 	{

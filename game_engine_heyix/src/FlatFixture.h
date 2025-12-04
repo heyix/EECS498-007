@@ -18,11 +18,15 @@ namespace FlatPhysics {
     class FlatFixture {
     public:
         FlatFixture(FlatBody* body, const FixtureDef& def);
+        FlatFixture(FlatBody* body,
+            const FixtureDef& def,
+            std::unique_ptr<Shape> shape);
 
         FlatBody* GetBody()        const { return body_; }
         const Shape& GetShape()    const { return *shape_; }
         ShapeType GetShapeType()   const { return shape_->GetType(); }
         Filter& GetFilter() { return filter_; }
+        const Filter& GetFilter() const { return filter_; }
         FlatAABB GetAABB();
         Vector2 GetLocalCenter()   const { return local_center; }
         bool    GetIsTrigger()     const { return is_trigger_; }

@@ -69,6 +69,8 @@ namespace FlatPhysics {
         const std::vector<std::unique_ptr<FlatFixture>>& GetFixtures()const { return fixtures_; }
         int GetFixtureCount()const { return fixtures_.size(); }
         FlatFixture* CreateFixture(const FixtureDef& def);
+        FlatFixture* CreateFixtureWithShape(const FixtureDef& def,
+            std::unique_ptr<Shape> shape);
         void DestroyFixture(FlatFixture* fixture);
         const FlatTransform& GetTransform();
         FlatAABB ComputeBodyAABB()const;
@@ -83,11 +85,19 @@ namespace FlatPhysics {
         float GetInverseInertia() { return inverse_inertia; }
         const Vector2& GetMassCenter() { return center_of_mass; }
         Vector2 GetMassCenterWorld() { return LocalToWorld(GetMassCenter()); }
+        Vector2 GetMassCenterWorld() const {
+            return FlatTransform::TransformVector(center_of_mass, const_cast<FlatBody*>(this)->GetTransform());
+        }
         Vector2 WorldToLocal(const Vector2& world_point);
         Vector2 LocalToWorld(const Vector2& local_point);
         void WorldToLocal(const std::vector<Vector2>& world_point, std::vector<Vector2>& out);
         void LocalToWorld(const std::vector<Vector2>& local_point, std::vector<Vector2>& out);
         bool IsStatic()const { return is_static; }
+        float GetLinearDamping() const { return linear_dampling; }
+        void  SetLinearDamping(float damping) { linear_dampling = damping; }
+
+        float GetAngularDamping() const { return angular_dampling; }
+        void  SetAngularDamping(float damping) { angular_dampling = damping; }
 
 
 
@@ -97,6 +107,7 @@ namespace FlatPhysics {
         void   ClearCustomGravity() { has_custom_gravity = false; custom_gravity = Vector2::Zero(); }
         bool   HasCustomGravity() const { return has_custom_gravity; }
         Vector2 GetEffectiveGravity(const Vector2& world_gravity) const;
+        Vector2 GetCustomGravity() const { return custom_gravity; }
 
         bool IsAwake()const;
         void SetAwake(bool flag);
@@ -107,12 +118,14 @@ namespace FlatPhysics {
         void SetSleepTime(float t) { sleep_time_ = t; }
 
 
-        bool IsGhost() { return is_ghost_; }
+        bool IsGhost() const { return is_ghost_; }
         void SetGhost(bool g) { is_ghost_ = g; }
         int GetOwnerCell()const { return owner_cell_; }
         void SetOwnerCell(int idx) { owner_cell_ = idx; }
         int GetGlobalID()const { return global_id_; }
         void SetGlobalID(int id) { global_id_ = id; }
+
+        void ReserveFixtures(std::size_t n) { fixtures_.reserve(n); }
     private:
         FlatContactEdge* GetContactList()const { return contact_list_; }
         void SetContactList(FlatContactEdge* edge) { contact_list_ = edge; }

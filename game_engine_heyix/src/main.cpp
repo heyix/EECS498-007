@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	//_CrtSetBreakAlloc(26541);
 #endif
-	omp_set_num_threads(8);
+	omp_set_num_threads(1);
 	Engine engine;
 	std::unique_ptr<Game> game = std::make_unique<Game>();
 	engine.set_running_game(std::move(game));

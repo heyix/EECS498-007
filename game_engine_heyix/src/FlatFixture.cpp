@@ -32,6 +32,19 @@ namespace FlatPhysics {
         local_center = ComputeLocalCenter();
         proxy_dirty_ = true;
     }
+    FlatFixture::FlatFixture(FlatBody* body, const FixtureDef& def, std::unique_ptr<Shape> shape)
+        : body_(body)
+        , shape_(std::move(shape))
+        , local_center(ComputeLocalCenter())
+        , density_(def.density)
+        , friction_(def.friction)
+        , restitution_(def.restitution)
+        , filter_(def.filter)
+        , is_trigger_(def.is_trigger)
+    {
+        local_center = ComputeLocalCenter();
+        proxy_dirty_ = true;
+    }
     FlatAABB FlatPhysics::FlatFixture::GetAABB()
     {
         if (!body_ || !shape_) {

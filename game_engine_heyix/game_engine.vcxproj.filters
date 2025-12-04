@@ -585,6 +585,9 @@
     <ClCompile Include="src\DistributedDomain.cpp">
       <Filter>Source Files\FlatPhysics\Physics Objects</Filter>
     </ClCompile>
+    <ClCompile Include="src\FlatBodySerialization.cpp">
+      <Filter>Source Files\FlatPhysics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThirdParty\lua\lapi.h">
@@ -1015,6 +1018,9 @@
     </ClInclude>
     <ClInclude Include="src\DistributedDomain.h">
       <Filter>Header Files\FlatPhysics\Physics Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlatBodySerialization.h">
+      <Filter>Header Files\FlatPhysics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

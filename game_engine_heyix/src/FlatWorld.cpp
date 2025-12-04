@@ -88,7 +88,7 @@ namespace FlatPhysics {
 
 
 	FlatWorld::FlatWorld()
-		: gravity({ 0.0f, 0.0f })
+		: gravity({ 0.0f, 9.81f })
 	{
 		SetBroadPhase(std::make_unique<BroadPhaseQuadTree>());
 		SetSolver(std::make_unique<FlatSolverPGS>());
@@ -99,7 +99,7 @@ namespace FlatPhysics {
 		collector_ = std::make_unique<BroadPhasePairCollector>(max_threads);
 	}
 	FlatWorld::~FlatWorld()
-	{
+	{ 
 	}
 	void FlatWorld::AddBody(FlatBody* body)
 	{

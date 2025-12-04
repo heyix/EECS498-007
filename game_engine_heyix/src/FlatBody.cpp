@@ -43,6 +43,18 @@ FlatFixture* FlatPhysics::FlatBody::CreateFixture(const FixtureDef& def)
     return fixture;
 }
 
+FlatFixture* FlatPhysics::FlatBody::CreateFixtureWithShape(const FixtureDef& def, std::unique_ptr<Shape> shape)
+{
+    fixtures_.push_back(std::make_unique<FlatFixture>(this, def, std::move(shape)));
+    FlatFixture* fixture = fixtures_.back().get();
+    ResetMassData();
+
+    if (world_) {
+        world_->RegisterFixture(fixture);
+    }
+    return fixture;
+}
+
 void FlatPhysics::FlatBody::DestroyFixture(FlatFixture* fixture)
 {
 

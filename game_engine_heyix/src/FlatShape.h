@@ -47,6 +47,11 @@ namespace FlatPhysics {
 	public:
 		PolygonShape() {}
 		PolygonShape(const std::vector<Vector2>& verts) { SetVertices(verts); }
+		PolygonShape(std::vector<Vector2>&& verts) {
+			vertices = std::move(verts);
+			vertices_sized_buffer.resize(vertices.size());
+		}
+
 	public:
 
 		ShapeType GetType() const override { return ShapeType::Polygon; }
