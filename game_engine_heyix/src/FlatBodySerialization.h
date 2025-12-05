@@ -2,6 +2,7 @@
 #include <vector>
 #include <cstdint>
 #include <cstring>
+#include <type_traits>
 #include "FlatBody.h"
 #include "FlatFixture.h"
 #include "FlatShape.h"

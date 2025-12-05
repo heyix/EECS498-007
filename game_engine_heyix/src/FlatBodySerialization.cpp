@@ -1,19 +1,19 @@
 #include "FlatBodySerialization.h"
 
 namespace FlatPhysics {
-	namespace {
-		enum class SerializedShapeType : std::int32_t
-		{
-			Circle = 0,
-			Polygon = 1
-		};
-	}
+    namespace {
+        enum class SerializedShapeType : std::int32_t
+        {
+            Circle = 0,
+            Polygon = 1
+        };
+    }
 
     void SerializeFlatBody(const FlatBody& body, std::vector<std::uint8_t>& buf)
-	{
-        buf.clear();
-        buf.reserve(256);
-
+    {
+        if (buf.capacity() < buf.size() + 256) {
+            buf.reserve((buf.size() + 256) * 1.5f);
+        }
         {
             std::int32_t global_id = body.GetGlobalID();
             std::int32_t owner_cell = body.GetOwnerCell();
@@ -120,7 +120,7 @@ namespace FlatPhysics {
                 }
             }
         }
-	}
+    }
 
     FlatBody* DeserializeFlatBody(FlatWorld& world,
         const std::uint8_t* data,

@@ -12,6 +12,7 @@ namespace FlatPhysics {
     class FlatSolverPGS;
     struct FlatContactEdge;
     class DistributedDomain;
+    class GridCell;
     class FlatBody {
     private:
         FlatBody(
@@ -24,6 +25,7 @@ namespace FlatPhysics {
         friend FlatWorld;
         friend FlatSolverPGS;
         friend DistributedDomain;
+        friend GridCell;
     private:
         FlatWorld* world_ = nullptr;
         std::vector<std::unique_ptr<FlatFixture>> fixtures_;
