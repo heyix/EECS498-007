@@ -344,9 +344,10 @@ void DrawBodyComponent::DrawBody()
         {
         case FlatPhysics::ShapeType::Circle:
         {
+            static std::string circle_name = "circle";
             float radius = fixture->GetShape().AsCircle()->radius;
             Engine::instance->renderer->draw_ex(
-                "circle",
+                circle_name,
                 x, y,
                 FlatPhysics::FlatMath::RadToDeg(rot),
                 radius * 2.0f, radius * 2.0f,
@@ -394,7 +395,6 @@ void DrawBodyComponent::DrawAABB()
 {
     FlatPhysics::FlatBody* body = GetBodySafe();
     if (!body) return;
-    Vector2 bodyPos = body->GetPosition();
 
     for (const auto& fixture : body->GetFixtures()) {
         FlatPhysics::FlatAABB aabb = fixture->GetAABB();
