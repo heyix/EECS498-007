@@ -508,15 +508,15 @@ namespace FlatPhysics {
 			body->IntegrateForces(time,gravity);
 			body->ApplyDampling(time);
 		}
-		//std::chrono::steady_clock::time_point step_start;
-		//step_start = std::chrono::steady_clock::now();
-		BroadPhase();
-		//if (bodies.size() % 100 == 0) {
-		//	const double physics_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - step_start).count();
-		//	std::cout << physics_ms << " ms" << std::endl;
-		//}
+		//MeasureTime("Broadphase whole", [this]() {
+			BroadPhase();
+		//});
+		
+
 		NarrowPhase();
-		BuildIslands();
+		//MeasureTime("Build island", [this]() {
+			BuildIslands();
+		//});
 		//MeasureTime("solver initialize", [this]() {
 		 	solver_->Initialize(contacts, constraints);
 		//});

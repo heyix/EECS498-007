@@ -116,8 +116,9 @@ namespace FlatPhysics {
 			max_depth_ = target_depth;
 			tree_dirty_ = true;
 		}
-
-		FlushDirty();
+		//MeasureTime("Flush Dirty", [this]() {
+			FlushDirty();
+		//});
 		if (!root_) return;
 
 		//MeasureTime("Broadphase", [this,&callback]() {
@@ -393,49 +394,69 @@ namespace FlatPhysics {
 			dirty_list_.clear();
 			return;
 		}
+
 		for (ProxyID id : dirty_list_) {
-			if (!IsActive(id)) {
-				continue;
-			}
+			if (!IsActive(id)) continue;
+
 			Proxy& proxy = proxies_[id];
-			if (!proxy.dirty) {//it's possible: mark dirty->destroy->reused->mark dirty, then two copies of same id will exist in the dirty list
-				continue;
-			}
-			RemoveFromOwner(id);
+			if (!proxy.dirty) continue; //it's possible: mark dirty->destroy->reused->mark dirty, then two copies of same id will exist in the dirty list
+
 			proxy.dirty = false;
+
+			Node* owner = proxy.owner;
+			if (owner) {
+				// If it's still inside this node AND no child can contain it,
+				// then reinserting would keep it in the same node anyway.
+				if (owner->bounds.Contains(proxy.fat_aabb)) {
+					int child_index = SelectChild(owner, proxy.fat_aabb);
+					if (child_index == -1) {
+						continue;
+					}
+				}
+			}
+
+			RemoveFromOwner(id);
 			InsertIntoNode(root_, id);
 		}
+
 		dirty_list_.clear();
 	}
 	void BroadPhaseQuadTree::InsertIntoNode(Node* node, ProxyID id)
 	{
-		if (!node) {
-			return;
-		}
+		if (!node) return;
+
 		Proxy& proxy = proxies_[id];
+
 		if (node->IsLeaf()) {
 			if (node->items.size() < static_cast<size_t>(max_leaf_capacity_) || node->depth >= max_depth_) {
 				node->items.push_back(id);
 				proxy.owner = node;
+				proxy.owner_index = static_cast<int>(node->items.size()) - 1;
 				return;
 			}
+
+			// split
 			for (int i = 0; i < 4; i++) {
 				Node* child = node_pool_.Allocate();
 				child->bounds = ChildBounds(node->bounds, i);
 				child->depth = node->depth + 1;
 				node->children[i] = child;
 			}
+
 			std::vector<ProxyID> to_reinsert = std::move(node->items);
 			node->items.clear();
 			for (ProxyID stored_id : to_reinsert) {
 				proxies_[stored_id].owner = nullptr;
+				proxies_[stored_id].owner_index = -1; 
 				InsertIntoNode(node, stored_id);
 			}
 		}
+
 		int child_index = SelectChild(node, proxy.fat_aabb);
 		if (child_index == -1) {
 			node->items.push_back(id);
 			proxy.owner = node;
+			proxy.owner_index = static_cast<int>(node->items.size()) - 1;
 		}
 		else {
 			InsertIntoNode(node->children[child_index], id);
@@ -444,21 +465,35 @@ namespace FlatPhysics {
 	}
 	void BroadPhaseQuadTree::RemoveFromOwner(ProxyID id)
 	{
-		if (!IsActive(id)) {
-			return;
-		}
+		if (!IsActive(id)) return;
+
 		Proxy& proxy = proxies_[id];
 		Node* owner = proxy.owner;
-		if (!owner) {
-			return;
-		}
+		if (!owner) return;
+
 		auto& items = owner->items;
-		auto it = std::find(items.begin(), items.end(), id);
-		if (it != items.end()) {
-			*it = items.back();
-			items.pop_back();
+		int idx = proxy.owner_index;
+		if (idx < 0 || idx >= static_cast<int>(items.size())) {
+			auto it = std::find(items.begin(), items.end(), id);
+			if (it != items.end()) {
+				*it = items.back();
+				items.pop_back();
+			}
 		}
+		else {
+			const int last = static_cast<int>(items.size()) - 1;
+			const ProxyID moved_id = items[last];
+
+			items[idx] = moved_id;
+			items.pop_back();
+
+			if (moved_id != id) {
+				proxies_[moved_id].owner_index = idx;
+			}
+		}
+
 		proxy.owner = nullptr;
+		proxy.owner_index = -1;
 	}
 	int BroadPhaseQuadTree::SelectChild(const Node* node, const FlatAABB& aabb) const
 	{

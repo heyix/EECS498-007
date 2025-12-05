@@ -22,6 +22,7 @@ namespace FlatPhysics {
             FlatAABB fat_aabb{ 0,0,0,0 };
             bool dirty = false;
             bool active = false;
+            int  owner_index = -1;
         };
         struct NodePool {
             std::deque<Node> nodes;
