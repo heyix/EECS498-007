@@ -21,6 +21,8 @@ public:
     void Add_Float_Property(const std::string& key, float new_property) override;
     void Add_String_Property(const std::string& key, const std::string& new_property)override;
     void Add_Bool_Property(const std::string& key, bool new_property)override;
+
+    void Set_Global_ID(int id) { body_global_id = id; }
 public:
     std::string shape = "Polygon";
 private:

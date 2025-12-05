@@ -88,7 +88,7 @@ namespace FlatPhysics {
         void RebuildGhostsFromPrimaries();
         void MigratePrimaries();
 
-    private:
+    public:
         int      nx_;
         int      ny_;
         FlatAABB world_bounds_;

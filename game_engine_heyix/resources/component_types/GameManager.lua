@@ -94,70 +94,70 @@ GameManager = {
 			end
 		end
 
-		local new_body = Actor.Instantiate("Ground")
+		-- local new_body = Actor.Instantiate("Ground")
 
-		local GROUND_WIDTH  = 20
-		local GROUND_HEIGHT = 2
+		-- local GROUND_WIDTH  = 20
+		-- local GROUND_HEIGHT = 2
 
-		local WALL_WIDTH    = 2 
-		local WALL_HEIGHT   = 20
+		-- local WALL_WIDTH    = 2 
+		-- local WALL_HEIGHT   = 20
 
-		local GRID_SIZE = 6        -- n × n grid, change this to whatever you want
+		-- local GRID_SIZE = 6        -- n × n grid, change this to whatever you want
 
-		local ground_tf = new_body:GetComponent("Transform")
-		local gx0 = ground_tf:GetWorldPosition().x    -- top-left cell ground center X
-		local gy0 = ground_tf:GetWorldPosition().y    -- top-left cell ground center Y
+		-- local ground_tf = new_body:GetComponent("Transform")
+		-- local gx0 = ground_tf:GetWorldPosition().x    -- top-left cell ground center X
+		-- local gy0 = ground_tf:GetWorldPosition().y    -- top-left cell ground center Y
 
-		local half_ground_w = GROUND_WIDTH * 0.5
-		local half_wall_w   = WALL_WIDTH   * 0.5
-		local half_wall_h   = WALL_HEIGHT  * 0.5
+		-- local half_ground_w = GROUND_WIDTH * 0.5
+		-- local half_wall_w   = WALL_WIDTH   * 0.5
+		-- local half_wall_h   = WALL_HEIGHT  * 0.5
 
-		-- how far apart each box is in the grid
-		local cell_dx = GROUND_WIDTH + WALL_WIDTH  -- move right per column
-		local cell_dy = WALL_HEIGHT                -- move down per row
+		-- -- how far apart each box is in the grid
+		-- local cell_dx = GROUND_WIDTH + WALL_WIDTH  -- move right per column
+		-- local cell_dy = WALL_HEIGHT                -- move down per row
 
-		-- helper that builds walls around a ground center (gx, gy)
-		local function SpawnWallsAroundBox(gx, gy)
-			local left_wall_x  = gx - half_ground_w - half_wall_w
-			local right_wall_x = gx + half_ground_w + half_wall_w
-			local wall_y       = gy - half_wall_h      -- vertical walls mid-height
-			local top_y        = gy - WALL_HEIGHT      -- top bar
+		-- -- helper that builds walls around a ground center (gx, gy)
+		-- local function SpawnWallsAroundBox(gx, gy)
+		-- 	local left_wall_x  = gx - half_ground_w - half_wall_w
+		-- 	local right_wall_x = gx + half_ground_w + half_wall_w
+		-- 	local wall_y       = gy - half_wall_h      -- vertical walls mid-height
+		-- 	local top_y        = gy - WALL_HEIGHT      -- top bar
 
-			local left_wall  = Actor.Instantiate("Wall")
-			local right_wall = Actor.Instantiate("Wall")
-			local up_wall    = Actor.Instantiate("Ground") -- same prefab as bottom ground
+		-- 	local left_wall  = Actor.Instantiate("Wall")
+		-- 	local right_wall = Actor.Instantiate("Wall")
+		-- 	local up_wall    = Actor.Instantiate("Ground") -- same prefab as bottom ground
 
-			left_wall:GetComponent("Transform"):SetWorldPosition(Vector2(left_wall_x, wall_y))
-			right_wall:GetComponent("Transform"):SetWorldPosition(Vector2(right_wall_x, wall_y))
-			up_wall:GetComponent("Transform"):SetWorldPosition(Vector2(gx, top_y))
+		-- 	left_wall:GetComponent("Transform"):SetWorldPosition(Vector2(left_wall_x, wall_y))
+		-- 	right_wall:GetComponent("Transform"):SetWorldPosition(Vector2(right_wall_x, wall_y))
+		-- 	up_wall:GetComponent("Transform"):SetWorldPosition(Vector2(gx, top_y))
 
-			Debug.Log("Left wall ID:  " .. tostring(left_wall:GetID()))
-			Debug.Log("Right wall ID: " .. tostring(right_wall:GetID()))
-			Debug.Log("Up wall ID: " .. tostring(up_wall:GetID()))
-		end
+		-- 	Debug.Log("Left wall ID:  " .. tostring(left_wall:GetID()))
+		-- 	Debug.Log("Right wall ID: " .. tostring(right_wall:GetID()))
+		-- 	Debug.Log("Up wall ID: " .. tostring(up_wall:GetID()))
+		-- end
 
-		-- build an N × N grid
-		for row = 0, GRID_SIZE - 1 do
-			for col = 0, GRID_SIZE - 1 do
-				local gx = gx0 + col * cell_dx
-				local gy = gy0 + row * cell_dy
+		-- -- build an N × N grid
+		-- for row = 0, GRID_SIZE - 1 do
+		-- 	for col = 0, GRID_SIZE - 1 do
+		-- 		local gx = gx0 + col * cell_dx
+		-- 		local gy = gy0 + row * cell_dy
 
-				local ground
+		-- 		local ground
 
-				-- reuse the original top-left ground for (0,0)
-				if row == 0 and col == 0 then
-					ground = new_body
-					ground:GetComponent("Transform"):SetWorldPosition(Vector2(gx, gy))
-				else
-					ground = Actor.Instantiate("Ground")
-					ground:GetComponent("Transform"):SetWorldPosition(Vector2(gx, gy))
-					Debug.Log("Ground ID: " .. tostring(ground:GetID()))
-				end
+		-- 		-- reuse the original top-left ground for (0,0)
+		-- 		if row == 0 and col == 0 then
+		-- 			ground = new_body
+		-- 			ground:GetComponent("Transform"):SetWorldPosition(Vector2(gx, gy))
+		-- 		else
+		-- 			ground = Actor.Instantiate("Ground")
+		-- 			ground:GetComponent("Transform"):SetWorldPosition(Vector2(gx, gy))
+		-- 			Debug.Log("Ground ID: " .. tostring(ground:GetID()))
+		-- 		end
 
-				SpawnWallsAroundBox(gx, gy)
-			end
-		end
-		Actor.Destroy(new_body)
+		-- 		SpawnWallsAroundBox(gx, gy)
+		-- 	end
+		-- end
+		-- Actor.Destroy(new_body)
 	end,
 
 	OnUpdate = function(self)

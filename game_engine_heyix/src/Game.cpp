@@ -23,23 +23,36 @@ void Game::game_loop()
 	if (count_fps)         time->Enable_FPS_Count();
 	if (count_physics_fps) time->Enable_Physics_FPS_Count();
 
-	while (is_running) {
+	const int   MAX_PHYSICS_STEPS_PER_FRAME = 4;
+	const float FIXED_DT = time->Fixed_Delta_Time();
+
+	while (is_running)
+	{
 		update_time();
 
-		while (time->Try_Run_Fixed_Step()) {
+		int step_count = 0;
+
+		while (step_count < MAX_PHYSICS_STEPS_PER_FRAME &&
+			time->Try_Run_Fixed_Step())
+		{
 			std::chrono::steady_clock::time_point step_start;
-			if (count_physics_fps) step_start = std::chrono::steady_clock::now();
+			if (count_physics_fps)
+				step_start = std::chrono::steady_clock::now();
 
 			PhysicsDB::Physics_Step();
 
 			if (count_physics_fps) {
-				double physics_ms = std::chrono::duration<double, std::milli>(
+				double ms = std::chrono::duration<double, std::milli>(
 					std::chrono::steady_clock::now() - step_start
 				).count();
-				time->Accumulate_Physics_Step_Time(physics_ms);
+				time->Accumulate_Physics_Step_Time(ms);
 			}
 			fixed_update();
 			sync_rigidbody_and_transform();
+			++step_count;
+		}
+		if (step_count == MAX_PHYSICS_STEPS_PER_FRAME) {
+			time->ClampAccumulator(FIXED_DT);
 		}
 
 		process_input();

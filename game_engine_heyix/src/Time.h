@@ -47,6 +47,7 @@ public:
 	void Disable_Physics_FPS_Count() { count_physics_fps = false; }
 	float Physics_FPS() const { return count_physics_fps ? physics_fps : 0.0f; }
 	float Physics_Step_Time() const { return count_physics_fps ? physics_step_time_ms : 0.0f; }
+	void ClampAccumulator(double max_accum);
 public:
 	static float Lua_Delta_Time();
 	static float Lua_Unscaled_Delta_Time();

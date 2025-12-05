@@ -85,6 +85,11 @@ void Time::Accumulate_Physics_Step_Time(double step_ms)
     if (!count_physics_fps) return;
     physics_step_time_accum_ms += step_ms;
 }
+void Time::ClampAccumulator(double max_accum)
+{
+    if (accumulator > max_accum)
+        accumulator = max_accum;
+}
 float Time::Lua_Delta_Time()
 {
 	return Engine::instance->running_game->Delta_Time();

@@ -175,7 +175,7 @@ namespace FlatPhysics {
 				printf("----------------------------------\n");
 			}
 		//});
-		
+			//PrintLevelItemCounts();
 	}
 
 	void BroadPhaseQuadTree::Query(const FlatAABB& aabb, IQueryCallback& callback)

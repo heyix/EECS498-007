@@ -16,10 +16,9 @@
 #include "MatMN.h"
 #include "JointConstraint.h"
 #include "FlatBody.h"
-#include "FlatShape.h"
 #include "TextDB.h"
 #include <string>
-#include "Game.h"
+#include "TestScene.h"
 namespace {
     static inline uint32_t Hash32(uint32_t x) {
         x ^= x >> 16; x *= 0x7feb352d; x ^= x >> 15; x *= 0x846ca68b; x ^= x >> 16;
@@ -171,63 +170,6 @@ void DrawBodyComponent::On_Update()
 void DrawBodyComponent::On_Start()
 {
     active_body++;
-    bool is_static = false;
-    if (shape == "Box") {
-        is_static = true;
-    }
-	auto transform = this->holder_object->Get_Transform().lock();
-    FlatPhysics::BodyDef bodyDef;
-    bodyDef.position = transform->Get_World_Position();
-    bodyDef.linear_damping = 0.2f;
-    bodyDef.angular_damping = 0.5f;
-    bodyDef.is_static = is_static;
-    bodyDef.allow_sleep = false;
-    FlatPhysics::FlatBody* body = PhysicsDB::Create_Flat_Body(bodyDef);
-    if (body) {
-        body_global_id = body->GetGlobalID();
-    }
-    if (shape == "Box") {
-        std::unique_ptr<FlatPhysics::PolygonShape> polygon_shape = std::make_unique<FlatPhysics::PolygonShape>();
-        polygon_shape->SetAsBox(width, height);
-
-        FlatPhysics::FixtureDef fixtureDef;
-        fixtureDef.shape = polygon_shape.get();
-        fixtureDef.density = 2.0f;
-        fixtureDef.restitution = 0.0f;
-        fixtureDef.friction = 1.0f;
-
-        body->CreateFixture(fixtureDef);
-
-    }
-	else if (shape == "Polygon") {
-        const float s = 0.2f;
-        std::vector<Vector2> poly;
-        poly.emplace_back(-s, -s);
-        poly.emplace_back(+s, -s);
-        poly.emplace_back(+s, +s);
-        poly.emplace_back(-s, +s);
-
-        std::unique_ptr<FlatPhysics::PolygonShape> polygon_shape = std::make_unique<FlatPhysics::PolygonShape>(poly);
-
-        FlatPhysics::FixtureDef fixtureDef;
-        fixtureDef.shape = polygon_shape.get();
-        fixtureDef.density = 5.0f;
-        fixtureDef.restitution = 0.0f;
-        fixtureDef.friction = 1.0f;
-
-        body->CreateFixture(fixtureDef);
-    }
-	else {
-        std::unique_ptr<FlatPhysics::CircleShape> circle_shape = std::make_unique<FlatPhysics::CircleShape>(Vector2::Zero(), 0.2f);
-
-        FlatPhysics::FixtureDef fixtureDef;
-        fixtureDef.shape = circle_shape.get();
-        fixtureDef.density = 2.0f;
-        fixtureDef.restitution = 0.0f;
-        fixtureDef.friction = 1.0f;
-
-        body->CreateFixture(fixtureDef);
-	}
 
     //if (holder_object->ID >= 8) {
     //    auto sb = Engine::instance->running_game->Find_All_GameObjects_By_Name("Body");
@@ -245,6 +187,84 @@ void DrawBodyComponent::On_Start()
     //    std::unique_ptr<FlatPhysics::JointConstraint> constraint = std::make_unique<FlatPhysics::JointConstraint>(body->GetFixtures()[0].get(), body2->body->GetFixtures()[0].get(), body2->body->GetMassCenterWorld());
     //    PhysicsDB::flat_world->AddConstraint(std::move(constraint));
     //}
+    if (holder_object->ID == 4) {
+        bool is_static = false;
+        if (shape == "Box") {
+            is_static = true;
+        }
+        auto transform = this->holder_object->Get_Transform().lock();
+        FlatPhysics::BodyDef bodyDef;
+        bodyDef.position = transform->Get_World_Position();
+        bodyDef.linear_damping = 0.2f;
+        bodyDef.angular_damping = 0.5f;
+        bodyDef.is_static = is_static;
+        bodyDef.allow_sleep = false;
+        FlatPhysics::FlatBody* body = PhysicsDB::Create_Flat_Body(bodyDef);
+        if (body) {
+            body_global_id = body->GetGlobalID();
+        }
+        if (shape == "Box") {
+            std::unique_ptr<FlatPhysics::PolygonShape> polygon_shape = std::make_unique<FlatPhysics::PolygonShape>();
+            polygon_shape->SetAsBox(width, height);
+
+            FlatPhysics::FixtureDef fixtureDef;
+            fixtureDef.shape = polygon_shape.get();
+            fixtureDef.density = 2.0f;
+            fixtureDef.restitution = 0.0f;
+            fixtureDef.friction = 1.0f;
+
+            body->CreateFixture(fixtureDef);
+
+        }
+        else if (shape == "Polygon") {
+            const float s = 0.2f;
+            std::vector<Vector2> poly;
+            poly.emplace_back(-s, -s);
+            poly.emplace_back(+s, -s);
+            poly.emplace_back(+s, +s);
+            poly.emplace_back(-s, +s);
+
+            std::unique_ptr<FlatPhysics::PolygonShape> polygon_shape = std::make_unique<FlatPhysics::PolygonShape>(poly);
+
+            FlatPhysics::FixtureDef fixtureDef;
+            fixtureDef.shape = polygon_shape.get();
+            fixtureDef.density = 5.0f;
+            fixtureDef.restitution = 0.0f;
+            fixtureDef.friction = 1.0f;
+
+            body->CreateFixture(fixtureDef);
+        }
+        else {
+            std::unique_ptr<FlatPhysics::CircleShape> circle_shape = std::make_unique<FlatPhysics::CircleShape>(Vector2::Zero(), 0.2f);
+
+            FlatPhysics::FixtureDef fixtureDef;
+            fixtureDef.shape = circle_shape.get();
+            fixtureDef.density = 2.0f;
+            fixtureDef.restitution = 0.0f;
+            fixtureDef.friction = 1.0f;
+
+            body->CreateFixture(fixtureDef);
+        }
+
+
+
+
+
+        int   grid_x = 2;   
+        int   grid_y = 2;
+        int   num_bodies = 20000;
+        float p_polygon = 0.5f; 
+
+
+        FlatPhysics::GenerateHugeTestCase(
+            *PhysicsDB::distributed_domain,
+            PhysicsDB::distributed_domain->world_bounds_,
+            grid_x,
+            grid_y,
+            num_bodies,
+            p_polygon
+        );
+    }
 }
 
 void DrawBodyComponent::On_Fixed_Update()

@@ -53,6 +53,7 @@
     <ClCompile Include="src\MatMN.cpp" />
     <ClCompile Include="src\PenetrationConstraintSinglePoint.cpp" />
     <ClCompile Include="src\PenetrationConstraintTwoPoint.cpp" />
+    <ClCompile Include="src\TestScene.cpp" />
     <ClCompile Include="src\VecN.cpp" />
     <ClCompile Include="src\FlatWorld.cpp" />
     <ClCompile Include="src\GameData.cpp" />
@@ -199,6 +200,7 @@
     <ClInclude Include="src\MatMN.h" />
     <ClInclude Include="src\PenetrationConstraintSinglePoint.h" />
     <ClInclude Include="src\PenetrationConstraintTwoPoint.h" />
+    <ClInclude Include="src\TestScene.h" />
     <ClInclude Include="src\VecN.h" />
     <ClInclude Include="src\FlatWorld.h" />
     <ClInclude Include="src\GameData.h" />

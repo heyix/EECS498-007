@@ -1,0 +1,8 @@
+{
+	"name": "Wall",
+	"components": {
+		"4": {
+			"type": "DrawBodyComponent"
+		}
+	}
+}
