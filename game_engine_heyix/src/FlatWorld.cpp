@@ -23,9 +23,7 @@ namespace FlatPhysics {
 		void AddPair(void* user_data_a, void* user_data_b) override {
 			int tid = 0;
 #ifdef _OPENMP
-			if (omp_in_parallel()) {
-				tid = omp_get_thread_num();
-			}
+			tid = omp_get_thread_num();
 #endif
 			auto* fixtureA = static_cast<FlatFixture*>(user_data_a);
 			auto* fixtureB = static_cast<FlatFixture*>(user_data_b);
@@ -453,42 +451,55 @@ namespace FlatPhysics {
 		if (!broadphase_) {
 			return;
 		}
+		updates.reserve(bodies.size());
+		updates.clear();
+#pragma omp parallel
+		{
+			std::vector<ProxyUpdate> local_updates;
+			local_updates.reserve(bodies.size() / omp_get_num_threads());
 
-		for (std::unique_ptr<FlatBody>& body : bodies) {
-			const auto& fixtures = body->GetFixtures();
-			for (const auto& fixture_uptr : fixtures) {
-				FlatFixture* fixture = fixture_uptr.get();
-				ProxyID id = fixture->GetProxyID();
+#pragma omp for schedule(static)
+			for (int bi = 0; bi < static_cast<int>(bodies.size()); ++bi) {
+				FlatBody* body = bodies[bi].get();
 
-				if (id == kNullProxy) {
-					RegisterFixture(fixture);
-					continue;
+				if (body->IsStatic()) continue;
+				if (!body->IsAwake()) continue;
+
+				const auto& fixtures = body->GetFixtures();
+				for (const auto& fixture_uptr : fixtures) {
+					FlatFixture* fixture = fixture_uptr.get();
+					ProxyID id = fixture->GetProxyID();
+
+					if (id == kNullProxy) {
+						continue;
+					}
+
+					if (!fixture->IsProxyDirty()) {
+						continue;
+					}
+
+					FlatAABB new_aabb = fixture->GetAABB();
+
+
+					ProxyUpdate u;
+					u.id = id;
+					u.new_aabb = new_aabb;
+					u.fixture = fixture;
+					local_updates.push_back(u);
 				}
-
-				if (!fixture->IsProxyDirty()) {
-					continue;
-				}
-
-				FlatAABB new_aabb = fixture->GetAABB();
-				Vector2 displacement = Vector2::Zero();
-
-				if (fixture->HasLastAABB()) {
-					FlatAABB old_aabb = fixture->GetLastAABB();
-					Vector2 old_center{
-						(old_aabb.min.x() + old_aabb.max.x()) * 0.5f,
-						(old_aabb.min.y() + old_aabb.max.y()) * 0.5f
-					};
-					Vector2 new_center{
-						(new_aabb.min.x() + new_aabb.max.x()) * 0.5f,
-						(new_aabb.min.y() + new_aabb.max.y()) * 0.5f
-					};
-					displacement = new_center - old_center;
-				}
-
-				broadphase_->MoveProxy(id, new_aabb, displacement);
-				fixture->SetLastAABB(new_aabb);
-				fixture->ClearProxyDirty();
 			}
+
+#pragma omp critical
+			{
+				updates.insert(updates.end(),
+					local_updates.begin(), local_updates.end());
+			}
+		}
+		Vector2 displacement = Vector2::Zero();
+		for (const ProxyUpdate& u : updates) {
+			broadphase_->MoveProxy(u.id, u.new_aabb, displacement);
+			u.fixture->SetLastAABB(u.new_aabb);
+			u.fixture->ClearProxyDirty();
 		}
 	}
 	void FlatWorld::Step(float time)
@@ -549,10 +560,8 @@ namespace FlatPhysics {
 		contact_pairs.clear();
 		SynchronizeFixtures();
 
-		//MeasureTime("Broadphase", [this]() {
-			this->broadphase_->UpdatePairs(this->collector_.get());		
-			this->collector_->FlattenInfo(contact_pairs);
-		//});
+		this->broadphase_->UpdatePairs(this->collector_.get());		
+		this->collector_->FlattenInfo(contact_pairs);
 		this->collector_->Clear();
 	}
 

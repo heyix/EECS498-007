@@ -18,6 +18,11 @@ namespace FlatPhysics {
 			bool touching = false;
 			FixedSizeContainer<ContactPoint, 2> contact_points;
 		};
+		struct ProxyUpdate {
+			ProxyID id;
+			FlatAABB new_aabb;
+			FlatFixture* fixture;
+		};
 	public:
 		FlatWorld();
 		~FlatWorld();
@@ -69,5 +74,7 @@ namespace FlatPhysics {
 		class BroadPhasePairCollector;
 		std::unique_ptr<BroadPhasePairCollector> collector_;
 		std::vector<NarrowPhaseResult> np_results;
+		std::vector<ProxyUpdate> updates;
+
 	};
 }
