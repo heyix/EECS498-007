@@ -503,50 +503,72 @@ namespace FlatPhysics {
 	}
 	void FlatWorld::Step(float time)
 	{
-		/*for (FlatBody* body : bodies) {
-			body->Step(time, gravity);
-		}*/
-		//int count = 0;
-		//for (std::unique_ptr<FlatBody>& body : bodies) {
-		//	if (!body->IsStatic()) {
-		//		if (!body->IsAwake()) {
-		//			count++;
-		//		}
-		//	}
-		//}
-		//std::cout << count<<std::endl;
-		for (std::unique_ptr<FlatBody>& body : bodies) {
-			if (body->IsGhost()) {
-				continue;
-			}
-			body->IntegrateForces(time,gravity);
-			body->ApplyDampling(time);
+		bool measure_timings = false;
+		if (measure_timings)
+		{
+			MeasureTime("World Step", [this, &time]() {
+				MeasureTime("Integrate Force", [&]() {
+					for (auto& body : bodies) {
+						if (!body->IsGhost()) {
+							body->IntegrateForces(time, gravity);
+							body->ApplyDampling(time);
+						}
+					}
+					});
+				MeasureTime("Broadphase whole", [&]() {
+					BroadPhase();
+					});
+				MeasureTime("NarrowPhase whole", [&]() {
+					NarrowPhase();
+					});
+				MeasureTime("Build island", [&]() {
+					BuildIslands();
+					});
+				MeasureTime("Solver initialize", [&]() {
+					solver_->Initialize(contacts, constraints);
+					});
+				MeasureTime("Presolve", [&]() {
+					solver_->PreSolve(time);
+					});
+				MeasureTime("Solve", [&]() {
+					solver_->Solve(time, 15);
+					});
+				MeasureTime("Integrate Velocity", [&]() {
+					for (auto& body : bodies) {
+						if (!body->IsGhost()) {
+							body->IntegrateVelocities(time);
+						}
+					}
+				});
+				MeasureTime("PostSolve", [&]() {
+					solver_->PostSolve(time, 2);
+				});
+			});
 		}
-		//MeasureTime("Broadphase whole", [this]() {
-			BroadPhase();
-		//});
-		
+		else
+		{
+			for (auto& body : bodies) {
+				if (!body->IsGhost()) {
+					body->IntegrateForces(time, gravity);
+					body->ApplyDampling(time);
+				}
+			}
 
-		NarrowPhase();
-		//MeasureTime("Build island", [this]() {
+			BroadPhase();
+			NarrowPhase();
 			BuildIslands();
-		//});
-		//MeasureTime("solver initialize", [this]() {
-		 	solver_->Initialize(contacts, constraints);
-		//});
-		//MeasureTime("island", [this,time]() {
+			solver_->Initialize(contacts, constraints);
 			solver_->PreSolve(time);
 			solver_->Solve(time, 15);
-		//});
-		for (std::unique_ptr<FlatBody>& body : bodies) {
-			if (body->IsGhost()) {
-				continue;
+
+			for (auto& body : bodies) {
+				if (!body->IsGhost()) {
+					body->IntegrateVelocities(time);
+				}
 			}
-			body->IntegrateVelocities(time);
+
+			solver_->PostSolve(time, 2);
 		}
-		solver_->PostSolve(time, 2);
-		//UpdateSleeping(time);
-		//CollisionDetectionStep(time);
 	}
 	void FlatWorld::AddConstraint(std::unique_ptr<FlatConstraint> constraint)
 	{

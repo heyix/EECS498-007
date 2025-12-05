@@ -454,15 +454,18 @@ namespace FlatPhysics {
 
     void DistributedDomain::Step(float dt)
     {
-        ++current_step_;
+        //MeasureTime("Domain Step", [this, &dt]() {
+            ++current_step_;
 
-        RebuildGhostsFromPrimaries();
+            RebuildGhostsFromPrimaries();
 
-        for (int i = 0; i < static_cast<int>(cells_.size()); ++i) {
-            cells_[i].world->Step(dt);
-        }
+            for (int i = 0; i < static_cast<int>(cells_.size()); ++i) {
+                cells_[i].world->Step(dt);
+            }
 
-        MigratePrimaries();
+            MigratePrimaries();
+        //});
+
     }
 
     void DistributedDomain::ForEachWorld(const std::function<void(FlatWorld&)>& func)

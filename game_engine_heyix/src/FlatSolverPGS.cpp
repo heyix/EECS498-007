@@ -200,12 +200,25 @@ namespace FlatPhysics {
 
     void FlatSolverPGS::PreSolve(float dt)
     {
+        int chunk = 1;
+#ifdef _OPENMP
+        {
+            int threads = omp_get_max_threads();
+            if (threads <= 0) threads = 1;
+
+            int base = active_island_count_ / threads;
+            if (base <= 0) base = 1;
+
+            chunk = std::min(512, base);
+        }
+#endif
+
         if (active_island_count_ == 0) return;
         HandleGraphColoring();
         if (!enable_intra_island_parallel_)
         {
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic,4)
+#pragma omp parallel for schedule(dynamic,chunk)
 #endif
             for (int i = 0; i < active_island_count_; ++i)
             {
@@ -265,6 +278,20 @@ namespace FlatPhysics {
 
     void FlatSolverPGS::Solve(float dt, int iterations)
     {
+        int chunk = 1;
+#ifdef _OPENMP
+{
+        int threads = omp_get_max_threads();
+        if (threads <= 0) threads = 1;
+
+        int base = active_island_count_ / threads;
+        if (base <= 0) base = 1;
+
+        chunk = std::min(512, base);
+}
+#endif
+
+
         if (active_island_count_ == 0) return;
 
         if (!enable_intra_island_parallel_)
@@ -272,7 +299,7 @@ namespace FlatPhysics {
             for (int iter = 0; iter < iterations; ++iter)
             {
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic,4)
+#pragma omp parallel for schedule(dynamic,chunk)
 #endif
                 for (int i = 0; i < active_island_count_; ++i)
                 {
@@ -386,6 +413,20 @@ namespace FlatPhysics {
 //    }
     void FlatSolverPGS::PostSolve(float dt, int iterations)
     {
+        int chunk = 1;
+#ifdef _OPENMP
+        {
+            int threads = omp_get_max_threads();
+            if (threads <= 0) threads = 1;
+
+            int base = active_island_count_ / threads;
+            if (base <= 0) base = 1;
+
+            chunk = std::min(512, base);
+        }
+#endif
+
+
         if (active_island_count_ == 0) return;
 
         if (!enable_intra_island_parallel_)
@@ -393,7 +434,7 @@ namespace FlatPhysics {
             for (int iter = 0; iter < iterations; ++iter)
             {
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic,4)
+#pragma omp parallel for schedule(dynamic,chunk)
 #endif
                 for (int i = 0; i < active_island_count_; ++i)
                 {
