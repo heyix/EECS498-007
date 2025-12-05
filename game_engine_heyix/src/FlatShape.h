@@ -49,7 +49,6 @@ namespace FlatPhysics {
 		PolygonShape(const std::vector<Vector2>& verts) { SetVertices(verts); }
 		PolygonShape(std::vector<Vector2>&& verts) {
 			vertices = std::move(verts);
-			vertices_sized_buffer.resize(vertices.size());
 		}
 
 	public:
@@ -62,14 +61,11 @@ namespace FlatPhysics {
 
 		void SetVertices(const std::vector<Vector2>& verts) {
 			vertices = verts;
-			vertices_sized_buffer.resize(vertices.size());
 		}
 
 		void SetAsBox(float width, float height, const Vector2& center = Vector2::Zero(), float angle = 0.0f);
 		const std::vector<Vector2>& GetVertices()const { return vertices; }
-		std::vector<Vector2>& GetVerticesSizedBuffer()const { return vertices_sized_buffer; }
 	private:
 		std::vector<Vector2> vertices;
-		mutable std::vector<Vector2> vertices_sized_buffer;
 	};
 }
