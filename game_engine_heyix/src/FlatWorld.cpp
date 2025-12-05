@@ -541,7 +541,7 @@ namespace FlatPhysics {
 					}
 				});
 				MeasureTime("PostSolve", [&]() {
-					solver_->PostSolve(time, 2);
+					//solver_->PostSolve(time, 2);
 				});
 			});
 		}
@@ -567,7 +567,7 @@ namespace FlatPhysics {
 				}
 			}
 
-			solver_->PostSolve(time, 2);
+			//solver_->PostSolve(time, 2);
 		}
 	}
 	void FlatWorld::AddConstraint(std::unique_ptr<FlatConstraint> constraint)
