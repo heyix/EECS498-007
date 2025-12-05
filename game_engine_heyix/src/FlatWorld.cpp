@@ -447,15 +447,9 @@ namespace FlatPhysics {
 	}
 	void FlatWorld::SynchronizeFixtures()
 	{
-		struct ProxyUpdate {
-			ProxyID id;
-			FlatAABB new_aabb;
-			FlatFixture* fixture;
-		};
 		if (!broadphase_) {
 			return;
 		}
-		static std::vector<ProxyUpdate> updates;
 		updates.reserve(bodies.size());
 		updates.clear();
 #pragma omp parallel
