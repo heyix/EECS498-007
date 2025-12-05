@@ -651,95 +651,97 @@ namespace FlatPhysics {
 			}
 		//});
 
-
-		for (int i = 0; i < pairCount; ++i) {
-			NarrowPhaseResult& r = np_results[i];
-			FlatFixture* fa = r.fa;
-			FlatFixture* fb = r.fb;
-			if (!fa || !fb) {
-				continue;
-			}
-
-			FlatBody* bodyA = fa->GetBody();
-			FlatBody* bodyB = fb->GetBody();
-
-			std::uint64_t key = MakeContactKey(fa, fb);
-			auto it = contact_map_.find(key);
-			const bool existed = (it != contact_map_.end());
-
-			if (bodyA->IsGhost() && bodyB->IsGhost()) {
-				if (existed) {
-					const int idx = it->second;
-					DestroyContactManifold(idx);
+		//MeasureTime("Generate Manifold", [this, &pairCount]() {
+			for (int i = 0; i < pairCount; ++i) {
+				NarrowPhaseResult& r = np_results[i];
+				FlatFixture* fa = r.fa;
+				FlatFixture* fb = r.fb;
+				if (!fa || !fb) {
+					continue;
 				}
-				continue;
-			}
-			const bool bothSleeping = !bodyA->IsAwake() && !bodyB->IsAwake();
 
-			// --- SPECIAL CASE: both sleeping ---
-			// we skipped collision, so r.touching is false,
-			// but if there was an old contact we want to keep it.
-			if (bothSleeping) {
-				if (existed) {
+				FlatBody* bodyA = fa->GetBody();
+				FlatBody* bodyB = fb->GetBody();
+
+				std::uint64_t key = MakeContactKey(fa, fb);
+				auto it = contact_map_.find(key);
+				const bool existed = (it != contact_map_.end());
+
+				if (bodyA->IsGhost() && bodyB->IsGhost()) {
+					if (existed) {
+						const int idx = it->second;
+						DestroyContactManifold(idx);
+					}
+					continue;
+				}
+				const bool bothSleeping = !bodyA->IsAwake() && !bodyB->IsAwake();
+
+				// --- SPECIAL CASE: both sleeping ---
+				// we skipped collision, so r.touching is false,
+				// but if there was an old contact we want to keep it.
+				if (bothSleeping) {
+					if (existed) {
+						FlatManifold& manifold = contacts[it->second];
+						manifold.touched_this_step = true;
+						manifold.is_new_contact = false;
+					}
+					// if not existed, we just don't create one while they sleep
+					continue;
+				}
+				if (!r.touching) {
+					if (existed) {
+						const int idx = it->second;
+						DestroyContactManifold(idx);
+					}
+					continue;
+				}
+
+				if (!existed) {
+					const int index = static_cast<int>(contacts.size());
+					contacts.emplace_back(fa, fb);
+					FlatManifold& manifold = contacts.back();
+
+					manifold.touched_this_step = true;
+					manifold.is_new_contact = true;
+					manifold.contact_points = r.contact_points;
+
+					contact_map_[key] = index;
+					AttachContactToBodies(index, manifold);
+
+					if (!bodyA->IsStatic()) bodyA->SetAwake(true);
+					if (!bodyB->IsStatic()) bodyB->SetAwake(true);
+				}
+				else {
 					FlatManifold& manifold = contacts[it->second];
 					manifold.touched_this_step = true;
 					manifold.is_new_contact = false;
-				}
-				// if not existed, we just don't create one while they sleep
-				continue;
-			}
-			if (!r.touching) {
-				if (existed) {
-					const int idx = it->second;
-					DestroyContactManifold(idx);
-				}
-				continue;
-			}
 
-			if (!existed) {
-				const int index = static_cast<int>(contacts.size());
-				contacts.emplace_back(fa, fb);
-				FlatManifold& manifold = contacts.back();
+					FixedSizeContainer<ContactPoint, 2> merged;
+					for (ContactPoint& new_point : r.contact_points) {
+						ContactPoint merged_point = new_point;
+						merged_point.normal_impulse = 0.0f;
+						merged_point.tangent_impulse = 0.0f;
 
-				manifold.touched_this_step = true;
-				manifold.is_new_contact = true;
-				manifold.contact_points = r.contact_points;
-
-				contact_map_[key] = index;
-				AttachContactToBodies(index, manifold);
-
-				if (!bodyA->IsStatic()) bodyA->SetAwake(true);
-				if (!bodyB->IsStatic()) bodyB->SetAwake(true);
-			}
-			else {
-				FlatManifold& manifold = contacts[it->second];
-				manifold.touched_this_step = true;
-				manifold.is_new_contact = false;
-
-				FixedSizeContainer<ContactPoint, 2> merged;
-				for (ContactPoint& new_point : r.contact_points) {
-					ContactPoint merged_point = new_point;
-					merged_point.normal_impulse = 0.0f;
-					merged_point.tangent_impulse = 0.0f;
-
-					for (ContactPoint& old_point : manifold.contact_points) {
-						if (old_point.id.key == new_point.id.key) {
-							merged_point.normal_impulse = old_point.normal_impulse;
-							merged_point.tangent_impulse = old_point.tangent_impulse;
-							break;
+						for (ContactPoint& old_point : manifold.contact_points) {
+							if (old_point.id.key == new_point.id.key) {
+								merged_point.normal_impulse = old_point.normal_impulse;
+								merged_point.tangent_impulse = old_point.tangent_impulse;
+								break;
+							}
 						}
+						merged.Push_Back(merged_point);
 					}
-					merged.Push_Back(merged_point);
+					manifold.contact_points = merged;
 				}
-				manifold.contact_points = merged;
 			}
-		}
 
-		for (int i = static_cast<int>(contacts.size()) - 1; i >= 0; --i) {
-			if (!contacts[i].touched_this_step) {
-				DestroyContactManifold(i);
+			for (int i = static_cast<int>(contacts.size()) - 1; i >= 0; --i) {
+				if (!contacts[i].touched_this_step) {
+					DestroyContactManifold(i);
+				}
 			}
-		}
+		//});
+		
 	}
 
 	void FlatWorld::SetBroadPhase(std::unique_ptr<IBroadPhase> bp)
