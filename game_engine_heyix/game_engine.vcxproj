@@ -51,9 +51,12 @@
     <ClCompile Include="src\FlatSolverNaive.cpp" />
     <ClCompile Include="src\FlatTransform.cpp" />
     <ClCompile Include="src\MatMN.cpp" />
+    <ClCompile Include="src\MpiExchange.cpp" />
+    <ClCompile Include="src\MpiGridCell.cpp" />
     <ClCompile Include="src\PenetrationConstraintSinglePoint.cpp" />
     <ClCompile Include="src\PenetrationConstraintTwoPoint.cpp" />
     <ClCompile Include="src\TestScene.cpp" />
+    <ClCompile Include="src\TestSceneMPI.cpp" />
     <ClCompile Include="src\VecN.cpp" />
     <ClCompile Include="src\FlatWorld.cpp" />
     <ClCompile Include="src\GameData.cpp" />
@@ -198,9 +201,12 @@
     <ClInclude Include="src\FlatSolverNaive.h" />
     <ClInclude Include="src\FlatTransform.h" />
     <ClInclude Include="src\MatMN.h" />
+    <ClInclude Include="src\MpiExchange.h" />
+    <ClInclude Include="src\MpiGridCell.h" />
     <ClInclude Include="src\PenetrationConstraintSinglePoint.h" />
     <ClInclude Include="src\PenetrationConstraintTwoPoint.h" />
     <ClInclude Include="src\TestScene.h" />
+    <ClInclude Include="src\TestSceneMPI.h" />
     <ClInclude Include="src\VecN.h" />
     <ClInclude Include="src\FlatWorld.h" />
     <ClInclude Include="src\GameData.h" />

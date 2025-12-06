@@ -1,0 +1,216 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BroadPhaseNaive.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BroadPhaseQuadTree.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DistributedDomain.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatAABB.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatBody.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatBodySerialization.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatCallbacks.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatConstraint.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatContact.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatDefs.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatFixture.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatHelper.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatManifold.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatMath.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatShape.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatSolver.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatSolverNaive.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatSolverPGS.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatTransform.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatWorld.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IBroadPhase.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JointConstraint.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MatMN.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MpiExchange.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MpiGridCell.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PenetrationConstraintSinglePoint.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PenetrationConstraintTwoPoint.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestScene.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestSceneMPI.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VecN.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector2.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Collision.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="BroadPhaseNaive.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BroadPhaseQuadTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DistributedDomain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatAABB.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatBody.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatBodySerialization.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatCallbacks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatConstraint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatContact.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatDefs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatFixture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatManifold.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatMath.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatShape.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatSolver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatSolverNaive.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatSolverPGS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatTransform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatWorld.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IBroadPhase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JointConstraint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MatMN.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MpiExchange.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MpiGridCell.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PenetrationConstraintSinglePoint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PenetrationConstraintTwoPoint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSceneMPI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VecN.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Collision.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

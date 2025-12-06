@@ -591,6 +591,15 @@
     <ClCompile Include="src\TestScene.cpp">
       <Filter>Source Files\FlatPhysics\Physics Objects</Filter>
     </ClCompile>
+    <ClCompile Include="src\MpiGridCell.cpp">
+      <Filter>Source Files\FlatPhysics\Physics Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MpiExchange.cpp">
+      <Filter>Source Files\FlatPhysics\Physics Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TestSceneMPI.cpp">
+      <Filter>Source Files\FlatPhysics\Physics Objects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThirdParty\lua\lapi.h">
@@ -1026,6 +1035,15 @@
       <Filter>Header Files\FlatPhysics</Filter>
     </ClInclude>
     <ClInclude Include="src\TestScene.h">
+      <Filter>Header Files\FlatPhysics\Physics Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MpiGridCell.h">
+      <Filter>Header Files\FlatPhysics\Physics Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MpiExchange.h">
+      <Filter>Header Files\FlatPhysics\Physics Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TestSceneMPI.h">
       <Filter>Header Files\FlatPhysics\Physics Objects</Filter>
     </ClInclude>
   </ItemGroup>

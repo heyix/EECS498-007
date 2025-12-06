@@ -1,7 +1,4 @@
-#include "Engine.h"
 #include <memory>
-#include "lua/lua.hpp"
-#include "LuaBridge/LuaBridge.h"
 #include <omp.h>
 #define _CRTDBG_MAP_ALLOC
 #include <cstdlib>

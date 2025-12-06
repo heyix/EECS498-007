@@ -1,0 +1,262 @@
+#include "PenetrationConstraintSinglePoint.h"
+#include <iostream>
+#include <algorithm>
+namespace FlatPhysics {
+	PenetrationConstraintSinglePoint::PenetrationConstraintSinglePoint(FlatFixture *a, FlatFixture* b, const Vector2& collision_point_a, const Vector2& collision_point_b, const Vector2& normal, float* normal_impulse_ptr, float* tangent_impulse_ptr, bool is_new_contact)
+		:PenetrationConstraintBase(a,b,a->GetBody()->WorldToLocal(collision_point_a), b->GetBody()->WorldToLocal(collision_point_b)), normal(a->GetBody()->WorldToLocal(normal)), bias(0), jacobian(0), cached_lambda(0),friction(std::max(a->GetFriction(), b->GetFriction())),
+		normal_impulse_(normal_impulse_ptr),tangent_impulse_(tangent_impulse_ptr),is_new_contact_(is_new_contact)
+	{
+	}
+	void FlatPhysics::PenetrationConstraintSinglePoint::PreSolve(float dt)
+	{
+		FlatBody* bodyA = a->GetBody();
+		FlatBody* bodyB = b->GetBody();
+		const Vector2 pa = bodyA->LocalToWorld(point_a);
+		const Vector2 pb = bodyB->LocalToWorld(point_b);
+		const Vector2 n = bodyA->LocalToWorld(normal);
+
+		const Vector2 ra = pa - bodyA->GetMassCenterWorld();
+		const Vector2 rb = pb - bodyB->GetMassCenterWorld();
+
+		jacobian.Zero();
+		Vector2 j1 = -n;
+		jacobian(0, 0) = j1.x();
+		jacobian(0, 1) = j1.y();
+
+		float j2 = Vector2::Cross(-ra, n);
+		jacobian(0, 2) = j2;
+
+		Vector2 j3 = n;
+		jacobian(0, 3) = j3.x();
+		jacobian(0, 4) = j3.y();
+
+		float j4 = Vector2::Cross(rb, n);
+		jacobian(0, 5) = j4;
+
+		//friction
+		if (friction > 0) {
+			Vector2 t = n.NormalDirection().Normalized();
+			jacobian(1, 0) = -t.x();
+			jacobian(1, 1) = -t.y();
+			jacobian(1, 2) = Vector2::Cross(-ra, t);
+
+			jacobian(1, 3) = t.x();
+			jacobian(1, 4) = t.y();
+			jacobian(1, 5) = Vector2::Cross(rb, t);
+		}
+
+		float oldNormalImpulse = (normal_impulse_ ? *normal_impulse_ : 0.0f);
+		float oldTangentImpulse = (tangent_impulse_ ? *tangent_impulse_ : 0.0f);
+
+		cached_lambda(0) = oldNormalImpulse;
+		cached_lambda(1) = oldTangentImpulse;
+
+		float beta = 0.2f;
+		float C = Vector2::Dot(pb - pa, -n);
+		C = std::min(0.0f, C + 0.005f);
+
+		Vector2 va = bodyA->GetLinearVelocity() + Vector2(-bodyA->GetAngularVelocity() * ra.y(), bodyA->GetAngularVelocity() * ra.x());
+		Vector2 vb = bodyB->GetLinearVelocity() + Vector2(-bodyB->GetAngularVelocity() * rb.y(), bodyB->GetAngularVelocity() * rb.x());
+		float v_rel_dot_normal = Vector2::Dot((vb - va), n);
+		float e = std::min(a->GetRestitution(), b->GetRestitution());
+		bias = (beta / dt) * C;
+		const float restitution_threshold = 1.0f;
+		if (is_new_contact_ && v_rel_dot_normal < -restitution_threshold)
+		{
+			bias += (e * v_rel_dot_normal);
+		}
+
+
+		if (cached_lambda(0) != 0.0f || cached_lambda(1) != 0.0f) {
+			MatMN<6, 2> jt = jacobian.Transpose();
+			VecN<6> impulses = jt * cached_lambda;
+			bodyA->ApplyImpulseLinear({ impulses(0),impulses(1) }, false);
+			bodyA->ApplyImpulseAngular(impulses(2), false);
+			bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) }, false);
+			bodyB->ApplyImpulseAngular(impulses(5), false);
+		}
+
+		MatMN<6, 6> MInv = GetInverseM();
+
+		const float j00 = jacobian(0, 0);
+		const float j01 = jacobian(0, 1);
+		const float j02 = jacobian(0, 2);
+		const float j03 = jacobian(0, 3);
+		const float j04 = jacobian(0, 4);
+		const float j05 = jacobian(0, 5);
+
+		const float j10 = jacobian(1, 0);
+		const float j11 = jacobian(1, 1);
+		const float j12 = jacobian(1, 2);
+		const float j13 = jacobian(1, 3);
+		const float j14 = jacobian(1, 4);
+		const float j15 = jacobian(1, 5);
+
+		const float m0 = MInv(0, 0);
+		const float m1 = MInv(1, 1);
+		const float m2 = MInv(2, 2);
+		const float m3 = MInv(3, 3);
+		const float m4 = MInv(4, 4);
+		const float m5 = MInv(5, 5);
+
+		lhs00_ =
+			j00 * j00 * m0 + j01 * j01 * m1 + j02 * j02 * m2 +
+			j03 * j03 * m3 + j04 * j04 * m4 + j05 * j05 * m5;
+
+		lhs01_ =
+			j00 * j10 * m0 + j01 * j11 * m1 + j02 * j12 * m2 +
+			j03 * j13 * m3 + j04 * j14 * m4 + j05 * j15 * m5;
+
+		lhs11_ =
+			j10 * j10 * m0 + j11 * j11 * m1 + j12 * j12 * m2 +
+			j13 * j13 * m3 + j14 * j14 * m4 + j15 * j15 * m5;
+
+		float det = lhs00_ * lhs11_ - lhs01_ * lhs01_;
+		invDet_ = (fabs(det) > 1e-6f ? 1.0f / det : 0.0f);
+
+	}
+
+	void FlatPhysics::PenetrationConstraintSinglePoint::Solve()
+	{ 
+#pragma region DirectComputeVersion
+		VecN<6> v = GetVelocities();
+
+		const float j00 = jacobian(0, 0);
+		const float j01 = jacobian(0, 1);
+		const float j02 = jacobian(0, 2);
+		const float j03 = jacobian(0, 3);
+		const float j04 = jacobian(0, 4);
+		const float j05 = jacobian(0, 5);
+
+		const float j10 = jacobian(1, 0);
+		const float j11 = jacobian(1, 1);
+		const float j12 = jacobian(1, 2);
+		const float j13 = jacobian(1, 3);
+		const float j14 = jacobian(1, 4);
+		const float j15 = jacobian(1, 5);
+
+		float rhs0 =
+			-(j00 * v(0) + j01 * v(1) + j02 * v(2) +
+				j03 * v(3) + j04 * v(4) + j05 * v(5));
+
+		float rhs1 =
+			-(j10 * v(0) + j11 * v(1) + j12 * v(2) +
+				j13 * v(3) + j14 * v(4) + j15 * v(5));
+
+		rhs0 -= bias;
+
+		float lambda0 = (rhs0 * lhs11_ - rhs1 * lhs01_) * invDet_;
+		float lambda1 = (-rhs0 * lhs01_ + rhs1 * lhs00_) * invDet_;
+
+		VecN<2> delta;
+		delta(0) = lambda0;
+		delta(1) = lambda1;
+		VecN<2> old = cached_lambda;
+		cached_lambda += delta;
+
+		if (cached_lambda(0) < 0.0f)
+			cached_lambda(0) = 0.0f;
+
+		if (friction > 0.0f)
+		{
+			float maxT = friction * cached_lambda(0);
+			cached_lambda(1) = std::clamp(cached_lambda(1), -maxT, maxT);
+		}
+
+		delta = cached_lambda - old;
+		lambda0 = delta(0);
+		lambda1 = delta(1);
+
+		float i0 = j00 * lambda0 + j10 * lambda1;
+		float i1 = j01 * lambda0 + j11 * lambda1;
+		float i2 = j02 * lambda0 + j12 * lambda1;
+		float i3 = j03 * lambda0 + j13 * lambda1;
+		float i4 = j04 * lambda0 + j14 * lambda1;
+		float i5 = j05 * lambda0 + j15 * lambda1;
+
+		FlatBody* bodyA = a->GetBody();
+		FlatBody* bodyB = b->GetBody();
+
+		bodyA->ApplyImpulseLinear({ i0, i1 }, false);
+		bodyA->ApplyImpulseAngular(i2, false);
+
+		bodyB->ApplyImpulseLinear({ i3, i4 }, false);
+		bodyB->ApplyImpulseAngular(i5, false);
+
+		if (normal_impulse_)  *normal_impulse_ = cached_lambda(0);
+		if (tangent_impulse_) *tangent_impulse_ = cached_lambda(1);
+#pragma endregion
+#pragma region MatrixComputeVersion
+
+		/*VecN<6> v = GetVelocities();
+		MatMN<6,6> inv_m = GetInverseM();
+
+		MatMN<6,2> jt = jacobian.Transpose();
+		MatMN<2,2> lhs = jacobian * inv_m * jt;
+		VecN<2> rhs = jacobian * v;
+		rhs *= -1;
+		rhs(0) -= bias;
+		VecN<2> lambda = MatMN<2,2>::SolveGS(lhs, rhs);
+		VecN<2> old_lambda = cached_lambda;
+		cached_lambda += lambda;
+		cached_lambda(0) = (cached_lambda(0) < 0) ? 0 : cached_lambda(0);
+		if (friction > 0.0f) {
+			float max_friction = cached_lambda(0) * friction;
+			cached_lambda(1) = std::clamp(cached_lambda(1), -max_friction, max_friction);
+		}
+		lambda = cached_lambda - old_lambda;
+
+		FlatBody* bodyA = a->GetBody();
+		FlatBody* bodyB = b->GetBody();
+		VecN<6> impulses = jt * lambda;
+		bodyA->ApplyImpulseLinear({ impulses(0),impulses(1) },false);
+		bodyA->ApplyImpulseAngular(impulses(2), false);
+		bodyB->ApplyImpulseLinear({ impulses(3),impulses(4) }, false);
+		bodyB->ApplyImpulseAngular(impulses(5), false);
+
+		if (normal_impulse_) {
+			*normal_impulse_ = cached_lambda(0);
+		}
+		if (tangent_impulse_) {
+			*tangent_impulse_ = cached_lambda(1);
+		}*/
+#pragma endregion
+	}
+	void PenetrationConstraintSinglePoint::PostSolve()
+	{
+		FlatBody* bodyA = a->GetBody();
+		FlatBody* bodyB = b->GetBody();
+		const Vector2 pa = bodyA->LocalToWorld(point_a);
+		const Vector2 pb = bodyB->LocalToWorld(point_b);
+		const Vector2 n = bodyA->LocalToWorld(normal);
+		const Vector2 ra = pa - bodyA->GetMassCenterWorld();
+		const Vector2 rb = pb - bodyB->GetMassCenterWorld();
+
+		const float invMassA =  bodyA->GetInverseMass();
+		const float invMassB =  bodyB->GetInverseMass();
+		const float invIA =  bodyA->GetInverseInertia();
+		const float invIB =  bodyB->GetInverseInertia();
+
+		const float rnA = Vector2::Cross(ra, n);
+		const float rnB = Vector2::Cross(rb, n);
+
+		float K = invMassA + invMassB + rnA * rnA * invIA + rnB * rnB * invIB;
+		if (K <= 0.0f) return; 
+
+		const float linearSlop = 0.01f;
+		const float percent = 0.2f;
+		const float maxCorr = 0.02f; 
+		
+		float C = Vector2::Dot(pb - pa, -n);    
+		float error = std::max(-C - linearSlop, 0.0f);
+		float correction = std::min(percent * error, maxCorr);
+		float impulseN = correction / std::max(K, 1e-8f);
+		Vector2 P = impulseN * n;
+		bodyA->Move(-invMassA * P, false);
+		bodyA->Rotate(-invIA * rnA * impulseN, false);
+		bodyB->Move(+invMassB * P, false);
+		bodyB->Rotate(+invIB * rnB * impulseN, false);
+
+	}
+}
+
