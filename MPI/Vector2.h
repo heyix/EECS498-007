@@ -9,12 +9,20 @@ private:
 	b2Vec2 vector2;
 public:
 	Vector2() {
+		vector2 = b2Vec2(0.0f, 0.0f);
 	}
 	Vector2(float x, float y) {
 		vector2 = { x,y };
 	}
 	Vector2(const b2Vec2& vec) {
 		vector2 = vec;
+	}
+	Vector2(std::initializer_list<float> list) {
+		float x = 0.0f, y = 0.0f;
+		auto it = list.begin();
+		if (it != list.end()) x = *it++;
+		if (it != list.end()) y = *it;
+		vector2 = b2Vec2(x, y);
 	}
 	float& x() { return vector2.x; }
 	float& y() { return vector2.y; }
