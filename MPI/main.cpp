@@ -1,8 +1,6 @@
 #include <memory>
 #include <omp.h>
-#define _CRTDBG_MAP_ALLOC
 #include <cstdlib>
-#include <crtdbg.h>
 #include <mpi.h>
 #include "MpiGridCell.h"
 #include "MpiExchange.h"
@@ -11,16 +9,10 @@
 
 int main(int argc, char* argv[]) {
     using namespace FlatPhysics;
-#ifdef _DEBUG
-	// Enable debug heap + auto leak check at program exit
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	//_CrtSetBreakAlloc(26541);
-#endif
-	omp_set_num_threads(1);
-	//Engine engine;
-	//std::unique_ptr<Game> game = std::make_unique<Game>();
-	//engine.set_running_game(std::move(game));
-	//engine.run_game();
+    //Engine engine;
+    //std::unique_ptr<Game> game = std::make_unique<Game>();
+    //engine.set_running_game(std::move(game));
+    //engine.run_game();
 
     MPI_Init(&argc, &argv);
 
@@ -115,31 +107,26 @@ int main(int argc, char* argv[]) {
     const int   total_steps = 1000;
     int current_step = 0;
 
-    MPI_Barrier(comm); // start timing after init
-    MeasureTime("Main Step", [&]() {
-        for (int step = 0; step < total_steps; ++step) {
-                ++current_step;
-                ExchangeGhostsMPI(
-                    cell,
-                    rank,
-                    current_step,
-                    cfg,
-                    primary_by_id,
-                    comm);
+    MPI_Barrier(comm);
+    double t0 = MPI_Wtime();
 
-                cell.world->Step(dt);
+    for (int step = 0; step < total_steps; ++step) {
+        ++current_step;
 
-                ExchangeMigrationsMPI(
-                    cell,
-                    rank,
-                    cfg,
-                    primary_by_id,
-                    comm);
+        ExchangeGhostsMPI(cell, rank, current_step, cfg, primary_by_id, comm);
 
-        
-        }
-    });
+        cell.world->Step(dt);
+
+        ExchangeMigrationsMPI(cell, rank, cfg, primary_by_id, comm);
+    }
+
+    MPI_Barrier(comm);
+    double t1 = MPI_Wtime();
+
+    if (rank == 0) {
+        printf("Total simulation time = %.6f seconds\n", t1 - t0);
+    }
 
     MPI_Finalize();
-	return 0;
+    return 0;
 }

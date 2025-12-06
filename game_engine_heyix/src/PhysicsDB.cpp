@@ -67,7 +67,7 @@ void PhysicsDB::Init_Physics_World()
 
 	FlatPhysics::FlatAABB world_bounds;
 	world_bounds.min = Vector2(-10.0f, -10.0f);
-	world_bounds.max = Vector2(220.0f, 220.0f);
+	world_bounds.max = Vector2(170.0f, 170.0f);
 
 	int grid_nx = 1;
 	int grid_ny = 1;
