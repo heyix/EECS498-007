@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     // Global test scene params (walls layout is global 2x2 etc.; unchanged).
     const int   wall_grid_x = 2;     // global walls layout
     const int   wall_grid_y = 2;
-    const int   num_bodies = 10000; // e.g.
+    const int   num_bodies = 50000; // e.g.
     const float p_polygon = 0.5f;
 
 

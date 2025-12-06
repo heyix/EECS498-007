@@ -1,4 +1,4 @@
-#include "BroadphaseNaive.h"
+#include "BroadPhaseNaive.h"
 #include <algorithm>
 
 namespace FlatPhysics {
