@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     world_bounds.max = Vector2(1200.0f, 1200.0f);
     const int   wall_grid_x = 2;     // global walls layout
     const int   wall_grid_y = 2;
-    const int   num_bodies = 700000; // e.g.
+    const int   num_bodies = 600000; // e.g.
     const float p_polygon = 0.5f;
 
     const float dt = 1.0f / 60.0f;
@@ -130,6 +130,27 @@ int main(int argc, char* argv[]) {
     if (rank == 0) {
         printf("Total simulation time = %.6f seconds\n", t1 - t0);
     }
+
+    const auto& stats = FlatPhysics::TimeAverager::GetAllAggregates();
+
+    for (int r = 0; r < size; ++r) {
+        MPI_Barrier(comm);
+        if (rank == r) {
+            printf("===== Rank %d timing stats =====\n", rank);
+            for (const auto& kv : stats) {
+                const std::string& name = kv.first;
+                const auto& agg = kv.second;
+                if (agg.count == 0) continue;
+                double avg = agg.sum_ms / (double)agg.count;
+                printf("  %-20s : avg = %.6f ms over %llu samples\n",
+                    name.c_str(),
+                    avg,
+                    (unsigned long long)agg.count);
+            }
+            fflush(stdout);
+        }
+    }
+    MPI_Barrier(comm);
 
     MPI_Finalize();
     return 0;

@@ -9,6 +9,7 @@
 #include "BroadPhaseQuadTree.h"
 #include "FlatContact.h"
 #include "FlatHelper.h"
+#include <chrono>
 #include <omp.h>
 namespace FlatPhysics {
 	namespace {
@@ -17,6 +18,8 @@ namespace FlatPhysics {
 		constexpr float kAngularSleepTolerance = FlatMath::DegToRad(4.0f);
 		constexpr float kTimeToSleep = 0.5f;
 	}
+	using Clock = std::chrono::steady_clock;
+	using Ms = std::chrono::duration<double, std::milli>;
 	class FlatWorld::BroadPhasePairCollector : public FlatPhysics::IPairCallback {
 	public:
 		BroadPhasePairCollector(int max_threads) :per_thread_pairs_(max_threads) {}
@@ -503,50 +506,10 @@ namespace FlatPhysics {
 	}
 	void FlatWorld::Step(float time)
 	{
-		bool measure_timings = false;
-		if (measure_timings)
-		{
-			MeasureTime("World Step", [this, &time]() {
-				MeasureTime("Integrate Force", [&]() {
-					for (auto& body : bodies) {
-						if (!body->IsGhost()) {
-							body->IntegrateForces(time, gravity);
-							body->ApplyDampling(time);
-						}
-					}
-					});
-				MeasureTime("Broadphase whole", [&]() {
-					BroadPhase();
-					});
-				MeasureTime("NarrowPhase whole", [&]() {
-					NarrowPhase();
-					});
-				MeasureTime("Build island", [&]() {
-					BuildIslands();
-					});
-				MeasureTime("Solver initialize", [&]() {
-					solver_->Initialize(contacts, constraints);
-					});
-				MeasureTime("Presolve", [&]() {
-					solver_->PreSolve(time);
-					});
-				MeasureTime("Solve", [&]() {
-					solver_->Solve(time, 15);
-					});
-				MeasureTime("Integrate Velocity", [&]() {
-					for (auto& body : bodies) {
-						if (!body->IsGhost()) {
-							body->IntegrateVelocities(time);
-						}
-					}
-				});
-				MeasureTime("PostSolve", [&]() {
-					//solver_->PostSolve(time, 2);
-				});
-			});
-		}
-		else
-		{
+		bool measure_timings = true; // flip off if you want zero overhead
+
+		if (!measure_timings) {
+			// Old “plain” version if you want a zero-cost path
 			for (auto& body : bodies) {
 				if (!body->IsGhost()) {
 					body->IntegrateForces(time, gravity);
@@ -566,9 +529,52 @@ namespace FlatPhysics {
 					body->IntegrateVelocities(time);
 				}
 			}
-
 			//solver_->PostSolve(time, 2);
+			return;
 		}
+
+		using FlatPhysics::MeasureTime;
+
+		// These names are the keys you’ll see in the stats map later
+		MeasureTime("IntegrateForces", [&]() {
+			for (auto& body : bodies) {
+				if (!body->IsGhost()) {
+					body->IntegrateForces(time, gravity);
+					body->ApplyDampling(time);
+				}
+			}
+			});
+
+		MeasureTime("BroadPhase", [&]() {
+			BroadPhase();
+			});
+
+		MeasureTime("NarrowPhase", [&]() {
+			NarrowPhase();
+			});
+
+		MeasureTime("BuildIslands", [&]() {
+			BuildIslands();
+			});
+
+		MeasureTime("Solver", [&]() {
+			solver_->Initialize(contacts, constraints);
+			solver_->PreSolve(time);
+			solver_->Solve(time, 15);
+			});
+
+		MeasureTime("IntegrateVelocities", [&]() {
+			for (auto& body : bodies) {
+				if (!body->IsGhost()) {
+					body->IntegrateVelocities(time);
+				}
+			}
+			});
+
+		// If you later want PostSolve timed:
+		// MeasureTime("PostSolve", [&]() {
+		//     solver_->PostSolve(time, 2);
+		// });
 	}
 	void FlatWorld::AddConstraint(std::unique_ptr<FlatConstraint> constraint)
 	{
