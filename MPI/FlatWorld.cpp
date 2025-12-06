@@ -556,10 +556,12 @@ namespace FlatPhysics {
 		MeasureTime("BuildIslands", [&]() {
 			BuildIslands();
 			});
-
-		MeasureTime("Solver", [&]() {
+		MeasureTime("Solver Initialize",[&]() {
 			solver_->Initialize(contacts, constraints);
 			solver_->PreSolve(time);
+			});
+
+		MeasureTime("Solver solve", [&]() {
 			solver_->Solve(time, 15);
 			});
 
@@ -620,7 +622,7 @@ namespace FlatPhysics {
 		}
 
 		np_results.resize(pairCount);
-		//MeasureTime("NarrowPhase", [this,pairCount]() {
+		MeasureTime("NarrowPhase Collision Detection", [this,pairCount]() {
 #pragma omp parallel for schedule(dynamic,64)
 			for (int i = 0; i < pairCount; ++i) {
 				const ContactPair& pair = contact_pairs[i];
@@ -655,9 +657,9 @@ namespace FlatPhysics {
 					r.contact_points = local_points;
 				}
 			}
-		//});
+		});
 
-		//MeasureTime("Generate Manifold", [this, &pairCount]() {
+		MeasureTime("Narrowphase Generate Manifold", [this, &pairCount]() {
 			for (int i = 0; i < pairCount; ++i) {
 				NarrowPhaseResult& r = np_results[i];
 				FlatFixture* fa = r.fa;
@@ -746,7 +748,7 @@ namespace FlatPhysics {
 					DestroyContactManifold(i);
 				}
 			}
-		//});
+		});
 		
 	}
 

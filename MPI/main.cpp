@@ -9,7 +9,7 @@
 
 int main(int argc, char* argv[]) {
     using namespace FlatPhysics;
-    omp_set_num_threads(1);
+    omp_set_num_threads(8);
     //Engine engine;
     //std::unique_ptr<Game> game = std::make_unique<Game>();
     //engine.set_running_game(std::move(game));
@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     world_bounds.max = Vector2(1200.0f, 1200.0f);
     const int   wall_grid_x = 2;     // global walls layout
     const int   wall_grid_y = 2;
-    const int   num_bodies = 600000; // e.g.
+    const int   num_bodies = 700000; // e.g.
     const float p_polygon = 0.5f;
 
     const float dt = 1.0f / 60.0f;

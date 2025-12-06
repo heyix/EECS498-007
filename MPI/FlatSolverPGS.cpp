@@ -209,7 +209,21 @@ namespace FlatPhysics {
             int base = active_island_count_ / threads;
             if (base <= 0) base = 1;
 
-            chunk = std::min(512, base);
+            int preferred = 512;
+            if (threads < 9) {
+                preferred = 512;
+            }
+            else if (threads < 18) {
+                preferred = 256;
+            }
+            else if (threads < 36) {
+                preferred = 128;
+            }
+            else {
+                preferred = 64;
+            }
+
+            chunk = std::min(preferred, base);
         }
 #endif
 
@@ -280,15 +294,29 @@ namespace FlatPhysics {
     {
         int chunk = 1;
 #ifdef _OPENMP
-{
-        int threads = omp_get_max_threads();
-        if (threads <= 0) threads = 1;
+        {
+            int threads = omp_get_max_threads();
+            if (threads <= 0) threads = 1;
 
-        int base = active_island_count_ / threads;
-        if (base <= 0) base = 1;
+            int base = active_island_count_ / threads;
+            if (base <= 0) base = 1;
 
-        chunk = std::min(512, base);
-}
+            int preferred = 512;
+            if (threads < 9) {
+                preferred = 512;
+            }
+            else if (threads < 18) {
+                preferred = 256;
+            }
+            else if (threads < 36) {
+                preferred = 128;
+            }
+            else {
+                preferred = 64;
+            }
+
+            chunk = std::min(preferred, base);
+        }
 #endif
 
 
@@ -422,7 +450,21 @@ namespace FlatPhysics {
             int base = active_island_count_ / threads;
             if (base <= 0) base = 1;
 
-            chunk = std::min(512, base);
+            int preferred = 512;
+            if (threads < 9) {
+                preferred = 512;
+            }
+            else if (threads < 18) {
+                preferred = 256;
+            }
+            else if (threads < 36) {
+                preferred = 128;
+            }
+            else {
+                preferred = 64;
+            }
+
+            chunk = std::min(preferred, base);
         }
 #endif
 
