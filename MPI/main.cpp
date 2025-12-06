@@ -22,6 +22,13 @@ int main(int argc, char* argv[]) {
 
     MPI_Comm_rank(comm, &rank);
     MPI_Comm_size(comm, &size);
+#pragma omp parallel
+    {
+        int tid = omp_get_thread_num();
+        int nt = omp_get_num_threads();
+        if (tid == 0)
+            printf("Rank %d: OpenMP threads = %d\n", rank, nt);
+    }
 
     // Create a 2D grid of processes
     int ndims = 2;
@@ -38,16 +45,14 @@ int main(int argc, char* argv[]) {
 
     FlatAABB world_bounds;
     world_bounds.min = Vector2(-10.0f, -10.0f);
-    world_bounds.max = Vector2(1000.0f, 1000.0f);
-
-
-    // Global test scene params (walls layout is global 2x2 etc.; unchanged).
+    world_bounds.max = Vector2(1200.0f, 1200.0f);
     const int   wall_grid_x = 2;     // global walls layout
     const int   wall_grid_y = 2;
-    const int   num_bodies = 500000; // e.g.
+    const int   num_bodies = 700000; // e.g.
     const float p_polygon = 0.5f;
 
-
+    const float dt = 1.0f / 60.0f;
+    const int   total_steps = 600;
 
 
     MpiSimConfig cfg;
@@ -104,8 +109,6 @@ int main(int argc, char* argv[]) {
         primary_by_id);
 
     // ---- 3) Simulation loop (same as before) ----
-    const float dt = 1.0f / 60.0f;
-    const int   total_steps = 600;
     int current_step = 0;
 
     MPI_Barrier(comm);
