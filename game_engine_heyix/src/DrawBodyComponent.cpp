@@ -252,7 +252,7 @@ void DrawBodyComponent::On_Start()
 
         int   grid_x = 2;   
         int   grid_y = 2;
-        int   num_bodies = 50000;
+        int   num_bodies = 500000;
         float p_polygon = 0.5f; 
 
 

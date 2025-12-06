@@ -9,6 +9,7 @@
 
 int main(int argc, char* argv[]) {
     using namespace FlatPhysics;
+    omp_set_num_threads(1);
     //Engine engine;
     //std::unique_ptr<Game> game = std::make_unique<Game>();
     //engine.set_running_game(std::move(game));
@@ -37,13 +38,13 @@ int main(int argc, char* argv[]) {
 
     FlatAABB world_bounds;
     world_bounds.min = Vector2(-10.0f, -10.0f);
-    world_bounds.max = Vector2(170.0f, 170.0f);
+    world_bounds.max = Vector2(1000.0f, 1000.0f);
 
 
     // Global test scene params (walls layout is global 2x2 etc.; unchanged).
     const int   wall_grid_x = 2;     // global walls layout
     const int   wall_grid_y = 2;
-    const int   num_bodies = 50000; // e.g.
+    const int   num_bodies = 500000; // e.g.
     const float p_polygon = 0.5f;
 
 
@@ -104,7 +105,7 @@ int main(int argc, char* argv[]) {
 
     // ---- 3) Simulation loop (same as before) ----
     const float dt = 1.0f / 60.0f;
-    const int   total_steps = 1000;
+    const int   total_steps = 600;
     int current_step = 0;
 
     MPI_Barrier(comm);
