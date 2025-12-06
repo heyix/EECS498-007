@@ -1,6 +1,7 @@
 #include "BroadPhaseQuadTree.h"
 #include <algorithm>
 #include "FlatHelper.h"
+#include <omp.h>
 namespace FlatPhysics {
 	namespace {
 		constexpr float K_MIN_EXTENT = 0.5f;
@@ -120,15 +121,23 @@ namespace FlatPhysics {
 			FlushDirty();
 		//});
 		if (!root_) return;
-
-		MeasureTime("Broadphase pair generation", [this,&callback]() {
+		int chunk = 64;
+#ifdef _OPENMP
+		{
+			int cores = omp_get_max_threads();
+			if (cores > 18) {
+				chunk = 32;
+			}
+		}
+#endif
+		MeasureTime("Broadphase pair generation", [&]() {
 			const ProxyID count = static_cast<ProxyID>(proxies_.size());
 
 			bool print_info = false;
 			std::vector<int> scanned;
 			if (print_info)scanned = std::vector<int>(count, 0);
 			using UserPair = std::pair<void*, void*>;
-#pragma omp parallel for schedule(dynamic,64)
+			#pragma omp parallel for schedule(dynamic,chunk)
 			for (ProxyID i = 0; i < count; i++) {
 				if (!IsActive(i))continue;
 				Proxy& proxyA = proxies_[i];

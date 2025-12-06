@@ -38,4 +38,12 @@ namespace FlatPhysics {
         int   grid_y,
         int   num_bodies,
         float p_polygon);
+
+    void GenerateHugeTestCaseSkewedCorner(
+        FlatPhysics::DistributedDomain& domain,
+        const FlatPhysics::FlatAABB& world_bounds,
+        int   grid_x,
+        int   grid_y,
+        int   num_bodies,
+        float p_polygon);
 }

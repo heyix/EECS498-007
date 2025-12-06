@@ -59,5 +59,25 @@ namespace FlatPhysics {
         int   my_rank,
         int   start_gid,
         std::unordered_map<int, FlatBody*>& primary_by_id);
+    int CountLocalObjectsForRankMPI_SkewedCorner(
+        const FlatAABB& world_bounds,
+        int   wall_grid_x,
+        int   wall_grid_y,
+        int   num_bodies,
+        float p_polygon,
+        const MpiSimConfig& cfg,
+        int   my_rank);
+
+    void CreateLocalObjectsForRankMPI_SkewedCorner(
+        FlatWorld& world,
+        const FlatAABB& world_bounds,
+        int   wall_grid_x,
+        int   wall_grid_y,
+        int   num_bodies,
+        float p_polygon,
+        const MpiSimConfig& cfg,
+        int   my_rank,
+        int   start_gid,
+        std::unordered_map<int, FlatBody*>& primary_by_id);
 
 } // namespace FlatPhysics
