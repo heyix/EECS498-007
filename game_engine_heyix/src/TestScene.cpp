@@ -296,7 +296,7 @@ void FlatPhysics::GenerateHugeTestCaseSkewedCorner(FlatPhysics::DistributedDomai
     std::uniform_real_distribution<float> ang_speed_dist(-max_angular_speed, max_angular_speed);
 
     // exponent > 1.0f -> skew toward bottom-left
-    const float skew_power = 2.0f;
+    const float skew_power = 1.2f;
 
     for (int i = 0; i < num_bodies; ++i) {
         const int row = i / bodies_cols;

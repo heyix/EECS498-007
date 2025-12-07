@@ -256,7 +256,7 @@ void DrawBodyComponent::On_Start()
         float p_polygon = 0.5f; 
 
 
-        FlatPhysics::GenerateHugeTestCase(
+        FlatPhysics::GenerateHugeTestCaseSkewedCorner(
             *PhysicsDB::distributed_domain,
             PhysicsDB::distributed_domain->world_bounds_,
             grid_x,

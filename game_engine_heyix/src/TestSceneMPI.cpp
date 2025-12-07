@@ -5,7 +5,7 @@
 #include <algorithm>
 
 namespace FlatPhysics {
-
+    static const float skew_power = 1.2f;
     // ----- basic single-body helpers (geometry identical to your original) -----
 
     FlatBody* CreateStaticBoxBodyMPI(
@@ -563,8 +563,6 @@ namespace FlatPhysics {
         std::mt19937 rng(123456);
         std::uniform_real_distribution<float> uni01(0.0f, 1.0f);
 
-        // *** The skew exponent ***
-        const float skew_power = 2.0f;
 
         for (int i = 0; i < num_bodies; ++i)
         {
@@ -774,8 +772,6 @@ namespace FlatPhysics {
         std::uniform_real_distribution<float> speed_dist(0.0f, max_linear_speed);
         std::uniform_real_distribution<float> ang_speed_dist(-max_angular_speed, max_angular_speed);
 
-        // skew exponent: 1.0 -> uniform, >1.0 -> bias toward (0,0) corner
-        const float skew_power = 2.0f;
 
         for (int i = 0; i < num_bodies; ++i)
         {
