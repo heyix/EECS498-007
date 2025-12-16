@@ -66,8 +66,8 @@ namespace {
         const float ppm = 100.0f;
 
         std::unique_ptr<Game>& game = Engine::instance->running_game;
-        const glm::vec2  cam_pos = game->Get_Camera_Position(); 
-        const glm::ivec2 cam_dim = game->Get_Camera_Dimension(); 
+        const glm::vec2  cam_pos = game->Get_Camera_Position();
+        const glm::ivec2 cam_dim = game->Get_Camera_Dimension();
         const float      zoom = game->Get_Zoom_Factor();
 
         const float half_w = (cam_dim.x * 0.5f) / (ppm * zoom);
@@ -78,7 +78,7 @@ namespace {
         const float cam_min_y = cam_pos.y - half_h;
         const float cam_max_y = cam_pos.y + half_h;
 
-        const float pad = 0.2f; 
+        const float pad = 0.2f;
         const float min_x = aabb.min.x() - pad;
         const float max_x = aabb.max.x() + pad;
         const float min_y = aabb.min.y() - pad;
@@ -103,69 +103,10 @@ void DrawBodyComponent::On_Update()
     if (Input::GetKey(SDL_SCANCODE_D)) dir += Vector2(1.0f, 0.0f);
     move_dir = dir;
 
-    //auto transform = this->holder_object->Get_Transform().lock();
-    //if (holder_object->ID == 44) {
-    //    auto bodies = Engine::instance->running_game->Find_All_GameObjects_By_Name("Body");
-    //    for (std::weak_ptr<GameObject> p : bodies) {
-    //        std::shared_ptr<GameObject> object = p.lock();
-    //        //std::cout << object->ID << std::endl;
-    //        if (object->ID == holder_object->ID)continue;
-    //        auto comp = std::dynamic_pointer_cast<DrawBodyComponent>(object->Get_Component("DrawBodyComponent").lock());
-    //        if (comp->body) {
-    //            Vector2 normal;
-    //            float depth;
-    //            auto& my_fixture = body->GetFixtures().front();
-    //            auto& other_fixture = comp->body->GetFixtures().front();
-    //            if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle) {
-    //                if (FlatPhysics::Collision::IntersectCircles(body->GetPosition(), my_fixture->GetShape().AsCircle()->radius, comp->body->GetPosition(), other_fixture->GetShape().AsCircle()->radius, &normal, &depth)) {
-    //                    std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID << std::endl;
-    //                    comp->body->Move(normal * depth);
-    //                }
-    //            }
-    //            else if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon) {
-    //                Vector2 normal;
-    //                float depth;
-    //                auto my_vertices = my_fixture->GetShape().AsPolygon()->vertices;
-    //                auto other_vertices = other_fixture->GetShape().AsPolygon()->vertices;
-    //                auto my_transform = body->GetTransform();
-    //                auto other_transform = comp->body->GetTransform();
-    //                if (FlatPhysics::Collision::IntersectPolygons(FlatPhysics::FlatTransform::TransformVectors(my_vertices,my_transform), FlatPhysics::FlatTransform::TransformVectors(other_vertices, other_transform),&normal,&depth)) {
-    //                    std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID <<" Polygon" <<std::endl;
-    //                    comp->body->Move(normal * depth);
-    //                }
-    //            }
-    //            else if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle) {
-    //                Vector2 normal;
-    //                float depth;
-    //                auto my_vertices = my_fixture->GetShape().AsPolygon()->vertices;
-    //                auto circle = comp->body->GetFixtures().front()->GetShape().AsCircle();
-    //                auto my_transform = body->GetTransform();
-    //                auto other_transform = comp->body->GetTransform();
-    //                if (FlatPhysics::Collision::IntersectCirclePolygon(FlatPhysics::FlatTransform::TransformVector(circle->center,other_transform),circle->radius, FlatPhysics::FlatTransform::TransformVectors(my_vertices, my_transform), &normal, &depth)) {
-    //                    std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID << " Circle" << std::endl;
-    //                    comp->body->Move(-normal * depth);
-    //                }
-    //            }
-    //            else if (body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Circle && comp->body->GetFixtures().front()->GetShapeType() == FlatPhysics::ShapeType::Polygon) {
-    //                Vector2 normal;
-    //                float depth;
-    //                auto other_vertices = other_fixture->GetShape().AsPolygon()->vertices;
-    //                auto circle = my_fixture->GetShape().AsCircle();
-    //                auto my_transfrom = body->GetTransform();
-    //                auto other_transform = comp->body->GetTransform();
-    //                if (FlatPhysics::Collision::IntersectCirclePolygon(FlatPhysics::FlatTransform::TransformVector(circle->center,my_transfrom), circle->radius, FlatPhysics::FlatTransform::TransformVectors(other_vertices, other_transform), &normal, &depth)) {
-    //                    std::cout << "Collision between Body " << holder_object->ID << " and " << comp->holder_object->ID << " Circle" << std::endl;
-    //                    comp->body->Move(normal * depth);
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
-    if(this->holder_object->ID == 5)DrawTime();
+    if (this->holder_object->ID == 5)DrawTime();
     DrawBody();
     DrawAABB();
     DrawContactPoints();
-    //std::cout << transform->Get_World_Position().x() << " " << transform->Get_World_Position().y() << std::endl;
 }
 
 void DrawBodyComponent::On_Start()
@@ -175,7 +116,7 @@ void DrawBodyComponent::On_Start()
     if (shape == "Box") {
         is_static = true;
     }
-	auto transform = this->holder_object->Get_Transform().lock();
+    auto transform = this->holder_object->Get_Transform().lock();
     FlatPhysics::BodyDef bodyDef;
     bodyDef.position = transform->Get_World_Position();
     bodyDef.linear_damping = 0.2f;
@@ -196,7 +137,7 @@ void DrawBodyComponent::On_Start()
         body->CreateFixture(fixtureDef);
 
     }
-	else if (shape == "Polygon") {
+    else if (shape == "Polygon") {
         const float s = 0.2f;
         std::vector<Vector2> poly;
         poly.emplace_back(-s, -s);
@@ -214,7 +155,7 @@ void DrawBodyComponent::On_Start()
 
         body->CreateFixture(fixtureDef);
     }
-	else {
+    else {
         std::unique_ptr<FlatPhysics::CircleShape> circle_shape = std::make_unique<FlatPhysics::CircleShape>(Vector2::Zero(), 0.2f);
 
         FlatPhysics::FixtureDef fixtureDef;
@@ -224,7 +165,7 @@ void DrawBodyComponent::On_Start()
         fixtureDef.friction = 1.0f;
 
         body->CreateFixture(fixtureDef);
-	}
+    }
 
     //if (holder_object->ID >= 8) {
     //    auto sb = Engine::instance->running_game->Find_All_GameObjects_By_Name("Body");
@@ -354,7 +295,7 @@ void DrawBodyComponent::DrawBody()
             int pr, pg, pb;
             PastelColorFromID(holder_object->ID, pr, pg, pb);
 
-            Engine::instance->renderer->draw_polygon(vertices, body->GetPosition(), body->GetAngle(), pr, pg, pb, 255, false);
+            Engine::instance->renderer->draw_polygon(vertices, body->GetPosition(), body->GetAngle(), pr, pg, pb, 255, true);
             break;
         }
         }
@@ -366,7 +307,7 @@ void DrawBodyComponent::MoveFirstBody()
     if (holder_object->ID != 7)return;
     float len = move_dir.Length();
     if (len > 0.0f) {
-        move_dir = move_dir * (1.0f / len);               
+        move_dir = move_dir * (1.0f / len);
         const Vector2 delta = move_dir * 2.5;
         //body->Move(delta * Engine::instance->running_game->Delta_Time()); 
         body->AddForce(delta);
@@ -400,7 +341,7 @@ void DrawBodyComponent::DrawAABB()
 void DrawBodyComponent::DrawTime()
 {
     auto dimension = Engine::instance->running_game->Get_Camera_Dimension();
-    Engine::instance->renderer->draw_text("NotoSans-Regular", "FPS: " + std::to_string(fps), 24, {0,0,0},dimension.x / 200,dimension.y/20 );
+    Engine::instance->renderer->draw_text("NotoSans-Regular", "FPS: " + std::to_string(fps), 24, { 0,0,0 }, dimension.x / 200, dimension.y / 20);
     Engine::instance->renderer->draw_text("NotoSans-Regular", "Physics Step Time: " + std::to_string(physics_step_time) + " ms", 24, { 0,0,0 }, dimension.x / 200, dimension.y / 12);
     Engine::instance->renderer->draw_text("NotoSans-Regular", "Physics FPS: " + std::to_string(physics_fps), 24, { 0,0,0 }, dimension.x / 200, dimension.y / 8.5);
     Engine::instance->renderer->draw_text("NotoSans-Regular", "Current Bodies: " + std::to_string(active_body), 24, { 0,0,0 }, dimension.x / 200, dimension.y / 6.7);
